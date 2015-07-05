@@ -21,6 +21,8 @@ namespace WebsiteRipper
         public Uri NewUrl { get; private set; }
         public Uri OriginalUrl { get; private set; }
 
+        public DateTime LastModified { get; private set; }
+
         internal Resource(Ripper ripper, Uri url, bool hyperlink = true)
         {
             if (ripper == null) throw new ArgumentNullException("ripper");
@@ -34,11 +36,13 @@ namespace WebsiteRipper
             try
             {
                 _httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                LastModified = _httpWebResponse.LastModified;
             }
             catch (Exception exception)
             {
                 var webException = exception as WebException;
                 _httpWebResponse = webException != null ? (HttpWebResponse)webException.Response : null;
+                LastModified = _httpWebResponse != null ? _httpWebResponse.LastModified : DateTime.Now;
                 url = _httpWebResponse != null ? _httpWebResponse.ResponseUri : url;
                 _parser = Parser.CreateDefault(_httpWebResponse != null ? _httpWebResponse.ContentType : null, url);
                 OriginalUrl = url;

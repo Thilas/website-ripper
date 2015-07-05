@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using WebsiteRipper.Parsers;
 
-namespace WebsiteRipper.Internal
+namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsReference : Reference
     {

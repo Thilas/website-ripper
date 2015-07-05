@@ -7,6 +7,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using WebsiteRipper.Core;
 using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper
@@ -26,31 +27,14 @@ namespace WebsiteRipper
         public Resource Resource { get; private set; }
         public string RootPath { get; private set; }
 
-        public CultureInfo[] Languages { get; private set; }
-
-        private static IEnumerable<string> GetPreferredLanguages(CultureInfo language)
-        {
-            while (!string.IsNullOrEmpty(language.IetfLanguageTag))
-            {
-                yield return language.IetfLanguageTag;
-                language = language.Parent;
-            }
-        }
+        public IEnumerable<CultureInfo> Languages { get; private set; }
 
         string _preferredLanguages = null;
         internal string PreferredLanguages
         {
             get
             {
-                if (_preferredLanguages != null) return _preferredLanguages;
-                var languages = Languages.SelectMany(GetPreferredLanguages).ToList();
-                var qualityDecrement = 1.0 / (languages.Count + 1);
-                var numberFormatInfo = new NumberFormatInfo() { NumberDecimalSeparator = "." };
-                _preferredLanguages = string.Join(",", languages.Select((language, number) =>
-                {
-                    var quality = 1.0 - number * qualityDecrement;
-                    return string.Format(number == 0 ? "{0}" : "{0};q={1}", language, quality.ToString(numberFormatInfo));
-                }));
+                if (_preferredLanguages == null) _preferredLanguages = Tools.GetPreferredLanguages(Languages);
                 return _preferredLanguages;
             }
         }
@@ -77,24 +61,23 @@ namespace WebsiteRipper
         CancellationTokenSource _cancellationTokenSource;
         internal CancellationToken CancellationToken { get; private set; }
 
-        static CultureInfo[] GetDefaultLanguages()
+        static IEnumerable<CultureInfo> GetDefaultLanguages()
         {
-            var defaultLanguages = new[] { CultureInfo.CurrentUICulture, CultureInfo.GetCultureInfoByIetfLanguageTag("en-US") };
-            return defaultLanguages.Distinct().ToArray();
+            var defaultLanguages = new[] { CultureInfo.CurrentUICulture, new CultureInfo("en-US") };
+            return defaultLanguages.Distinct();
         }
 
         public Ripper(string url, string rootPath) : this(url, rootPath, GetDefaultLanguages()) { }
 
         public Ripper(string url, string rootPath, CultureInfo language) : this(url, rootPath, new[] { language }) { }
 
-        public Ripper(string url, string rootPath, CultureInfo[] languages)
+        public Ripper(string url, string rootPath, IEnumerable<CultureInfo> languages)
         {
             if (string.IsNullOrEmpty(url)) throw new ArgumentNullException("url");
-            if (string.IsNullOrEmpty(rootPath)) throw new ArgumentNullException("rootPath");
             if (languages == null) throw new ArgumentNullException("languages");
             // TODO: Check ServicePointManager.DefaultConnectionLimit
             ServicePointManager.DefaultConnectionLimit = 1000;
-            RootPath = Path.GetFullPath(rootPath);
+            RootPath = Path.GetFullPath(rootPath ?? ".");
             Languages = languages;
             Timeout = 30000;
             IsBase = false;
@@ -125,7 +108,10 @@ namespace WebsiteRipper
             }
             finally
             {
-                foreach (var resource in _resources.Keys) resource.Dispose();
+                lock (_urls)
+                {
+                    foreach (var resource in _resources.Keys) resource.Dispose();
+                }
             }
         }
 

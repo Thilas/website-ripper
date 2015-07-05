@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using WebsiteRipper.Internal;
+using WebsiteRipper.Core;
 
 namespace WebsiteRipper.Parsers
 {

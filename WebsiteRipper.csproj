@@ -33,6 +33,10 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine, Version=2.0.35.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>packages\CommandLineParser.2.0.35-alpha\lib\net45\CommandLine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ExCSS">
       <HintPath>packages\ExCSS.2.0.6\lib\net45\ExCSS.dll</HintPath>
     </Reference>
@@ -48,18 +52,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandLine\Verb.cs" />
+    <Compile Include="CommandLine\ProgressConsole.cs" />
+    <Compile Include="CommandLine\RipVerb.cs" />
+    <Compile Include="CommandLine\UpdateVerb.cs" />
+    <Compile Include="CommandLine\VerbOperationException.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
-    <Compile Include="Internal\DefaultExtensions.cs" />
-    <Compile Include="Internal\DefaultExtensionsRipper.cs" />
+    <Compile Include="Extensions\TypeExtensions.cs" />
+    <Compile Include="DefaultExtensions.cs" />
+    <Compile Include="Core\DefaultExtensionsRipper.cs" />
     <Compile Include="DownloadProgressChangedEventArgs.cs" />
-    <Compile Include="Internal\MimeType.cs" />
+    <Compile Include="MimeType.cs" />
+    <Compile Include="Core\Tools.cs" />
     <Compile Include="Parsers\Html\DuplicateBaseHtmlElementException.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Parsers\Css\ImportRuleReference.cs" />
     <Compile Include="Parsers\Css\PrimitiveTermReference.cs" />
-    <Compile Include="Internal\DefaultExtensionsParser.cs" />
-    <Compile Include="Internal\DefaultExtensionsReference.cs" />
+    <Compile Include="Core\DefaultExtensionsParser.cs" />
+    <Compile Include="Core\DefaultExtensionsReference.cs" />
     <Compile Include="Parsers\Html\FullHtmlReferenceType.cs" />
     <Compile Include="Parsers\Html\FullHtmlReferenceTypeComparer.cs" />
     <Compile Include="Parsers\Html\HtmlReferenceAttribute.cs" />
@@ -92,9 +103,15 @@
     <Compile Include="Parsers\Xml\XmlParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Resource.cs" />
     <Compile Include="ResourceUnavailableException.cs" />
     <Compile Include="Ripper.cs" />
+    <Compile Include="Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -105,6 +122,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

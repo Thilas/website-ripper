@@ -4,7 +4,7 @@ namespace WebsiteRipper
 {
     public sealed class ResourceUnavailableException : Exception
     {
-        public readonly Resource Resource;
+        public Resource Resource { get; private set; }
 
         internal ResourceUnavailableException(Resource resource, Exception innerException)
             : base(null, innerException)
@@ -12,12 +12,6 @@ namespace WebsiteRipper
             Resource = resource;
         }
 
-        public override string Message
-        {
-            get
-            {
-                return string.Format("Resource unavailable: {0}", Resource.OriginalUrl);
-            }
-        }
+        public override string Message { get { return string.Format("Resource unavailable: {0}", Resource.OriginalUrl); } }
     }
 }
