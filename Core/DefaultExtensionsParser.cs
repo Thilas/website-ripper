@@ -6,7 +6,7 @@ using System.Xml;
 using WebsiteRipper.Parsers;
 using WebsiteRipper.Parsers.Xml;
 
-namespace WebsiteRipper.Internal
+namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsParser : XmlParser
     {

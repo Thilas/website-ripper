@@ -7,7 +7,7 @@ namespace WebsiteRipper.Parsers.Html
 {
     public abstract class HtmlReference : Reference
     {
-        static readonly Lazy<Dictionary<string, FullHtmlReferenceType[]>> _htmlReferenceTypes = new Lazy<Dictionary<string, FullHtmlReferenceType[]>>(() =>
+        static readonly Lazy<Dictionary<string, IEnumerable<FullHtmlReferenceType>>> _htmlReferenceTypes = new Lazy<Dictionary<string, IEnumerable<FullHtmlReferenceType>>>(() =>
         {
             var htmlReferenceType = typeof(HtmlReference);
             var htmlReferenceConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(HtmlNode), typeof(string) };
@@ -23,13 +23,13 @@ namespace WebsiteRipper.Parsers.Html
                     StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(
                     group => group.Key,
-                    group => group.Distinct(FullHtmlReferenceTypeComparer.Comparer).ToArray(),
+                    group => group.Distinct(FullHtmlReferenceTypeComparer.Comparer).ToList().AsEnumerable(),
                     StringComparer.OrdinalIgnoreCase);
         });
 
         internal static IEnumerable<Reference> Create(Parser parser, HtmlNode node)
         {
-            FullHtmlReferenceType[] fullHtmlReferences;
+            IEnumerable<FullHtmlReferenceType> fullHtmlReferences;
             if (!_htmlReferenceTypes.Value.TryGetValue(node.Name, out fullHtmlReferences)) return Enumerable.Empty<Reference>();
             return fullHtmlReferences
                 .Select(fullHtmlReference => (Reference)Activator.CreateInstance(fullHtmlReference.Type, parser, fullHtmlReference.Kind, node, fullHtmlReference.AttributeName));

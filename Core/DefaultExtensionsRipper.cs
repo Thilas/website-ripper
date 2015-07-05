@@ -7,11 +7,11 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebsiteRipper.Parsers;
 
-namespace WebsiteRipper.Internal
+namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsRipper : Ripper
     {
-        public async static Task<MimeType[]> GetIanaDefaultExtensions()
+        public async static Task<DefaultExtensions> GetIanaDefaultExtensions(string mediaTypesUrl)
         {
             // Parse mime types from IANA web site
             var defaultExtensionsParserType = typeof(DefaultExtensionsParser);
@@ -26,25 +26,13 @@ namespace WebsiteRipper.Internal
             File.Delete(rootPath);
             try
             {
-                // TODO: Use setting instead of constant
-                const string MediaTypesUrl = "http://www.iana.org/assignments/media-types/";
-                const string MediaTypesPage = "media-types.xml";
-                var ripper = new DefaultExtensionsRipper(MediaTypesUrl, MediaTypesPage, rootPath)
-                {
-                    Timeout = 3000
-                };
+                var ripper = new DefaultExtensionsRipper(mediaTypesUrl, rootPath);
                 await ripper.RipAsync(RipMode.Create);
-                IEnumerable<MimeType> defaultExtensions;
                 // TODO: Read files asynchronously while ripping them
                 lock (_templates)
                 {
-                    defaultExtensions = _templates.Select(ParseTemplate).Where(mimeType => mimeType != null);
+                    return new DefaultExtensions(_templates.Select(ParseTemplate).Where(mimeType => mimeType != null), ripper.Resource.LastModified);
                 }
-                return defaultExtensions.ToArray();
-            }
-            catch
-            {
-                return new MimeType[] { };
             }
             finally
             {
@@ -82,8 +70,8 @@ namespace WebsiteRipper.Internal
                 var fileExtensions = GetFileExtensionsMatches(fileExtensionsMatch.Groups["extensions"].Value).OfType<Match>()
                     .SelectMany(match => match.Groups["extensions"].Captures.OfType<Capture>())
                     .Select(capture => capture.Value).Distinct(StringComparer.OrdinalIgnoreCase)
-                    .Select(extension => string.Format(".{0}", extension.ToLowerInvariant())).ToArray();
-                if (fileExtensions.Length > 8) return mimeType;
+                    .Select(extension => string.Format(".{0}", extension.ToLowerInvariant())).ToList();
+                if (fileExtensions.Count > 8) return mimeType;
                 return mimeType.SetExtensions(fileExtensions);
             }
         }
@@ -113,15 +101,11 @@ namespace WebsiteRipper.Internal
             return _extensionsRegex.Value.Matches(fileExtensions);
         }
 
-        static string GetExtensionFromQuotedString(string extension)
+        DefaultExtensionsRipper(string mediaTypesUrl, string rootPath)
+            : base(mediaTypesUrl, rootPath, DefaultExtensions.Language)
         {
-            extension = extension.Substring(1, extension.Length - 2);
-            if (!extension.StartsWith(".")) extension = string.Format(".{0}", extension);
-            return extension;
+            Timeout = DefaultExtensions.Timeout;
         }
-
-        DefaultExtensionsRipper(string mediaTypesUrl, string mediaTypesPage, string rootPath)
-            : base(string.Format("{0}{1}", mediaTypesUrl, mediaTypesPage), rootPath) { }
 
         internal sealed override Resource GetSubResource(int depth, Resource resource, Reference reference)
         {
@@ -134,15 +118,6 @@ namespace WebsiteRipper.Internal
                 if (!_templates.ContainsKey(subResource.NewUrl.LocalPath)) _templates.Add(subResource.NewUrl.LocalPath, defaultExtensionsReference.MimeType);
             }
             return subResource;
-            //var localPath = Path.Combine(new Uri(resource.NewUrl, resource.OriginalUrl.MakeRelativeUri(reference.GetAbsoluteUrl(resource))).LocalPath, "default.txt");
-            //if (!File.Exists(localPath)) localPath = Path.ChangeExtension(localPath, ".htm");
-            //if (!File.Exists(localPath)) localPath = Path.ChangeExtension(localPath, ".hxd");
-            //if (!File.Exists(localPath)) throw new Exception();
-            //lock (_templates)
-            //{
-            //    if (!_templates.ContainsKey(localPath)) _templates.Add(localPath, defaultExtensionsReference.MimeType);
-            //}
-            //return null;
         }
     }
 }
