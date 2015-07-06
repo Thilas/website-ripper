@@ -91,7 +91,6 @@ namespace WebsiteRipper
         {
             if (rootPath == null) throw new ArgumentNullException("rootPath");
             if (languages == null) throw new ArgumentNullException("languages");
-            // TODO: Check ServicePointManager.DefaultConnectionLimit
             ServicePointManager.DefaultConnectionLimit = 1000;
             RootPath = Path.GetFullPath(rootPath);
             Languages = languages;
