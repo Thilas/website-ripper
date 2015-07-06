@@ -40,7 +40,9 @@ namespace WebsiteRipper.CommandLine
 
         RipMode RipMode { get { return Overwrite ? RipMode.Create : RipMode.Create; } }
 
-        [Option('t', "timeout", Default = 30, HelpText = "Time-out value in seconds for each download")]
+        const int TimeoutMultiplier = 1000;
+
+        [Option('t', "timeout", Default = DefaultExtensions.Timeout / TimeoutMultiplier, HelpText = "Time-out value in seconds for each download")]
         public int Timeout { get; set; }
 
         [Option('b', "isBase", Default = false, HelpText = "Download resources below base url only")]
@@ -58,24 +60,18 @@ namespace WebsiteRipper.CommandLine
         {
             var languages = Languages;
             var ripper = languages == null ? new Ripper(Url, Output) : new Ripper(Url, Output, languages);
-            ripper.Timeout = (int)TimeSpan.FromSeconds(Timeout).TotalMilliseconds;
+            ripper.Timeout = Timeout * TimeoutMultiplier;
             ripper.IsBase = IsBase;
             ripper.MaxDepth = MaxDepth;
             ripper.IncludePattern = Include;
 
-            if (!Silent)
-            {
-                Console.WriteLine("Rip website: {0}", Url);
-                Console.WriteLine("to: {0}", ripper.Resource.NewUrl);
-            }
+            Console.WriteLine("Rip website: {0}", Url);
+            Console.WriteLine("to: {0}", ripper.Resource.NewUrl);
             var rippingTask = ripper.RipAsync(RipMode);
-            _progressConsole = new ProgressConsole(Silent, rippingTask, () =>
+            _progressConsole = new ProgressConsole(rippingTask, () =>
             {
-                if (!Silent)
-                {
-                    Console.WriteLine("Ripping {0}", rippingTask.IsCanceled || rippingTask.IsFaulted ? rippingTask.Status.ToString() : "completed");
-                    if (rippingTask.IsFaulted) Console.Error.WriteLine("Fault: {0}", rippingTask.Exception);
-                }
+                Console.WriteLine("Ripping {0}", rippingTask.IsCanceled || rippingTask.IsFaulted ? rippingTask.Status.ToString() : "completed");
+                if (rippingTask.IsFaulted) Console.Error.WriteLine("Fault: {0}", rippingTask.Exception);
             }, () =>
             {
                 ripper.Cancel();

@@ -18,7 +18,7 @@ namespace WebsiteRipper
         static readonly string _rootPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
         internal static readonly CultureInfo Language = new CultureInfo("en-US");
-        internal const int Timeout = 5000;
+        internal const int Timeout = 30000;
 
         const string DefaultExtensionsFile = "default.extensions";
         static readonly string _defaultExtensionsPath = Path.Combine(_rootPath, DefaultExtensionsFile);
@@ -127,7 +127,7 @@ namespace WebsiteRipper
 
         static DefaultExtensions Load(string path)
         {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+            if (path == null) throw new ArgumentNullException("path");
             using (var streamReader = new StreamReader(path, Encoding.Default))
             {
                 var matches = _defaultExtensionsRegex.Value.Matches(streamReader.ReadToEnd());
@@ -151,7 +151,7 @@ namespace WebsiteRipper
 
         DefaultExtensions Save(string path)
         {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+            if (path == null) throw new ArgumentNullException("path");
             const int MimeTypeWidth = 48;
             const int TabulationWidth = 8;
             using (var streamWriter = new StreamWriter(path, false, Encoding.Default))

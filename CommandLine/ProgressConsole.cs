@@ -13,26 +13,21 @@ namespace WebsiteRipper.CommandLine
 
         int _lastTop = 0;
 
-        readonly bool _silent;
         readonly Task _task;
         readonly Task _reportTask;
         readonly Action _cancelAction;
 
-        public ProgressConsole(bool silent, Task task, Action reportAction, Action cancelAction)
+        public ProgressConsole(Task task, Action reportAction, Action cancelAction)
         {
             if (task == null) throw new ArgumentNullException("task");
             if (reportAction == null) throw new ArgumentNullException("reportAction");
             if (cancelAction == null) throw new ArgumentNullException("cancelAction");
-            if (!_silent) Console.CursorVisible = false;
-            _silent = silent;
+            Console.CursorVisible = false;
             _task = task;
             _reportTask = _task.ContinueWith(_ =>
             {
-                if (!_silent)
-                {
-                    Console.SetCursorPosition(_left, _top + _lastTop);
-                    Console.CursorVisible = true;
-                }
+                Console.SetCursorPosition(_left, _top + _lastTop);
+                Console.CursorVisible = true;
                 reportAction();
             });
             _cancelAction = cancelAction;
@@ -65,17 +60,14 @@ namespace WebsiteRipper.CommandLine
 
         public void WriteProgress(string item, int progress)
         {
-            if (!_silent)
+            lock (_cursorLock)
             {
-                lock (_cursorLock)
-                {
-                    var top = GetTop(item);
-                    if (top < 0) return;
-                    Console.SetCursorPosition(_left, _top + top);
-                    var stringUrl = item.MiddleTruncate(_urlTotalWidth, "...");
-                    Console.Write(_downloadProgressFormat, stringUrl, progress);
-                    if (progress == 100) ReleaseTop(item);
-                }
+                var top = GetTop(item);
+                if (top < 0) return;
+                Console.SetCursorPosition(_left, _top + top);
+                var stringUrl = item.MiddleTruncate(_urlTotalWidth, "...");
+                Console.Write(_downloadProgressFormat, stringUrl, progress);
+                if (progress == 100) ReleaseTop(item);
             }
         }
 

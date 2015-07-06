@@ -57,9 +57,6 @@ namespace WebsiteRipper.CommandLine
             return (int)exitCode;
         }
 
-        [Option('s', "silent", Default = false, HelpText = "Silent mode")]
-        public bool Silent { get; set; }
-
         abstract protected void Process();
     }
 }

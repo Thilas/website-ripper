@@ -11,7 +11,7 @@ namespace WebsiteRipper.Parsers.Html
 
         public HtmlReferenceAttribute(string attributeName, ReferenceKind kind = ReferenceKind.ExternalResource)
         {
-            if (string.IsNullOrEmpty(attributeName)) throw new ArgumentNullException("attributeName");
+            if (attributeName == null) throw new ArgumentNullException("attributeName");
             AttributeName = attributeName;
             Kind = kind;
         }

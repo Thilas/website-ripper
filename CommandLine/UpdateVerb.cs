@@ -9,9 +9,9 @@ namespace WebsiteRipper.CommandLine
     {
         protected override void Process()
         {
-            if (!Silent) Console.WriteLine("Update default extensions file");
+            Console.WriteLine("Update default extensions file");
             DefaultExtensions.Update();
-            if (!Silent) Console.WriteLine("Updating completed");
+            Console.WriteLine("Updating completed");
         }
     }
 }

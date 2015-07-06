@@ -59,30 +59,46 @@ namespace WebsiteRipper
         // TODO: Add ExcludePattern capability
 
         CancellationTokenSource _cancellationTokenSource;
-        internal CancellationToken CancellationToken { get; private set; }
+        internal CancellationToken CancellationToken { get { return _cancellationTokenSource.Token; } }
 
         static IEnumerable<CultureInfo> GetDefaultLanguages()
         {
-            var defaultLanguages = new[] { CultureInfo.CurrentUICulture, new CultureInfo("en-US") };
+            var defaultLanguages = new[] { CultureInfo.CurrentUICulture, DefaultExtensions.Language };
             return defaultLanguages.Distinct();
         }
 
-        public Ripper(string url, string rootPath) : this(url, rootPath, GetDefaultLanguages()) { }
+        public Ripper(string url, string rootPath) : this(new Uri(url), rootPath) { }
 
-        public Ripper(string url, string rootPath, CultureInfo language) : this(url, rootPath, new[] { language }) { }
+        public Ripper(string url, string rootPath, CultureInfo language) : this(new Uri(url), rootPath, language) { }
 
         public Ripper(string url, string rootPath, IEnumerable<CultureInfo> languages)
         {
-            if (string.IsNullOrEmpty(url)) throw new ArgumentNullException("url");
+            if (url == null) throw new ArgumentNullException("url");
+            Initialize(new Uri(url), rootPath, languages);
+        }
+
+        public Ripper(Uri url, string rootPath) : this(url, rootPath, GetDefaultLanguages()) { }
+
+        public Ripper(Uri url, string rootPath, CultureInfo language) : this(url, rootPath, new[] { language }) { }
+
+        public Ripper(Uri url, string rootPath, IEnumerable<CultureInfo> languages)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            Initialize(url, rootPath, languages);
+        }
+
+        void Initialize(Uri url, string rootPath, IEnumerable<CultureInfo> languages)
+        {
+            if (rootPath == null) throw new ArgumentNullException("rootPath");
             if (languages == null) throw new ArgumentNullException("languages");
             // TODO: Check ServicePointManager.DefaultConnectionLimit
             ServicePointManager.DefaultConnectionLimit = 1000;
-            RootPath = Path.GetFullPath(rootPath ?? ".");
+            RootPath = Path.GetFullPath(rootPath);
             Languages = languages;
-            Timeout = 30000;
+            Timeout = DefaultExtensions.Timeout;
             IsBase = false;
             MaxDepth = 0;
-            Resource = new Resource(this, new Uri(url));
+            Resource = new Resource(this, url);
         }
 
         public void Rip(RipMode ripMode)
@@ -99,7 +115,6 @@ namespace WebsiteRipper
             {
                 using (_cancellationTokenSource = new CancellationTokenSource())
                 {
-                    CancellationToken = _cancellationTokenSource.Token;
                     _urls.Add(Resource.OriginalUrl, Resource);
                     _resources.Add(Resource, Resource.OriginalUrl);
                     if (ripMode == RipMode.Create && Directory.Exists(RootPath)) Directory.Delete(RootPath, true);

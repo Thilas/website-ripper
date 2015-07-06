@@ -9,7 +9,7 @@ namespace WebsiteRipper.Parsers
 
         public ParserAttribute(string mimeType)
         {
-            if (string.IsNullOrEmpty(mimeType)) throw new ArgumentNullException("mimeType");
+            if (mimeType == null) throw new ArgumentNullException("mimeType");
             MimeType = mimeType;
         }
     }
