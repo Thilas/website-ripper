@@ -9,7 +9,7 @@ namespace WebsiteRipper.Core
         readonly XmlText _file;
 
         public DefaultExtensionsReference(Parser parser, string typeName, string subtypeName, XmlText file)
-            : base(parser, ReferenceKind.Hyperlink)
+            : base(parser, ReferenceKind.ExternalResource)
         {
             _mimeType = new MimeType(typeName, subtypeName);
             _file = file;
