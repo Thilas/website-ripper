@@ -22,8 +22,8 @@ namespace WebsiteRipper.Parsers.Html
                     htmlReference => new FullHtmlReferenceType(htmlReference.Type, htmlReference.Kind, htmlReference.AttributeName),
                     StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(
-                    group => group.Key,
-                    group => group.Distinct(FullHtmlReferenceTypeComparer.Comparer).ToList().AsEnumerable(),
+                    grouping => grouping.Key,
+                    grouping => grouping.Distinct(FullHtmlReferenceTypeComparer.Comparer).ToList().AsEnumerable(),
                     StringComparer.OrdinalIgnoreCase);
         });
 

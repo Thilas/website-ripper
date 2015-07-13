@@ -142,7 +142,7 @@ namespace WebsiteRipper
                         var mimeType = new MimeType(match.Groups["type"].Value.ToLowerInvariant(), match.Groups["subtype"].Value.ToLowerInvariant());
                         var captures = match.Groups["extensions"].Captures;
                         return captures.Count != 0 ?
-                            mimeType.SetExtensions(captures.Cast<Capture>().Select((capture) => string.Format(".{0}", capture.Value.ToLowerInvariant()))) :
+                            mimeType.SetExtensions(captures.Cast<Capture>().Select(capture => string.Format(".{0}", capture.Value.ToLowerInvariant()))) :
                             mimeType;
                     });
                 return new DefaultExtensions(defaultExtensions, lastModified);

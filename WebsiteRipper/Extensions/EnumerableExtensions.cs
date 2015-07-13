@@ -33,8 +33,8 @@ namespace WebsiteRipper.Extensions
             var outerLookup = outer.ToLookup(outerKeySelector, comparer);
             var innerLookup = inner.ToLookup(innerKeySelector, comparer);
 
-            var keys = new HashSet<TKey>(outerLookup.Select(p => p.Key), comparer);
-            keys.UnionWith(innerLookup.Select(p => p.Key));
+            var keys = new HashSet<TKey>(outerLookup.Select(grouping => grouping.Key), comparer);
+            keys.UnionWith(innerLookup.Select(grouping => grouping.Key));
 
             var result = from key in keys
                          from outerValue in outerLookup[key].DefaultIfEmpty(outerDefault)

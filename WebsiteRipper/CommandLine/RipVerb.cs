@@ -9,7 +9,7 @@ namespace WebsiteRipper.CommandLine
     [Verb("rip", HelpText = "Rip a website from a base url")]
     sealed class RipVerb : Verb
     {
-        [Value(0, Required = true)]
+        [Value(0, MetaName = "Url", Required = true, HelpText = "Base url of the website to rip")]
         public string Url { get; set; }
 
         [Option('o', "output", Default = ".", HelpText = "Output location")]

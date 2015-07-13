@@ -33,8 +33,9 @@ namespace WebsiteRipper.CommandLine
             try
             {
                 Parser.Default.ParseArguments(args, _verbs.Value.ToArray())
-                    .WithNotParsed(_ => exitCode = ExitCode.ArgumentsError)
-                    .WithParsed(verb => ((Verb)verb).Process());
+                    .WithParsed<Verb>(verb => verb.Process()) // TODO: Remove next line as soon as base classes are supported
+                    .WithParsed(verb => ((Verb)verb).Process())
+                    .WithNotParsed(_ => exitCode = ExitCode.ArgumentsError);
             }
             catch (VerbOperationException exception)
             {

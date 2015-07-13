@@ -23,9 +23,9 @@ namespace WebsiteRipper.Parsers.Xml
             // TODO: Xml parser
             //var a = _xmlDocument.DocumentType;
             //var b = _xmlDocument.OfType<XmlProcessingInstruction>();
-            //.Where((xmlProcessingInstruction) => string.Equals(xmlProcessingInstruction.LocalName, "xml-stylesheet"));
+            //.Where(xmlProcessingInstruction => string.Equals(xmlProcessingInstruction.LocalName, "xml-stylesheet"));
             return Enumerable.Empty<Reference>();
-            //return _xmlDocument.ChildNodes.SelectMany((node) => XmlReference.Create(this, node));
+            //return _xmlDocument.ChildNodes.SelectMany(node => XmlReference.Create(this, node));
         }
 
         protected sealed override void Save(string path)
