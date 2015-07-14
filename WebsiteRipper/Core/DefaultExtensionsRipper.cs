@@ -11,7 +11,7 @@ namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsRipper : Ripper
     {
-        public async static Task<DefaultExtensions> GetIanaDefaultExtensions(string mediaTypesUrl)
+        public async static Task<DefaultExtensions> GetIanaDefaultExtensions(Uri mediaTypesUrl)
         {
             // Parse mime types from IANA web site
             var defaultExtensionsParserType = typeof(DefaultExtensionsParser);
@@ -101,7 +101,7 @@ namespace WebsiteRipper.Core
             return _extensionsRegex.Value.Matches(fileExtensions);
         }
 
-        DefaultExtensionsRipper(string mediaTypesUrl, string rootPath)
+        DefaultExtensionsRipper(Uri mediaTypesUrl, string rootPath)
             : base(mediaTypesUrl, rootPath, DefaultExtensions.Language)
         {
             Timeout = DefaultExtensions.Timeout;

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
+using WebsiteRipper.Downloaders;
 using WebsiteRipper.Extensions;
 using WebsiteRipper.Parsers;
 
@@ -16,7 +16,7 @@ namespace WebsiteRipper
         readonly Ripper _ripper;
         readonly bool _hyperlink;
 
-        HttpWebResponse _httpWebResponse = null;
+        Downloader _downloader = null;
 
         public Uri NewUrl { get; private set; }
         public Uri OriginalUrl { get; private set; }
@@ -29,29 +29,30 @@ namespace WebsiteRipper
             if (url == null) throw new ArgumentNullException("url");
             _ripper = ripper;
             _hyperlink = hyperlink;
-            // TODO: Handle other protocols
-            var httpWebRequest = WebRequest.CreateHttp(url);
-            httpWebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, ripper.PreferredLanguages);
-            httpWebRequest.Timeout = ripper.Timeout;
+            _downloader = Downloader.Create(url, ripper.Timeout, ripper.PreferredLanguages);
             try
             {
-                _httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                LastModified = _httpWebResponse.LastModified;
+                _downloader.SendRequest();
+                LastModified = _downloader.LastModified;
             }
             catch (Exception exception)
             {
-                var webException = exception as WebException;
-                _httpWebResponse = webException != null ? (HttpWebResponse)webException.Response : null;
-                LastModified = _httpWebResponse != null ? _httpWebResponse.LastModified : DateTime.Now;
-                url = _httpWebResponse != null ? _httpWebResponse.ResponseUri : url;
-                _parser = Parser.CreateDefault(_httpWebResponse != null ? _httpWebResponse.ContentType : null, url);
+#if DEBUG
+                var webException = exception as System.Net.WebException;
+                //  Debug test to catch all exceptions but HTTP status 404
+                if (webException == null || ((System.Net.HttpWebResponse)webException.Response).StatusCode != System.Net.HttpStatusCode.NotFound)
+                    webException = null; // Add a breakpoint here
+#endif
+                if (!_downloader.SetResponse(exception)) Dispose();
+                LastModified = _downloader != null ? _downloader.LastModified : DateTime.Now;
+                url = _downloader != null ? _downloader.ResponseUri : url;
+                _parser = Parser.CreateDefault(_downloader != null ? _downloader.ContentType : null, url);
                 OriginalUrl = url;
                 NewUrl = GetNewUrl(url);
-                //Dispose();
                 throw new ResourceUnavailableException(this, exception);
             }
-            url = _httpWebResponse.ResponseUri;
-            _parser = Parser.Create(_httpWebResponse.ContentType);
+            url = _downloader.ResponseUri;
+            _parser = Parser.Create(_downloader.ContentType);
             OriginalUrl = url;
             NewUrl = GetNewUrl(url);
         }
@@ -66,9 +67,9 @@ namespace WebsiteRipper
 
         internal void Dispose()
         {
-            if (_httpWebResponse == null) return;
-            _httpWebResponse.Dispose();
-            _httpWebResponse = null;
+            if (_downloader == null) return;
+            _downloader.Dispose();
+            _downloader = null;
         }
 
         Uri GetNewUrl(Uri url)
@@ -126,20 +127,20 @@ namespace WebsiteRipper
 
         async Task<bool> DownloadAsync(RipMode ripMode)
         {
-            if (_httpWebResponse == null) return false;
+            if (_downloader == null) return false;
             try
             {
                 var path = NewUrl.LocalPath;
-                if (ripMode != RipMode.Create && File.Exists(path) && File.GetLastWriteTime(path) >= _httpWebResponse.LastModified) return false;
+                if (ripMode != RipMode.Create && File.Exists(path) && File.GetLastWriteTime(path) >= _downloader.LastModified) return false;
                 var parentPath = Path.GetDirectoryName(path);
                 if (parentPath != null) Directory.CreateDirectory(parentPath);
-                using (var responseStream = _httpWebResponse.GetResponseStream())
+                using (var responseStream = _downloader.GetResponseStream())
                 {
                     try
                     {
                         using (var writer = new FileStream(path, ripMode == RipMode.Create ? FileMode.CreateNew : FileMode.Create, FileAccess.Write))
                         {
-                            var totalBytesToReceive = _httpWebResponse.ContentLength;
+                            var totalBytesToReceive = _downloader.ContentLength;
                             var progress = totalBytesToReceive > 0 ? new Progress<long>(bytesReceived =>
                             {
                                 _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUrl, bytesReceived, totalBytesToReceive));

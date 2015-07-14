@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using WebsiteRipper.Core;
+using WebsiteRipper.Downloaders;
 using WebsiteRipper.Extensions;
 using WebsiteRipper.Properties;
 
@@ -17,13 +18,16 @@ namespace WebsiteRipper
     {
         static readonly string _rootPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-        internal static readonly CultureInfo Language = new CultureInfo("en-US");
+        static readonly CultureInfo _language = new CultureInfo("en-US");
+        internal static CultureInfo Language { get { return _language; } }
+
         internal const int Timeout = 30000;
 
         const string DefaultExtensionsFile = "default.extensions";
         static readonly string _defaultExtensionsPath = Path.Combine(_rootPath, DefaultExtensionsFile);
 
-        internal static readonly string ExtensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\.,{0}\p{{Z}}]+", Regex.Escape(string.Join(string.Empty, new char[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
+        static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\.,{0}\p{{Z}}]+", Regex.Escape(string.Join(string.Empty, new char[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
+        internal static string ExtensionRegexClass { get { return _extensionRegexClass; } }
 
         static Lazy<DefaultExtensions> _empty = new Lazy<DefaultExtensions>(() => new DefaultExtensions(Enumerable.Empty<MimeType>()));
         internal static DefaultExtensions Empty { get { return _empty.Value; } }
@@ -52,25 +56,32 @@ namespace WebsiteRipper
             return outerMimeType.SetExtensions(outerMimeType.Extensions.Union(innerMimeType.Extensions, StringComparer.OrdinalIgnoreCase));
         }
 
-        static DefaultExtensions GetDefaultExtensions(string file, string url, Func<string, DefaultExtensions> factory)
+        static DefaultExtensions GetDefaultExtensions(string file, string url, Func<Uri, DateTime?, DefaultExtensions> factory)
+        {
+            return GetDefaultExtensions(file, new Uri(url), factory);
+        }
+
+        static DefaultExtensions GetDefaultExtensions(string file, Uri url, Func<Uri, DateTime?, DefaultExtensions> factory)
         {
             var path = Path.Combine(_rootPath, file);
+            DateTime? lastModified = null;
             if (File.Exists(path))
             {
                 var defaultExtensions = Load(path);
-                var httpWebRequest = WebRequest.CreateHttp(url);
-                httpWebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, Tools.GetPreferredLanguages(Language));
-                httpWebRequest.Timeout = Timeout;
-                var httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                if (httpWebResponse.LastModified <= defaultExtensions.LastModified) return defaultExtensions;
+                using (var download = Downloader.Create(url, Timeout, Tools.GetPreferredLanguages(Language)))
+                {
+                    download.SendRequest();
+                    if (download.LastModified <= defaultExtensions.LastModified) return defaultExtensions;
+                    lastModified = download.LastModified;
+                }
             }
-            return factory(url).Save(path);
+            return factory(url, lastModified).Save(path);
         }
 
         static readonly Lazy<DefaultExtensions> _iana = new Lazy<DefaultExtensions>(() =>
         {
             const string IanaMimeTypesFile = "iana.mime.types";
-            return GetDefaultExtensions(IanaMimeTypesFile, Settings.Default.IanaMediaTypesUrl, url =>
+            return GetDefaultExtensions(IanaMimeTypesFile, Settings.Default.IanaMediaTypesUrl, (url, lastModified) =>
             {
                 var allBackup = _all;
                 _all = Empty;
@@ -89,7 +100,7 @@ namespace WebsiteRipper
         static readonly Lazy<DefaultExtensions> _apache = new Lazy<DefaultExtensions>(() =>
         {
             const string MimeTypesFile = "apache.mime.types";
-            return GetDefaultExtensions(MimeTypesFile, Settings.Default.ApacheMimeTypesUrl, url =>
+            return GetDefaultExtensions(MimeTypesFile, Settings.Default.ApacheMimeTypesUrl, (url, lastModified) =>
             {
                 // Parse mime types from Apache project's web site
                 var mimeTypesPath = Path.GetTempFileName();
@@ -97,7 +108,7 @@ namespace WebsiteRipper
                 {
                     var webClient = new WebClient();
                     webClient.DownloadFile(url, mimeTypesPath);
-                    var apache = Load(mimeTypesPath);
+                    var apache = lastModified.HasValue ? Load(mimeTypesPath, lastModified.Value) : Load(mimeTypesPath);
                     return apache;
                 }
                 finally
@@ -122,10 +133,15 @@ namespace WebsiteRipper
 
         const string LastModifiedFormat = "# Last modified: {0}";
         static Lazy<Regex> _defaultExtensionsRegex = new Lazy<Regex>(() => new Regex(
-            string.Format(@"^(?:{0}|(?:\s*#\s*)?(?<type>\S+)/(?<subtype>\S+)(?:\s+(?<extensions>{1})\b)*)$", string.Format(LastModifiedFormat, "(?<date>[^\n]+)"), ExtensionRegexClass),
+            string.Format(@"^(?:{0}|(?:\s*#\s*)?(?<type>\S+)/(?<subtype>\S+)(?:\s+(?<extensions>{1})\b)*)\r?$", string.Format(LastModifiedFormat, @"(?<date>\S+)"), ExtensionRegexClass),
             RegexOptions.Multiline | RegexOptions.Compiled));
 
         static DefaultExtensions Load(string path)
+        {
+            return Load(path, DateTime.Now);
+        }
+
+        static DefaultExtensions Load(string path, DateTime defaultLastModified)
         {
             if (path == null) throw new ArgumentNullException("path");
             using (var streamReader = new StreamReader(path, Encoding.Default))
@@ -134,7 +150,7 @@ namespace WebsiteRipper
                 var lastModifiedGroup = matches.Cast<Match>().Select(match => match.Groups["date"]).SingleOrDefault(group => group.Success);
                 DateTime lastModified;
                 if (lastModifiedGroup == null || !DateTime.TryParseExact(lastModifiedGroup.Value, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out lastModified))
-                    lastModified = DateTime.Now;
+                    lastModified = defaultLastModified;
                 var defaultExtensions = matches.Cast<Match>()
                     .Where(match => !match.Groups["date"].Success)
                     .Select(match =>

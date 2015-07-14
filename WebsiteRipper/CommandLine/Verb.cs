@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using WebsiteRipper.Extensions;
 
@@ -33,11 +32,10 @@ namespace WebsiteRipper.CommandLine
             try
             {
                 Parser.Default.ParseArguments(args, _verbs.Value.ToArray())
-                    .WithParsed<Verb>(verb => verb.Process()) // TODO: Remove next line as soon as base classes are supported
-                    .WithParsed(verb => ((Verb)verb).Process())
+                    .WithParsed<Verb>(verb => verb.Process())
                     .WithNotParsed(_ => exitCode = ExitCode.ArgumentsError);
             }
-            catch (VerbOperationException exception)
+            catch (VerbInvalidOperationException exception)
             {
                 Console.Error.WriteLine("Error: {0}", exception.Message);
                 exitCode = (ExitCode)exception.ExitCode;
