@@ -5,12 +5,14 @@ using HtmlAgilityPack;
 
 namespace WebsiteRipper.Parsers.Html
 {
-    [Parser("text/html")]
+    [Parser(MimeType)]
     public sealed class HtmlParser : Parser
     {
-        public override string DefaultFile { get { return "index.html"; } }
+        public const string MimeType = "text/html";
 
-        public override string[] OtherExtensions { get { return new[] { ".htm" }; } }
+        protected override string DefaultFileNameWithoutExtension { get { return "index"; } }
+
+        public HtmlParser(string mimeType) : base(mimeType) { }
 
         public Uri BaseUrl { get; private set; }
 

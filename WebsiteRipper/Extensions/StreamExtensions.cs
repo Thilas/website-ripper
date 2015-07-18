@@ -14,8 +14,8 @@ namespace WebsiteRipper.Extensions
             if (bufferSize <= 0) throw new ArgumentOutOfRangeException("bufferSize");
             if (!source.CanRead && !source.CanWrite) throw new ObjectDisposedException("source");
             if (!destination.CanRead && !destination.CanWrite) throw new ObjectDisposedException("destination");
-            if (!source.CanRead) throw new NotSupportedException();
-            if (!destination.CanWrite) throw new NotSupportedException();
+            if (!source.CanRead) throw new NotSupportedException("Stream does not support reading.");
+            if (!destination.CanWrite) throw new NotSupportedException("Stream does not support writing.");
             var buffer = new byte[bufferSize];
             var total = 0L;
             int count;

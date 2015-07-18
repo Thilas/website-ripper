@@ -16,7 +16,7 @@ namespace WebsiteRipper
 {
     public sealed class DefaultExtensions : IEnumerable<MimeType>
     {
-        static readonly string _rootPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        static readonly string _rootPath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 
         static readonly CultureInfo _language = new CultureInfo("en-US");
         internal static CultureInfo Language { get { return _language; } }
@@ -196,10 +196,18 @@ namespace WebsiteRipper
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public MimeType this[string mimeType] { get { return _defaultExtensions[mimeType]; } }
+        public MimeType this[string mimeTypeName]
+        {
+            get
+            {
+                if (mimeTypeName == null) throw new ArgumentNullException("mimeTypeName");
+                return _defaultExtensions[mimeTypeName];
+            }
+        }
 
         public bool TryGetDefaultExtension(string mimeTypeName, out string defaultExtension)
         {
+            if (mimeTypeName == null) throw new ArgumentNullException("mimeTypeName");
             MimeType mimeType;
             if (!_defaultExtensions.TryGetValue(mimeTypeName, out mimeType) || mimeType.Extensions == null || !mimeType.Extensions.Any())
             {
@@ -208,6 +216,14 @@ namespace WebsiteRipper
             }
             defaultExtension = mimeType.Extensions.First();
             return true;
+        }
+
+        public IEnumerable<string> GetOtherExtensions(string mimeTypeName)
+        {
+            if (mimeTypeName == null) throw new ArgumentNullException("mimeTypeName");
+            MimeType mimeType;
+            return _defaultExtensions.TryGetValue(mimeTypeName, out mimeType) && mimeType.Extensions != null && mimeType.Extensions.Any() ?
+                mimeType.Extensions.Skip(1) : Enumerable.Empty<string>();
         }
     }
 }

@@ -10,6 +10,8 @@ namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsParser : XmlParser
     {
+        public DefaultExtensionsParser(string mimeType) : base(mimeType) { }
+
         static Lazy<Regex> _subtypeNameRegex = new Lazy<Regex>(() => new Regex("^[^ ]+", RegexOptions.Compiled));
 
         protected override IEnumerable<Reference> GetReferences()

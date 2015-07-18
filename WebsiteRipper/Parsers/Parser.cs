@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Mime;
 
@@ -10,10 +11,11 @@ namespace WebsiteRipper.Parsers
         static readonly Lazy<Dictionary<string, Type>> _parserTypes = new Lazy<Dictionary<string, Type>>(() =>
         {
             var parserType = typeof(Parser);
+            var parserConstructorTypes = new[] { typeof(string) };
             var parserAttributeType = typeof(ParserAttribute);
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => !type.IsAbstract && parserType.IsAssignableFrom(type) && type.GetConstructor(Type.EmptyTypes) != null)
+                .Where(type => !type.IsAbstract && parserType.IsAssignableFrom(type) && type.GetConstructor(parserConstructorTypes) != null)
                 .SelectMany(type => ((ParserAttribute[])type.GetCustomAttributes(parserAttributeType, false))
                     .Select(parserAttribute => new { parserAttribute.MimeType, Type = type }))
                 .Distinct()
@@ -33,20 +35,43 @@ namespace WebsiteRipper.Parsers
             var mimeType = new ContentType(contentType).MediaType;
             Type parserType;
             if (!string.IsNullOrEmpty(mimeType) && ParserTypes.TryGetValue(mimeType, out parserType))
-                return (Parser)Activator.CreateInstance(parserType);
+                return (Parser)Activator.CreateInstance(parserType, mimeType);
             return new DefaultParser(mimeType, null);
         }
 
-        protected Parser()
-        {
-            AnyChange = false;
-        }
+        protected internal string ActualMimeType { get; private set; }
 
         internal bool AnyChange { get; set; }
 
-        public abstract string DefaultFile { get; }
+        protected Parser(string mimeType)
+        {
+            if (mimeType == null) throw new ArgumentNullException("mimeType");
+            ActualMimeType = mimeType;
+            AnyChange = false;
+        }
 
-        public virtual string[] OtherExtensions { get { return null; } }
+        public string DefaultFileName { get { return Path.ChangeExtension(DefaultFileNameWithoutExtension, GetDefaultExtension()); } }
+
+        protected abstract string DefaultFileNameWithoutExtension { get; }
+
+        protected virtual string GetDefaultExtension()
+        {
+            string defaultExtension;
+            if (!DefaultExtensions.All.TryGetDefaultExtension(ActualMimeType, out defaultExtension))
+                throw new NotSupportedException(string.Format("Parser does not support MIME type \"{0}\".", ActualMimeType));
+            if (string.IsNullOrEmpty(defaultExtension))
+                throw new NotSupportedException(string.Format("Parser does not support MIME type \"{0}\" with no extensions.", ActualMimeType));
+            return defaultExtension;
+        }
+
+        public IEnumerable<string> OtherExtensions
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ActualMimeType)) return Enumerable.Empty<string>();
+                return DefaultExtensions.All.GetOtherExtensions(ActualMimeType);
+            }
+        }
 
         bool _loaded = false;
 

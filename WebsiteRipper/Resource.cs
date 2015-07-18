@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,11 +13,12 @@ namespace WebsiteRipper
     {
         const int MaxPathLength = 260 - 1; // 1 is for the null terminating character
 
-        readonly Parser _parser;
         readonly Ripper _ripper;
         readonly bool _hyperlink;
 
         Downloader _downloader = null;
+
+        internal Parser Parser { get; private set; }
 
         public Uri NewUrl { get; private set; }
         public Uri OriginalUrl { get; private set; }
@@ -46,13 +48,13 @@ namespace WebsiteRipper
                 if (!_downloader.SetResponse(exception)) Dispose();
                 LastModified = _downloader != null ? _downloader.LastModified : DateTime.Now;
                 url = _downloader != null ? _downloader.ResponseUri : url;
-                _parser = Parser.CreateDefault(_downloader != null ? _downloader.ContentType : null, url);
+                Parser = Parser.CreateDefault(_downloader != null ? _downloader.ContentType : null, url);
                 OriginalUrl = url;
                 NewUrl = GetNewUrl(url);
                 throw new ResourceUnavailableException(this, exception);
             }
             url = _downloader.ResponseUri;
-            _parser = Parser.Create(_downloader.ContentType);
+            Parser = Parser.Create(_downloader.ContentType);
             OriginalUrl = url;
             NewUrl = GetNewUrl(url);
         }
@@ -81,16 +83,16 @@ namespace WebsiteRipper
                 const char SegmentSeparatorChar = '/';
                 path = url.LocalPath.Substring(1).Split(SegmentSeparatorChar).Aggregate(path, (current, component) => Path.Combine(current, CleanComponent(component)));
                 var extension = Path.GetExtension(path);
-                var defaultExtension = Path.GetExtension(_parser.DefaultFile);
-                var otherExtensions = _parser.OtherExtensions;
+                var defaultExtension = Path.GetExtension(Parser.DefaultFileName);
+                var otherExtensions = Parser.OtherExtensions;
                 if (string.IsNullOrEmpty(extension) || !string.Equals(extension, defaultExtension, StringComparison.OrdinalIgnoreCase) ||
                     otherExtensions != null && otherExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 {
-                    path = Path.Combine(path, _parser.DefaultFile);
+                    path = Path.Combine(path, Parser.DefaultFileName);
                 }
             }
             else
-                path = Path.Combine(path, _parser.DefaultFile);
+                path = Path.Combine(path, Parser.DefaultFileName);
             var totalWidth = MaxPathLength - path.Length;
             if (totalWidth < 0) throw new PathTooLongException();
             if (!string.IsNullOrEmpty(url.Query))
@@ -120,9 +122,15 @@ namespace WebsiteRipper
                 if (_ripped) return;
                 _ripped = true;
             }
+            var resources = await GetResources(ripMode, depth);
+            await Task.WhenAll(resources.Select(subResource => subResource.RipAsync(ripMode, depth)));
+        }
+
+        internal async Task<IEnumerable<Resource>> GetResources(RipMode ripMode, int depth)
+        {
             await DownloadAsync(ripMode);
             if (_hyperlink) depth++;
-            await Task.WhenAll(_parser.GetResources(_ripper, depth, this).Select(subResource => subResource.RipAsync(ripMode, depth)));
+            return Parser.GetResources(_ripper, depth, this);
         }
 
         async Task<bool> DownloadAsync(RipMode ripMode)

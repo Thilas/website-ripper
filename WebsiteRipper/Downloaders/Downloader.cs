@@ -31,7 +31,7 @@ namespace WebsiteRipper.Downloaders
             Type downloaderType;
             if (!string.IsNullOrEmpty(scheme) && DownloaderTypes.TryGetValue(scheme, out downloaderType))
                 return (Downloader)Activator.CreateInstance(downloaderType, url, timeout, preferredLanguages);
-            throw new NotSupportedException();
+            throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
         }
 
         protected WebRequest WebRequest { get; private set; }

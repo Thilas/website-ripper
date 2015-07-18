@@ -5,7 +5,7 @@ namespace WebsiteRipper.Downloaders
 {
     [Downloader("http")]
     [Downloader("https")]
-    internal sealed class HttpDownloader : Downloader
+    sealed class HttpDownloader : Downloader
     {
         protected internal override DateTime LastModified { get { return ((HttpWebResponse)WebResponse).LastModified; } }
 

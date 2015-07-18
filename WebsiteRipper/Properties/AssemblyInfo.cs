@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -33,3 +34,5 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+[assembly: InternalsVisibleTo("WebsiteRipper.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100713010b2c39ff2182c19ca6a2ac4f39d9d498b2949fa4c12afb1ee34cbdc7a92762d711bb27b7779c8ffefc37138101fea3480cb61ddd59749fbdd7054237f1be61c9699f0e18ee807603e5ad290aed257178fa5182048518f01650f4b27db63e17bb4353af58b9be841023fd2033e111ca4a444880f39e66178e481cac972a9")]

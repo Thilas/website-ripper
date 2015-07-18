@@ -19,6 +19,8 @@ namespace WebsiteRipper
         //Update
     }
 
+    // TODO: Rename Url into Uri
+
     public class Ripper
     {
         Dictionary<Uri, Resource> _urls;
@@ -59,7 +61,7 @@ namespace WebsiteRipper
         // TODO: Add ExcludePattern capability
 
         CancellationTokenSource _cancellationTokenSource;
-        internal CancellationToken CancellationToken { get { return _cancellationTokenSource.Token; } }
+        internal CancellationToken CancellationToken { get { return _cancellationTokenSource != null ? _cancellationTokenSource.Token : CancellationToken.None; } }
 
         static IEnumerable<CultureInfo> GetDefaultLanguages()
         {
@@ -107,7 +109,7 @@ namespace WebsiteRipper
 
         public async Task RipAsync(RipMode ripMode)
         {
-            if (_cancellationTokenSource != null) throw new InvalidOperationException();
+            if (_cancellationTokenSource != null) throw new InvalidOperationException("Ripping has already started.");
             _urls = new Dictionary<Uri, Resource>();
             _resources = new Dictionary<Resource, Uri>();
             try
@@ -131,7 +133,7 @@ namespace WebsiteRipper
 
         public void Cancel()
         {
-            if (_cancellationTokenSource == null) throw new InvalidOperationException();
+            if (_cancellationTokenSource == null) throw new InvalidOperationException("Ripping has not started yet.");
             _cancellationTokenSource.Cancel();
         }
 

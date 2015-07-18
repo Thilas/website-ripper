@@ -4,11 +4,17 @@ using System.Xml;
 
 namespace WebsiteRipper.Parsers.Xml
 {
-    [Parser("application/xml")]
-    [Parser("text/xml")]
+    [Parser(ApplicationMimeType)]
+    [Parser(TextMimeType)]
     public class XmlParser : Parser
     {
-        public override string DefaultFile { get { return "document.xml"; } }
+        public const string ApplicationMimeType = "application/xml";
+        public const string TextMimeType = "text/xml";
+        public const string MimeType = TextMimeType;
+
+        protected override string DefaultFileNameWithoutExtension { get { return "document"; } }
+
+        public XmlParser(string mimeType) : base(mimeType) { }
 
         protected XmlDocument XmlDocument { get; private set; }
 

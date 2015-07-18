@@ -6,10 +6,14 @@ using ExCSS;
 
 namespace WebsiteRipper.Parsers.Css
 {
-    [Parser("text/css")]
+    [Parser(MimeType)]
     public sealed class CssParser : Parser
     {
-        public override string DefaultFile { get { return "style.css"; } }
+        public const string MimeType = "text/css";
+
+        protected override string DefaultFileNameWithoutExtension { get { return "style"; } }
+
+        public CssParser(string mimeType) : base(mimeType) { }
 
         StyleSheet _styleSheet;
         Encoding _encoding;
