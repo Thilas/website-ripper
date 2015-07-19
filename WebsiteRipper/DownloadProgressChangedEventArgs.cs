@@ -5,14 +5,14 @@ namespace WebsiteRipper
 {
     public sealed class DownloadProgressChangedEventArgs : ProgressChangedEventArgs
     {
-        public Uri Url { get; private set; }
+        public Uri Uri { get; private set; }
         public long BytesReceived { get; private set; }
         public long TotalBytesToReceive { get; private set; }
 
-        internal DownloadProgressChangedEventArgs(Uri url, long bytesReceived, long totalBytesToReceive)
+        internal DownloadProgressChangedEventArgs(Uri uri, long bytesReceived, long totalBytesToReceive)
             : base(GetProgressPercentage(bytesReceived, totalBytesToReceive), null)
         {
-            Url = url;
+            Uri = uri;
             BytesReceived = bytesReceived;
             TotalBytesToReceive = totalBytesToReceive;
         }

@@ -8,9 +8,9 @@ namespace WebsiteRipper.Parsers.Html.References
     {
         public Html(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName) : base(parser, kind, node, attributeName) { }
 
-        protected override Uri GetBaseUrl(Resource resource)
+        protected override Uri GetBaseUri(Resource resource)
         {
-            return resource.OriginalUrl;
+            return resource.OriginalUri;
         }
     }
 }

@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace WebsiteRipper.CommandLine
 {
-    [Verb("rip", HelpText = "Rip a website from a base url")]
+    [Verb("rip", HelpText = "Rip a website from a base uri")]
     sealed class RipVerb : Verb
     {
-        [Value(0, MetaName = "Url", Required = true, HelpText = "Base url of the website to rip")]
-        public string Url { get; set; }
+        [Value(0, MetaName = "Uri", Required = true, HelpText = "Base uri of the website to rip")]
+        public string Uri { get; set; }
 
         [Option('o', "output", Default = ".", HelpText = "Output location")]
         public string Output { get; set; }
@@ -45,7 +45,7 @@ namespace WebsiteRipper.CommandLine
         [Option('t', "timeout", Default = DefaultExtensions.Timeout / TimeoutMultiplier, HelpText = "Time-out value in seconds for each download")]
         public int Timeout { get; set; }
 
-        [Option('b', "isBase", Default = false, HelpText = "Download resources below base url only")]
+        [Option('b', "isBase", Default = false, HelpText = "Download resources below base uri only")]
         public bool IsBase { get; set; }
 
         [Option('d', "maxDepth", Default = 0, HelpText = "Max download depth")]
@@ -59,14 +59,14 @@ namespace WebsiteRipper.CommandLine
         protected override void Process()
         {
             var languages = Languages;
-            var ripper = languages == null ? new Ripper(Url, Output) : new Ripper(Url, Output, languages);
+            var ripper = languages == null ? new Ripper(Uri, Output) : new Ripper(Uri, Output, languages);
             ripper.Timeout = Timeout * TimeoutMultiplier;
             ripper.IsBase = IsBase;
             ripper.MaxDepth = MaxDepth;
             ripper.IncludePattern = Include;
 
-            Console.WriteLine("Rip website: {0}", Url);
-            Console.WriteLine("to: {0}", ripper.Resource.NewUrl);
+            Console.WriteLine("Rip website: {0}", Uri);
+            Console.WriteLine("to: {0}", ripper.Resource.NewUri);
             var rippingTask = ripper.RipAsync(RipMode);
             _progressConsole = new ProgressConsole(rippingTask, () =>
             {
@@ -83,7 +83,7 @@ namespace WebsiteRipper.CommandLine
 
         void ripper_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            _progressConsole.WriteProgress(string.Format("- {0}", e.Url), e.ProgressPercentage);
+            _progressConsole.WriteProgress(string.Format("- {0}", e.Uri), e.ProgressPercentage);
         }
     }
 }

@@ -56,38 +56,38 @@ namespace WebsiteRipper
             return outerMimeType.SetExtensions(outerMimeType.Extensions.Union(innerMimeType.Extensions, StringComparer.OrdinalIgnoreCase));
         }
 
-        static DefaultExtensions GetDefaultExtensions(string file, string url, Func<Uri, DateTime?, DefaultExtensions> factory)
+        static DefaultExtensions GetDefaultExtensions(string file, string uri, Func<Uri, DateTime?, DefaultExtensions> factory)
         {
-            return GetDefaultExtensions(file, new Uri(url), factory);
+            return GetDefaultExtensions(file, new Uri(uri), factory);
         }
 
-        static DefaultExtensions GetDefaultExtensions(string file, Uri url, Func<Uri, DateTime?, DefaultExtensions> factory)
+        static DefaultExtensions GetDefaultExtensions(string file, Uri uri, Func<Uri, DateTime?, DefaultExtensions> factory)
         {
             var path = Path.Combine(_rootPath, file);
             DateTime? lastModified = null;
             if (File.Exists(path))
             {
                 var defaultExtensions = Load(path);
-                using (var download = Downloader.Create(url, Timeout, Tools.GetPreferredLanguages(Language)))
+                using (var download = Downloader.Create(uri, Timeout, Tools.GetPreferredLanguages(Language)))
                 {
                     download.SendRequest();
                     if (download.LastModified <= defaultExtensions.LastModified) return defaultExtensions;
                     lastModified = download.LastModified;
                 }
             }
-            return factory(url, lastModified).Save(path);
+            return factory(uri, lastModified).Save(path);
         }
 
         static readonly Lazy<DefaultExtensions> _iana = new Lazy<DefaultExtensions>(() =>
         {
             const string IanaMimeTypesFile = "iana.mime.types";
-            return GetDefaultExtensions(IanaMimeTypesFile, Settings.Default.IanaMediaTypesUrl, (url, lastModified) =>
+            return GetDefaultExtensions(IanaMimeTypesFile, Settings.Default.IanaMediaTypesUri, (uri, lastModified) =>
             {
                 var allBackup = _all;
                 _all = Empty;
                 try
                 {
-                    return DefaultExtensionsRipper.GetIanaDefaultExtensions(url).Result;
+                    return DefaultExtensionsRipper.GetIanaDefaultExtensions(uri).Result;
                 }
                 finally
                 {
@@ -100,14 +100,14 @@ namespace WebsiteRipper
         static readonly Lazy<DefaultExtensions> _apache = new Lazy<DefaultExtensions>(() =>
         {
             const string MimeTypesFile = "apache.mime.types";
-            return GetDefaultExtensions(MimeTypesFile, Settings.Default.ApacheMimeTypesUrl, (url, lastModified) =>
+            return GetDefaultExtensions(MimeTypesFile, Settings.Default.ApacheMimeTypesUri, (uri, lastModified) =>
             {
                 // Parse mime types from Apache project's web site
                 var mimeTypesPath = Path.GetTempFileName();
                 try
                 {
                     var webClient = new WebClient();
-                    webClient.DownloadFile(url, mimeTypesPath);
+                    webClient.DownloadFile(uri, mimeTypesPath);
                     var apache = lastModified.HasValue ? Load(mimeTypesPath, lastModified.Value) : Load(mimeTypesPath);
                     return apache;
                 }

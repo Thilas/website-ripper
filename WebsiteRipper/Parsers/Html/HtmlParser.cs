@@ -14,7 +14,7 @@ namespace WebsiteRipper.Parsers.Html
 
         public HtmlParser(string mimeType) : base(mimeType) { }
 
-        public Uri BaseUrl { get; private set; }
+        public Uri BaseUri { get; private set; }
 
         HtmlDocument _htmlDocument = null;
 
@@ -22,7 +22,7 @@ namespace WebsiteRipper.Parsers.Html
         {
             _htmlDocument = new HtmlDocument();
             _htmlDocument.Load(path, true);
-            BaseUrl = GetBaseUrl();
+            BaseUri = GetBaseUri();
         }
 
         protected override IEnumerable<Reference> GetReferences()
@@ -45,7 +45,7 @@ namespace WebsiteRipper.Parsers.Html
         /// Gets the unique (if it exists) base element with at least an href or a target attribute,
         /// remove the href attribute (or the whole element if no href) and returns its href value (or null if no href).
         /// </remarks>
-        Uri GetBaseUrl()
+        Uri GetBaseUri()
         {
             const string HrefAttributeName = "href";
             const string TargetAttributeName = "target";
@@ -59,14 +59,14 @@ namespace WebsiteRipper.Parsers.Html
             if (baseNode == null) return null;
             var hrefAttribute = baseNode.Attributes[HrefAttributeName];
             if (hrefAttribute == null) return null;
-            Uri baseUrl;
-            if (!Uri.TryCreate(hrefAttribute.Value, UriKind.Absolute, out baseUrl)) baseUrl = null;
+            Uri baseUri;
+            if (!Uri.TryCreate(hrefAttribute.Value, UriKind.Absolute, out baseUri)) baseUri = null;
             AnyChange = true;
             if (baseNode.Attributes[TargetAttributeName] == null)
                 baseNode.Remove();
             else
                 hrefAttribute.Remove();
-            return baseUrl;
+            return baseUri;
         }
     }
 }

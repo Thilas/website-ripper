@@ -26,18 +26,18 @@ namespace WebsiteRipper.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("http://www.iana.org/assignments/media-types/media-types.xml")]
-        public string IanaMediaTypesUrl {
+        public string IanaMediaTypesUri {
             get {
-                return ((string)(this["IanaMediaTypesUrl"]));
+                return ((string)(this["IanaMediaTypesUri"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("http://svn.apache.org/viewvc/httpd/httpd/trunk/docs/conf/mime.types?view=co")]
-        public string ApacheMimeTypesUrl {
+        public string ApacheMimeTypesUri {
             get {
-                return ((string)(this["ApacheMimeTypesUrl"]));
+                return ((string)(this["ApacheMimeTypesUri"]));
             }
         }
     }

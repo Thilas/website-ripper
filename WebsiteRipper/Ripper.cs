@@ -19,11 +19,9 @@ namespace WebsiteRipper
         //Update
     }
 
-    // TODO: Rename Url into Uri
-
     public class Ripper
     {
-        Dictionary<Uri, Resource> _urls;
+        Dictionary<Uri, Resource> _uris;
         Dictionary<Resource, Uri> _resources;
 
         public Resource Resource { get; private set; }
@@ -69,27 +67,27 @@ namespace WebsiteRipper
             return defaultLanguages.Distinct();
         }
 
-        public Ripper(string url, string rootPath) : this(new Uri(url), rootPath) { }
+        public Ripper(string uri, string rootPath) : this(new Uri(uri), rootPath) { }
 
-        public Ripper(string url, string rootPath, CultureInfo language) : this(new Uri(url), rootPath, language) { }
+        public Ripper(string uri, string rootPath, CultureInfo language) : this(new Uri(uri), rootPath, language) { }
 
-        public Ripper(string url, string rootPath, IEnumerable<CultureInfo> languages)
+        public Ripper(string uri, string rootPath, IEnumerable<CultureInfo> languages)
         {
-            if (url == null) throw new ArgumentNullException("url");
-            Initialize(new Uri(url), rootPath, languages);
+            if (uri == null) throw new ArgumentNullException("uri");
+            Initialize(new Uri(uri), rootPath, languages);
         }
 
-        public Ripper(Uri url, string rootPath) : this(url, rootPath, GetDefaultLanguages()) { }
+        public Ripper(Uri uri, string rootPath) : this(uri, rootPath, GetDefaultLanguages()) { }
 
-        public Ripper(Uri url, string rootPath, CultureInfo language) : this(url, rootPath, new[] { language }) { }
+        public Ripper(Uri uri, string rootPath, CultureInfo language) : this(uri, rootPath, new[] { language }) { }
 
-        public Ripper(Uri url, string rootPath, IEnumerable<CultureInfo> languages)
+        public Ripper(Uri uri, string rootPath, IEnumerable<CultureInfo> languages)
         {
-            if (url == null) throw new ArgumentNullException("url");
-            Initialize(url, rootPath, languages);
+            if (uri == null) throw new ArgumentNullException("uri");
+            Initialize(uri, rootPath, languages);
         }
 
-        void Initialize(Uri url, string rootPath, IEnumerable<CultureInfo> languages)
+        void Initialize(Uri uri, string rootPath, IEnumerable<CultureInfo> languages)
         {
             if (rootPath == null) throw new ArgumentNullException("rootPath");
             if (languages == null) throw new ArgumentNullException("languages");
@@ -99,7 +97,7 @@ namespace WebsiteRipper
             Timeout = DefaultExtensions.Timeout;
             IsBase = false;
             MaxDepth = 0;
-            Resource = new Resource(this, url);
+            Resource = new Resource(this, uri);
         }
 
         public void Rip(RipMode ripMode)
@@ -110,21 +108,21 @@ namespace WebsiteRipper
         public async Task RipAsync(RipMode ripMode)
         {
             if (_cancellationTokenSource != null) throw new InvalidOperationException("Ripping has already started.");
-            _urls = new Dictionary<Uri, Resource>();
+            _uris = new Dictionary<Uri, Resource>();
             _resources = new Dictionary<Resource, Uri>();
             try
             {
                 using (_cancellationTokenSource = new CancellationTokenSource())
                 {
-                    _urls.Add(Resource.OriginalUrl, Resource);
-                    _resources.Add(Resource, Resource.OriginalUrl);
+                    _uris.Add(Resource.OriginalUri, Resource);
+                    _resources.Add(Resource, Resource.OriginalUri);
                     if (ripMode == RipMode.Create && Directory.Exists(RootPath)) Directory.Delete(RootPath, true);
                     await Resource.RipAsync(ripMode, 0);
                 }
             }
             finally
             {
-                lock (_urls)
+                lock (_uris)
                 {
                     foreach (var resource in _resources.Keys) resource.Dispose();
                 }
@@ -148,43 +146,43 @@ namespace WebsiteRipper
         {
             if (resource == null) throw new ArgumentNullException("resource");
             if (reference == null) throw new ArgumentNullException("reference");
-            var subUrl = reference.GetAbsoluteUrl(resource);
-            if (subUrl == null) return null;
-            var isInScope = (subUrl.Scheme == Uri.UriSchemeHttp || subUrl.Scheme == Uri.UriSchemeHttps) && (
+            var subUri = reference.GetAbsoluteUri(resource);
+            if (subUri == null) return null;
+            var isInScope = (subUri.Scheme == Uri.UriSchemeHttp || subUri.Scheme == Uri.UriSchemeHttps) && (
                 reference.Kind == ReferenceKind.ExternalResource ||
                 (MaxDepth <= 0 || depth <= MaxDepth) && (
                     !IsBase && _includeRegex == null ||
-                    IsBase && Resource.OriginalUrl.IsBaseOf(subUrl) ||
-                    _includeRegex != null && _includeRegex.Value.IsMatch(subUrl.ToString())
+                    IsBase && Resource.OriginalUri.IsBaseOf(subUri) ||
+                    _includeRegex != null && _includeRegex.Value.IsMatch(subUri.ToString())
                 )
             );
-            var subResource = isInScope ? GetResource(subUrl, reference.Kind == ReferenceKind.Hyperlink) : null;
-            var relativeUrl = isInScope ? resource.NewUrl.MakeRelativeUri(new Uri(subResource.NewUrl, subUrl.Fragment)) : subUrl;
-            reference.Url = Uri.UnescapeDataString(relativeUrl.OriginalString);
+            var subResource = isInScope ? GetResource(subUri, reference.Kind == ReferenceKind.Hyperlink) : null;
+            var relativeUri = isInScope ? resource.NewUri.MakeRelativeUri(new Uri(subResource.NewUri, subUri.Fragment)) : subUri;
+            reference.Uri = Uri.UnescapeDataString(relativeUri.OriginalString);
             return subResource;
         }
 
-        Resource GetResource(Uri url, bool hyperlink)
+        Resource GetResource(Uri uri, bool hyperlink)
         {
             Resource resource;
-            if (_urls.TryGetValue(url, out resource)) return resource;
-            lock (_urls)
+            if (_uris.TryGetValue(uri, out resource)) return resource;
+            lock (_uris)
             {
-                if (_urls.TryGetValue(url, out resource)) return resource;
+                if (_uris.TryGetValue(uri, out resource)) return resource;
                 try
                 {
-                    resource = new Resource(this, url, hyperlink);
+                    resource = new Resource(this, uri, hyperlink);
                 }
                 catch (ResourceUnavailableException ex)
                 {
                     resource = ex.Resource;
                 }
-                Uri sameUrl;
-                if (_resources.TryGetValue(resource, out sameUrl))
-                    resource = _urls[sameUrl];
+                Uri sameUri;
+                if (_resources.TryGetValue(resource, out sameUri))
+                    resource = _uris[sameUri];
                 else
-                    _resources.Add(resource, url);
-                _urls.Add(url, resource);
+                    _resources.Add(resource, uri);
+                _uris.Add(uri, resource);
             }
             return resource;
         }

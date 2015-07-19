@@ -12,7 +12,7 @@ namespace WebsiteRipper.Parsers.Css
             _importRule = importRule;
         }
 
-        protected override string InternalUrl
+        protected override string InternalUri
         {
             get { return _importRule.Href; }
             set { _importRule.Href = value; }

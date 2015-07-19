@@ -2,9 +2,9 @@
 
 namespace WebsiteRipper.Parsers.Html.References
 {
-    //[HtmlReference("archive")] // TODO: Space-separated list of urls
+    //[HtmlReference("archive")] // TODO: Space-separated list of uris
     [HtmlReference("classId")]
-    //[HtmlReference("codeBase")] // TODO: Base url for archive, classId & data
+    //[HtmlReference("codeBase")] // TODO: Base uri for archive, classId & data
     [HtmlReference("data")]
     public sealed class Object : HtmlReference
     {

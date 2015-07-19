@@ -47,10 +47,10 @@ namespace WebsiteRipper.Tests.Fixtures
                 try
                 {
                     _locked = true;
-                    _webTests.Add(webTest.Url, webTest);
+                    _webTests.Add(webTest.Uri, webTest);
                     if (subWebTests != null)
-                        foreach (var subWebTest in subWebTests) _webTests.Add(subWebTest.Url, subWebTest);
-                    var ripper = new Ripper(webTest.Url, rootPath);
+                        foreach (var subWebTest in subWebTests) _webTests.Add(subWebTest.Uri, subWebTest);
+                    var ripper = new Ripper(webTest.Uri, rootPath);
                     var subResources = ripper.Resource.GetResources(RipMode.Create, 0).Result.ToList();
                     return selector(ripper.Resource, subResources);
                 }
@@ -65,13 +65,13 @@ namespace WebsiteRipper.Tests.Fixtures
 
         WebTest() { }
 
-        public WebRequest Create(Uri url)
+        public WebRequest Create(Uri uri)
         {
-            if (url == null) throw new ArgumentNullException("url");
+            if (uri == null) throw new ArgumentNullException("uri");
             if (!_locked) throw new NotSupportedException("WebTest does not support web request creation in the current context.");
             WebTestInfo webTest;
-            if (!_webTests.TryGetValue(url, out webTest)) throw new NotSupportedException(string.Format("WebTest does not support url \"{0}\".", url));
-            return new WebTestRequest(url, webTest);
+            if (!_webTests.TryGetValue(uri, out webTest)) throw new NotSupportedException(string.Format("WebTest does not support uri \"{0}\".", uri));
+            return new WebTestRequest(uri, webTest);
         }
     }
 }

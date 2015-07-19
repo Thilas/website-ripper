@@ -9,8 +9,8 @@ namespace WebsiteRipper.Downloaders
     {
         protected internal override DateTime LastModified { get { return ((HttpWebResponse)WebResponse).LastModified; } }
 
-        public HttpDownloader(Uri url, int timeout, string preferredLanguages)
-            : base(url, timeout, preferredLanguages)
+        public HttpDownloader(Uri uri, int timeout, string preferredLanguages)
+            : base(uri, timeout, preferredLanguages)
         {
             WebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, preferredLanguages);
         }

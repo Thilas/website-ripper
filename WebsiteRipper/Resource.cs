@@ -20,18 +20,18 @@ namespace WebsiteRipper
 
         internal Parser Parser { get; private set; }
 
-        public Uri NewUrl { get; private set; }
-        public Uri OriginalUrl { get; private set; }
+        public Uri NewUri { get; private set; }
+        public Uri OriginalUri { get; private set; }
 
         public DateTime LastModified { get; private set; }
 
-        internal Resource(Ripper ripper, Uri url, bool hyperlink = true)
+        internal Resource(Ripper ripper, Uri uri, bool hyperlink = true)
         {
             if (ripper == null) throw new ArgumentNullException("ripper");
-            if (url == null) throw new ArgumentNullException("url");
+            if (uri == null) throw new ArgumentNullException("uri");
             _ripper = ripper;
             _hyperlink = hyperlink;
-            _downloader = Downloader.Create(url, ripper.Timeout, ripper.PreferredLanguages);
+            _downloader = Downloader.Create(uri, ripper.Timeout, ripper.PreferredLanguages);
             try
             {
                 _downloader.SendRequest();
@@ -47,25 +47,25 @@ namespace WebsiteRipper
 #endif
                 if (!_downloader.SetResponse(exception)) Dispose();
                 LastModified = _downloader != null ? _downloader.LastModified : DateTime.Now;
-                url = _downloader != null ? _downloader.ResponseUri : url;
-                Parser = Parser.CreateDefault(_downloader != null ? _downloader.ContentType : null, url);
-                OriginalUrl = url;
-                NewUrl = GetNewUrl(url);
+                uri = _downloader != null ? _downloader.ResponseUri : uri;
+                Parser = Parser.CreateDefault(_downloader != null ? _downloader.ContentType : null, uri);
+                OriginalUri = uri;
+                NewUri = GetNewUri(uri);
                 throw new ResourceUnavailableException(this, exception);
             }
-            url = _downloader.ResponseUri;
+            uri = _downloader.ResponseUri;
             Parser = Parser.Create(_downloader.ContentType);
-            OriginalUrl = url;
-            NewUrl = GetNewUrl(url);
+            OriginalUri = uri;
+            NewUri = GetNewUri(uri);
         }
 
         public override bool Equals(object obj) { return Equals(obj as Resource); }
 
-        public bool Equals(Resource resource) { return resource != null && NewUrl.Equals(resource.NewUrl); }
+        public bool Equals(Resource resource) { return resource != null && NewUri.Equals(resource.NewUri); }
 
-        public override int GetHashCode() { return NewUrl.GetHashCode(); }
+        public override int GetHashCode() { return NewUri.GetHashCode(); }
 
-        public override string ToString() { return OriginalUrl.ToString(); }
+        public override string ToString() { return OriginalUri.ToString(); }
 
         internal void Dispose()
         {
@@ -74,14 +74,14 @@ namespace WebsiteRipper
             _downloader = null;
         }
 
-        Uri GetNewUrl(Uri url)
+        Uri GetNewUri(Uri uri)
         {
-            var path = url.Host.Split('.').Length != 2 ? url.Host : string.Format("www.{0}", url.Host);
+            var path = uri.Host.Split('.').Length != 2 ? uri.Host : string.Format("www.{0}", uri.Host);
             path = Path.Combine(_ripper.RootPath, CleanComponent(path));
-            if (url.LocalPath.Length > 1)
+            if (uri.LocalPath.Length > 1)
             {
                 const char SegmentSeparatorChar = '/';
-                path = url.LocalPath.Substring(1).Split(SegmentSeparatorChar).Aggregate(path, (current, component) => Path.Combine(current, CleanComponent(component)));
+                path = uri.LocalPath.Substring(1).Split(SegmentSeparatorChar).Aggregate(path, (current, component) => Path.Combine(current, CleanComponent(component)));
                 var extension = Path.GetExtension(path);
                 var defaultExtension = Path.GetExtension(Parser.DefaultFileName);
                 var otherExtensions = Parser.OtherExtensions;
@@ -95,9 +95,9 @@ namespace WebsiteRipper
                 path = Path.Combine(path, Parser.DefaultFileName);
             var totalWidth = MaxPathLength - path.Length;
             if (totalWidth < 0) throw new PathTooLongException();
-            if (!string.IsNullOrEmpty(url.Query))
+            if (!string.IsNullOrEmpty(uri.Query))
             {
-                var query = Uri.UnescapeDataString(url.Query).Replace('+', ' ');
+                var query = Uri.UnescapeDataString(uri.Query).Replace('+', ' ');
                 try { query = query.MiddleTruncate(totalWidth); }
                 catch (Exception exception) { throw new PathTooLongException(null, exception); }
                 var parentPath = Path.GetDirectoryName(path);
@@ -138,7 +138,7 @@ namespace WebsiteRipper
             if (_downloader == null) return false;
             try
             {
-                var path = NewUrl.LocalPath;
+                var path = NewUri.LocalPath;
                 if (ripMode != RipMode.Create && File.Exists(path) && File.GetLastWriteTime(path) >= _downloader.LastModified) return false;
                 var parentPath = Path.GetDirectoryName(path);
                 if (parentPath != null) Directory.CreateDirectory(parentPath);
@@ -151,14 +151,14 @@ namespace WebsiteRipper
                             var totalBytesToReceive = _downloader.ContentLength;
                             var progress = totalBytesToReceive > 0 ? new Progress<long>(bytesReceived =>
                             {
-                                _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUrl, bytesReceived, totalBytesToReceive));
+                                _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUri, bytesReceived, totalBytesToReceive));
                             }) : null;
                             if (totalBytesToReceive <= 0)
-                                _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUrl, 0, totalBytesToReceive));
+                                _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUri, 0, totalBytesToReceive));
                             const int DownloadBufferSize = 4096;
                             var totalBytesReceived = await responseStream.CopyToAsync(writer, DownloadBufferSize, progress, _ripper.CancellationToken);
                             if (totalBytesToReceive <= 0)
-                                _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUrl, totalBytesReceived, totalBytesReceived));
+                                _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUri, totalBytesReceived, totalBytesReceived));
                         }
                     }
                     catch

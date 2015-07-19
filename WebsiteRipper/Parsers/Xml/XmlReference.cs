@@ -13,7 +13,7 @@ namespace WebsiteRipper.Parsers.Xml
             _node = node;
         }
 
-        protected override string InternalUrl
+        protected override string InternalUri
         {
             get { return _node.Value; }
             set { _node.Value = value; }

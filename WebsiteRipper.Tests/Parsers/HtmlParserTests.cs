@@ -29,12 +29,12 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Fact]
-        public void Rip_BasicHtml_ReturnsResourceWithRequestedUrl()
+        public void Rip_BasicHtml_ReturnsResourceWithRequestedUri()
         {
             var html = "Body";
             var webTest = new WebTestInfo(HtmlParser.MimeType, html);
-            var expected = webTest.Url;
-            var actual = WebTest.GetActualResource(webTest).OriginalUrl;
+            var expected = webTest.Uri;
+            var actual = WebTest.GetActualResource(webTest).OriginalUri;
             Assert.Equal(expected, actual);
         }
 
@@ -47,7 +47,7 @@ namespace WebsiteRipper.Tests.Parsers
         {
             var webTest = new WebTestInfo(HtmlParser.MimeType, html);
             var expected = expectedBase != null ? new Uri(expectedBase) : null;
-            var actual = ((HtmlParser)WebTest.GetActualResource(webTest).Parser).BaseUrl;
+            var actual = ((HtmlParser)WebTest.GetActualResource(webTest).Parser).BaseUri;
             Assert.Equal(expected, actual);
         }
 

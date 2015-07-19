@@ -45,18 +45,18 @@ namespace WebsiteRipper.Parsers.Html
             _attribute = node.Attributes[attributeName];
         }
 
-        protected override Uri GetBaseUrl(Resource resource)
+        protected override Uri GetBaseUri(Resource resource)
         {
-            return _htmlParser == null || _htmlParser.BaseUrl == null ? resource.OriginalUrl : _htmlParser.BaseUrl;
+            return _htmlParser == null || _htmlParser.BaseUri == null ? resource.OriginalUri : _htmlParser.BaseUri;
         }
 
-        protected sealed override string InternalUrl
+        protected sealed override string InternalUri
         {
-            get { return HtmlEntity.DeEntitize(EntitizedUrl); }
-            set { EntitizedUrl = HtmlEntity.Entitize(value); }
+            get { return HtmlEntity.DeEntitize(EntitizedUri); }
+            set { EntitizedUri = HtmlEntity.Entitize(value); }
         }
 
-        string EntitizedUrl
+        string EntitizedUri
         {
             get { return _attribute != null ? _attribute.Value : null; }
             set { _attribute.Value = value; }

@@ -24,10 +24,10 @@ namespace WebsiteRipper.Parsers
 
         internal static Dictionary<string, Type> ParserTypes { get { return _parserTypes.Value; } }
 
-        internal static Parser CreateDefault(string contentType, Uri url)
+        internal static Parser CreateDefault(string contentType, Uri uri)
         {
             var mimeType = contentType != null ? new ContentType(contentType).MediaType : null;
-            return new DefaultParser(mimeType, url);
+            return new DefaultParser(mimeType, uri);
         }
 
         internal static Parser Create(string contentType)
@@ -80,17 +80,17 @@ namespace WebsiteRipper.Parsers
             // TODO: Handle exceptions on Load and Save methods
             if (!_loaded)
             {
-                Load(resource.NewUrl.LocalPath);
+                Load(resource.NewUri.LocalPath);
                 _loaded = true;
             }
-            foreach (var subResource in GetReferences().Where(reference => reference.Kind != ReferenceKind.Skip && !string.IsNullOrEmpty(reference.Url))
+            foreach (var subResource in GetReferences().Where(reference => reference.Kind != ReferenceKind.Skip && !string.IsNullOrEmpty(reference.Uri))
                 .Select(reference => ripper.GetSubResource(depth, resource, reference)))
             {
                 if (subResource != null) yield return subResource;
                 ripper.CancellationToken.ThrowIfCancellationRequested();
             }
             if (!AnyChange) yield break;
-            Save(resource.NewUrl.LocalPath);
+            Save(resource.NewUri.LocalPath);
             AnyChange = false;
         }
 

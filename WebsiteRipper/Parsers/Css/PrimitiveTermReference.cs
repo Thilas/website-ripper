@@ -12,7 +12,7 @@ namespace WebsiteRipper.Parsers.Css
             _primitiveTerm = primitiveTerm;
         }
 
-        protected override string InternalUrl
+        protected override string InternalUri
         {
             get { return (string)_primitiveTerm.Value; }
             set { _primitiveTerm.Value = value; }

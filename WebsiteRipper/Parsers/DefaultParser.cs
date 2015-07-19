@@ -10,12 +10,12 @@ namespace WebsiteRipper.Parsers
     {
         const string DefaultExtension = ".html";
 
-        readonly Uri _url;
+        readonly Uri _uri;
 
-        internal DefaultParser(string mimeType, Uri url)
+        internal DefaultParser(string mimeType, Uri uri)
             : base(mimeType)
         {
-            _url = url;
+            _uri = uri;
         }
 
         protected override string DefaultFileNameWithoutExtension { get { return "default"; } }
@@ -23,8 +23,8 @@ namespace WebsiteRipper.Parsers
         protected override string GetDefaultExtension()
         {
             string defaultExtension;
-            if (!DefaultExtensions.All.TryGetDefaultExtension(ActualMimeType, out defaultExtension) && _url != null)
-                defaultExtension = Path.GetExtension(_url.LocalPath);
+            if (!DefaultExtensions.All.TryGetDefaultExtension(ActualMimeType, out defaultExtension) && _uri != null)
+                defaultExtension = Path.GetExtension(_uri.LocalPath);
             if (string.IsNullOrEmpty(defaultExtension))
                 defaultExtension = DefaultExtension;
             return defaultExtension;

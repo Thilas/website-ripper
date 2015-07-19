@@ -1,4 +1,4 @@
-# Last modified: 2015-07-03T07:25:56.0000000Z
+# Last modified: 2015-07-16T21:26:16.0000000Z
 #
 # MIME type (lowercased)			Extensions
 # ============================================	==========
@@ -23,6 +23,7 @@ application/bacnet-xdd+zip			xdd
 # application/calendar+json
 application/calendar+xml				xcs
 # application/call-completion
+# application/cals-1840
 application/cbor					cbor
 application/ccmp+xml				ccmp
 application/cdfx+xml				cdfx

@@ -15,7 +15,7 @@ namespace WebsiteRipper.Core
             _file = file;
         }
 
-        protected override string InternalUrl
+        protected override string InternalUri
         {
             get { return _file.Value; }
             set { }

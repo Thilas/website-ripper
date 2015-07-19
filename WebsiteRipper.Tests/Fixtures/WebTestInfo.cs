@@ -11,7 +11,7 @@ namespace WebsiteRipper.Tests.Fixtures
     {
         public string Name { get; private set; }
 
-        public Uri Url { get { return new Uri(string.Format("{0}://{1}", WebTest.Scheme, Name)); } }
+        public Uri Uri { get { return new Uri(string.Format("{0}://{1}", WebTest.Scheme, Name)); } }
 
         public string MimeType { get; private set; }
 

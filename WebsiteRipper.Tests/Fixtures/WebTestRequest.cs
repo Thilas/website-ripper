@@ -5,12 +5,12 @@ namespace WebsiteRipper.Tests.Fixtures
 {
     sealed class WebTestRequest : WebRequest
     {
-        readonly Uri _url;
+        readonly Uri _uri;
         readonly WebTestInfo _webTest;
 
-        internal WebTestRequest(Uri url, WebTestInfo webTest)
+        internal WebTestRequest(Uri uri, WebTestInfo webTest)
         {
-            _url = url;
+            _uri = uri;
             _webTest = webTest;
         }
 
@@ -18,7 +18,7 @@ namespace WebsiteRipper.Tests.Fixtures
 
         public override WebResponse GetResponse()
         {
-            return new WebTestResponse(_url, _webTest);
+            return new WebTestResponse(_uri, _webTest);
         }
     }
 }

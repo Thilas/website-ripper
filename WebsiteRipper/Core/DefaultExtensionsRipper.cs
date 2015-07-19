@@ -11,7 +11,7 @@ namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsRipper : Ripper
     {
-        public async static Task<DefaultExtensions> GetIanaDefaultExtensions(Uri mediaTypesUrl)
+        public async static Task<DefaultExtensions> GetIanaDefaultExtensions(Uri mediaTypesUri)
         {
             // Parse mime types from IANA web site
             var defaultExtensionsParserType = typeof(DefaultExtensionsParser);
@@ -26,7 +26,7 @@ namespace WebsiteRipper.Core
             File.Delete(rootPath);
             try
             {
-                var ripper = new DefaultExtensionsRipper(mediaTypesUrl, rootPath);
+                var ripper = new DefaultExtensionsRipper(mediaTypesUri, rootPath);
                 await ripper.RipAsync(RipMode.Create);
                 // TODO: Read files asynchronously while ripping them
                 lock (_templates)
@@ -101,8 +101,8 @@ namespace WebsiteRipper.Core
             return _extensionsRegex.Value.Matches(fileExtensions);
         }
 
-        DefaultExtensionsRipper(Uri mediaTypesUrl, string rootPath)
-            : base(mediaTypesUrl, rootPath, DefaultExtensions.Language)
+        DefaultExtensionsRipper(Uri mediaTypesUri, string rootPath)
+            : base(mediaTypesUri, rootPath, DefaultExtensions.Language)
         {
             Timeout = DefaultExtensions.Timeout;
         }
@@ -115,7 +115,7 @@ namespace WebsiteRipper.Core
             if (subResource == null || defaultExtensionsReference == null) return subResource;
             lock (_templates)
             {
-                if (!_templates.ContainsKey(subResource.NewUrl.LocalPath)) _templates.Add(subResource.NewUrl.LocalPath, defaultExtensionsReference.MimeType);
+                if (!_templates.ContainsKey(subResource.NewUri.LocalPath)) _templates.Add(subResource.NewUri.LocalPath, defaultExtensionsReference.MimeType);
             }
             return subResource;
         }

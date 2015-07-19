@@ -21,34 +21,34 @@ namespace WebsiteRipper.Parsers
 
         public override string ToString()
         {
-            return string.Format("{0} ({1}): {2}", GetType().Name, Kind, Url);
+            return string.Format("{0} ({1}): {2}", GetType().Name, Kind, Uri);
         }
 
         public ReferenceKind Kind { get; private set; }
 
-        public Uri GetAbsoluteUrl(Resource resource)
+        public Uri GetAbsoluteUri(Resource resource)
         {
-            Uri subUrl;
-            return Uri.TryCreate(GetBaseUrl(resource), Url, out subUrl) ? subUrl : null;
+            Uri subUri;
+            return System.Uri.TryCreate(GetBaseUri(resource), Uri, out subUri) ? subUri : null;
         }
 
-        protected virtual Uri GetBaseUrl(Resource resource)
+        protected virtual Uri GetBaseUri(Resource resource)
         {
-            return resource.OriginalUrl;
+            return resource.OriginalUri;
         }
 
-        public string Url
+        public string Uri
         {
-            get { return InternalUrl; }
+            get { return InternalUri; }
             internal set
             {
-                var oldValue = InternalUrl;
+                var oldValue = InternalUri;
                 if (string.Equals(value, oldValue, StringComparison.OrdinalIgnoreCase)) return;
-                InternalUrl = value;
-                if (!string.Equals(InternalUrl, oldValue, StringComparison.OrdinalIgnoreCase)) _parser.AnyChange = true;
+                InternalUri = value;
+                if (!string.Equals(InternalUri, oldValue, StringComparison.OrdinalIgnoreCase)) _parser.AnyChange = true;
             }
         }
 
-        protected abstract string InternalUrl { get; set; }
+        protected abstract string InternalUri { get; set; }
     }
 }

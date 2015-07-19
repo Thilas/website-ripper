@@ -12,6 +12,6 @@ namespace WebsiteRipper
             Resource = resource;
         }
 
-        public override string Message { get { return string.Format("Resource unavailable: {0}", Resource.OriginalUrl); } }
+        public override string Message { get { return string.Format("Resource unavailable: {0}", Resource.OriginalUri); } }
     }
 }

@@ -55,8 +55,8 @@ namespace WebsiteRipper.CommandLine
         static readonly object _cursorLock = new object();
 
         const string DownloadProgressFormat = "{{0,-{0}}} {{1,3}}%";
-        static readonly int _urlTotalWidth = Console.WindowWidth - string.Format(string.Format(DownloadProgressFormat, 0), null, null).Length;
-        static readonly string _downloadProgressFormat = string.Format(DownloadProgressFormat, _urlTotalWidth);
+        static readonly int _uriTotalWidth = Console.WindowWidth - string.Format(string.Format(DownloadProgressFormat, 0), null, null).Length;
+        static readonly string _downloadProgressFormat = string.Format(DownloadProgressFormat, _uriTotalWidth);
 
         public void WriteProgress(string item, int progress)
         {
@@ -65,8 +65,8 @@ namespace WebsiteRipper.CommandLine
                 var top = GetTop(item);
                 if (top < 0) return;
                 Console.SetCursorPosition(_left, _top + top);
-                var stringUrl = item.MiddleTruncate(_urlTotalWidth, "...");
-                Console.Write(_downloadProgressFormat, stringUrl, progress);
+                var stringUri = item.MiddleTruncate(_uriTotalWidth, "...");
+                Console.Write(_downloadProgressFormat, stringUri, progress);
                 if (progress == 100) ReleaseTop(item);
             }
         }

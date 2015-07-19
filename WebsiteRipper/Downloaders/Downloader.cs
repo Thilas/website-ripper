@@ -24,13 +24,13 @@ namespace WebsiteRipper.Downloaders
 
         internal static Dictionary<string, Type> DownloaderTypes { get { return _downloaderTypes.Value; } }
 
-        internal static Downloader Create(Uri url, int timeout, string preferredLanguages)
+        internal static Downloader Create(Uri uri, int timeout, string preferredLanguages)
         {
-            if (url == null) throw new ArgumentNullException("url");
-            var scheme = url.Scheme;
+            if (uri == null) throw new ArgumentNullException("uri");
+            var scheme = uri.Scheme;
             Type downloaderType;
             if (!string.IsNullOrEmpty(scheme) && DownloaderTypes.TryGetValue(scheme, out downloaderType))
-                return (Downloader)Activator.CreateInstance(downloaderType, url, timeout, preferredLanguages);
+                return (Downloader)Activator.CreateInstance(downloaderType, uri, timeout, preferredLanguages);
             throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
         }
 
@@ -42,9 +42,9 @@ namespace WebsiteRipper.Downloaders
         protected internal virtual DateTime LastModified { get { return DateTime.Now; } }
         internal Uri ResponseUri { get { return WebResponse.ResponseUri; } }
 
-        protected Downloader(Uri url, int timeout, string preferredLanguages)
+        protected Downloader(Uri uri, int timeout, string preferredLanguages)
         {
-            WebRequest = WebRequest.Create(url);
+            WebRequest = WebRequest.Create(uri);
             WebRequest.Timeout = timeout;
         }
 
