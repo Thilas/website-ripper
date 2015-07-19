@@ -22,8 +22,8 @@ namespace WebsiteRipper.Parsers
 
         protected override string GetDefaultExtension()
         {
-            string defaultExtension;
-            if (!DefaultExtensions.All.TryGetDefaultExtension(ActualMimeType, out defaultExtension) && _uri != null)
+            string defaultExtension = null;
+            if ((ActualMimeType == null || !DefaultExtensions.All.TryGetDefaultExtension(ActualMimeType, out defaultExtension)) && _uri != null)
                 defaultExtension = Path.GetExtension(_uri.LocalPath);
             if (string.IsNullOrEmpty(defaultExtension))
                 defaultExtension = DefaultExtension;

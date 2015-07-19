@@ -7,7 +7,14 @@ namespace WebsiteRipper.Downloaders
     [Downloader("https")]
     sealed class HttpDownloader : Downloader
     {
-        protected internal override DateTime LastModified { get { return ((HttpWebResponse)WebResponse).LastModified; } }
+        protected internal override DateTime LastModified
+        {
+            get
+            {
+                try { return ((HttpWebResponse)WebResponse).LastModified; }
+                catch { return base.LastModified; }
+            }
+        }
 
         public HttpDownloader(Uri uri, int timeout, string preferredLanguages)
             : base(uri, timeout, preferredLanguages)

@@ -63,7 +63,7 @@ namespace WebsiteRipper.Downloaders
         internal bool SetResponse(Exception exception)
         {
             var webException = exception as WebException;
-            var result = webException != null;
+            var result = webException != null && webException.Response != null;
             if (result) WebResponse = webException.Response;
             return result;
         }

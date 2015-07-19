@@ -45,7 +45,6 @@ namespace WebsiteRipper.Parsers
 
         protected Parser(string mimeType)
         {
-            if (mimeType == null) throw new ArgumentNullException("mimeType");
             ActualMimeType = mimeType;
             AnyChange = false;
         }
@@ -56,6 +55,7 @@ namespace WebsiteRipper.Parsers
 
         protected virtual string GetDefaultExtension()
         {
+            if (string.IsNullOrEmpty(ActualMimeType)) throw new NotSupportedException("Parser does not support empty MIME type.");
             string defaultExtension;
             if (!DefaultExtensions.All.TryGetDefaultExtension(ActualMimeType, out defaultExtension))
                 throw new NotSupportedException(string.Format("Parser does not support MIME type \"{0}\".", ActualMimeType));
