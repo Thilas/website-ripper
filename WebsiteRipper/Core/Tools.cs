@@ -30,7 +30,6 @@ namespace WebsiteRipper.Core
         {
             var allLanguages = languages.ToList();
             var qualityDecrement = 1.0 / (allLanguages.Count + 1);
-            var numberFormatInfo = new NumberFormatInfo() { NumberDecimalSeparator = "." };
             var preferredLanguages = string.Join(",", allLanguages.Select((language, number) =>
             {
                 var quality = 1.0 - number * qualityDecrement;

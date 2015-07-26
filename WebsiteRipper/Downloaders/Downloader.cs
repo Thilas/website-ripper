@@ -30,7 +30,7 @@ namespace WebsiteRipper.Downloaders
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
             Type downloaderType;
-            if (scheme != null && DownloaderTypes.TryGetValue(scheme, out downloaderType))
+            if (DownloaderTypes.TryGetValue(scheme, out downloaderType))
                 return (Downloader)Activator.CreateInstance(downloaderType, uri, timeout, preferredLanguages);
             throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
         }
@@ -39,7 +39,7 @@ namespace WebsiteRipper.Downloaders
         {
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
-            return scheme != null ? DownloaderTypes.ContainsKey(scheme) : false;
+            return DownloaderTypes.ContainsKey(scheme);
         }
 
         static readonly Lazy<Regex> _contentTypeRegex = new Lazy<Regex>(() => new Regex(@";?\s*(?<type>[^\s/;]+)/(?<subtype>[^\s/;]+)\s*;?", RegexOptions.Compiled));
@@ -61,6 +61,8 @@ namespace WebsiteRipper.Downloaders
 
         protected Downloader(Uri uri, int timeout, string preferredLanguages)
         {
+            if (uri == null) throw new ArgumentNullException("uri");
+            if (preferredLanguages == null) throw new ArgumentNullException("preferredLanguages");
             WebRequest = WebRequest.Create(uri);
             WebRequest.Timeout = timeout;
         }

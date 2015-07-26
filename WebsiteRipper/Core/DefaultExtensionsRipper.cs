@@ -52,8 +52,8 @@ namespace WebsiteRipper.Core
             {
                 // Get the mime type
                 var mimeType = templateKeyValuePair.Value;
-                const string ExampleName = "example";
-                if (new[] { mimeType.TypeName, mimeType.SubtypeName }.Contains(ExampleName, StringComparer.OrdinalIgnoreCase)) return null;
+                const string exampleName = "example";
+                if (new[] { mimeType.TypeName, mimeType.SubtypeName }.Contains(exampleName, StringComparer.OrdinalIgnoreCase)) return null;
 
                 // Check whether the template is about this mime type
                 var template = streamReader.ReadToEnd();
@@ -107,7 +107,7 @@ namespace WebsiteRipper.Core
             Timeout = DefaultExtensions.Timeout;
         }
 
-        internal sealed override Resource GetSubResource(int depth, Resource resource, Reference reference)
+        internal override Resource GetSubResource(int depth, Resource resource, Reference reference)
         {
             var subResource = base.GetSubResource(depth, resource, reference);
             var defaultExtensionsReference = reference as DefaultExtensionsReference;

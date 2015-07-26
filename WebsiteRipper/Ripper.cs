@@ -22,8 +22,8 @@ namespace WebsiteRipper
 
     public class Ripper
     {
-        Dictionary<Uri, Resource> _uris = new Dictionary<Uri, Resource>();
-        Dictionary<Resource, Uri> _resources = new Dictionary<Resource, Uri>();
+        readonly Dictionary<Uri, Resource> _uris = new Dictionary<Uri, Resource>();
+        readonly Dictionary<Resource, Uri> _resources = new Dictionary<Resource, Uri>();
 
         readonly Lazy<Resource> _resourceLazy;
         public Resource Resource { get { return _resourceLazy.Value; } }
@@ -36,8 +36,7 @@ namespace WebsiteRipper
         {
             get
             {
-                if (_preferredLanguages == null) _preferredLanguages = Tools.GetPreferredLanguages(Languages);
-                return _preferredLanguages;
+                return _preferredLanguages ?? (_preferredLanguages = Tools.GetPreferredLanguages(Languages));
             }
         }
 
@@ -125,12 +124,9 @@ namespace WebsiteRipper
             }
             finally
             {
-                lock (_uris)
-                {
-                    foreach (var resource in _resources.Keys) resource.Dispose();
-                    _resources.Clear();
-                    _uris.Clear();
-                }
+                foreach (var resource in _resources.Keys) resource.Dispose();
+                _resources.Clear();
+                _uris.Clear();
             }
         }
 

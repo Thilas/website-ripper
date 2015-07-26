@@ -27,7 +27,7 @@ namespace WebsiteRipper
 
         internal static IEnumerable<Resource> Create(Ripper ripper, params Uri[] uris)
         {
-            foreach (var uri in uris) yield return new Resource(ripper, false) { OriginalUri = uri };
+            return uris.Select(uri => new Resource(ripper, false) { OriginalUri = uri });
         }
 
         Resource(Ripper ripper, bool hyperlink)
@@ -37,9 +37,7 @@ namespace WebsiteRipper
             _hyperlink = hyperlink;
         }
 
-        internal Resource(Ripper ripper, Uri uri) : this(ripper, uri, true) { }
-
-        internal Resource(Ripper ripper, Uri uri, bool hyperlink)
+        internal Resource(Ripper ripper, Uri uri, bool hyperlink = true)
             : this(ripper, hyperlink)
         {
             if (uri == null) throw new ArgumentNullException("uri");
@@ -92,8 +90,8 @@ namespace WebsiteRipper
             path = Path.Combine(_ripper.RootPath, CleanComponent(path));
             if (uri.LocalPath.Length > 1)
             {
-                const char SegmentSeparatorChar = '/';
-                path = uri.LocalPath.Substring(1).Split(SegmentSeparatorChar).Aggregate(path, (current, component) => Path.Combine(current, CleanComponent(component)));
+                const char segmentSeparatorChar = '/';
+                path = uri.LocalPath.Substring(1).Split(segmentSeparatorChar).Aggregate(path, (current, component) => Path.Combine(current, CleanComponent(component)));
                 var extension = Path.GetExtension(path);
                 var defaultExtension = Path.GetExtension(Parser.DefaultFileName);
                 var otherExtensions = Parser.OtherExtensions;
@@ -121,8 +119,8 @@ namespace WebsiteRipper
 
         static string CleanComponent(string component)
         {
-            const char ValidFileNameChar = '_';
-            return Path.GetInvalidFileNameChars().Aggregate(component, (current, invalidFileNameChar) => current.Replace(invalidFileNameChar, ValidFileNameChar));
+            const char validFileNameChar = '_';
+            return Path.GetInvalidFileNameChars().Aggregate(component, (current, invalidFileNameChar) => current.Replace(invalidFileNameChar, validFileNameChar));
         }
 
         bool _ripped = false;
@@ -163,8 +161,8 @@ namespace WebsiteRipper
                             }) : null;
                             if (totalBytesToReceive <= 0)
                                 _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUri, 0, totalBytesToReceive));
-                            const int DownloadBufferSize = 4096;
-                            var totalBytesReceived = await responseStream.CopyToAsync(writer, DownloadBufferSize, progress, _ripper.CancellationToken);
+                            const int downloadBufferSize = 4096;
+                            var totalBytesReceived = await responseStream.CopyToAsync(writer, downloadBufferSize, progress, _ripper.CancellationToken);
                             if (totalBytesToReceive <= 0)
                                 _ripper.OnDownloadProgressChanged(new DownloadProgressChangedEventArgs(OriginalUri, totalBytesReceived, totalBytesReceived));
                         }

@@ -12,10 +12,10 @@ namespace WebsiteRipper.Parsers.Html.References
 
         static ReferenceKind GetKind(ReferenceKind defaultKind, HtmlNode node)
         {
-            const char ListSeparatorChar = ' ';
+            const char listSeparatorChar = ' ';
             var relationshipAttribute = node.Attributes["rel"];
             if (relationshipAttribute == null || string.IsNullOrEmpty(relationshipAttribute.Value)) return defaultKind;
-            var relationships = relationshipAttribute.Value.Split(ListSeparatorChar);
+            var relationships = relationshipAttribute.Value.Split(listSeparatorChar);
             if (relationships.Any(relationship => _externalResourceRelationships.Any(type => string.Equals(relationship, type, StringComparison.OrdinalIgnoreCase))))
                 return ReferenceKind.ExternalResource;
             if (relationships.Any(relationship => _skipRelationships.Any(type => string.Equals(relationship, type, StringComparison.OrdinalIgnoreCase))))

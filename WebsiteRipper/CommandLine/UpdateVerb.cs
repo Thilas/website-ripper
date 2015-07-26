@@ -1,6 +1,5 @@
 ﻿using CommandLine;
 using System;
-using WebsiteRipper.Core;
 
 namespace WebsiteRipper.CommandLine
 {

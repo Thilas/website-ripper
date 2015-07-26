@@ -26,7 +26,7 @@ namespace WebsiteRipper
         const string DefaultExtensionsFile = "default.extensions";
         static readonly string _defaultExtensionsPath = Path.Combine(_rootPath, DefaultExtensionsFile);
 
-        static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\s\.,{0}]+", Regex.Escape(string.Join(string.Empty, new char[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
+        static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\s\.,{0}]+", Regex.Escape(string.Join(string.Empty, new[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
         internal static string ExtensionRegexClass { get { return _extensionRegexClass; } }
 
         static readonly Lazy<DefaultExtensions> _empty = new Lazy<DefaultExtensions>(() => new DefaultExtensions(Enumerable.Empty<MimeType>()));
@@ -80,8 +80,8 @@ namespace WebsiteRipper
 
         static readonly Lazy<DefaultExtensions> _iana = new Lazy<DefaultExtensions>(() =>
         {
-            const string IanaMimeTypesFile = "iana.mime.types";
-            return GetDefaultExtensions(IanaMimeTypesFile, Settings.Default.IanaMediaTypesUri, (uri, lastModified) =>
+            const string ianaMimeTypesFile = "iana.mime.types";
+            return GetDefaultExtensions(ianaMimeTypesFile, Settings.Default.IanaMediaTypesUri, (uri, lastModified) =>
             {
                 var allBackup = _all;
                 _all = Empty;
@@ -99,8 +99,8 @@ namespace WebsiteRipper
 
         static readonly Lazy<DefaultExtensions> _apache = new Lazy<DefaultExtensions>(() =>
         {
-            const string MimeTypesFile = "apache.mime.types";
-            return GetDefaultExtensions(MimeTypesFile, Settings.Default.ApacheMimeTypesUri, (uri, lastModified) =>
+            const string mimeTypesFile = "apache.mime.types";
+            return GetDefaultExtensions(mimeTypesFile, Settings.Default.ApacheMimeTypesUri, (uri, lastModified) =>
             {
                 // Parse mime types from Apache project's web site
                 var mimeTypesPath = Path.GetTempFileName();
@@ -123,7 +123,7 @@ namespace WebsiteRipper
 
         public DateTime LastModified { get; private set; }
 
-        internal DefaultExtensions(IEnumerable<MimeType> defaultExtensions) : this(defaultExtensions, DateTime.Now) { }
+        DefaultExtensions(IEnumerable<MimeType> defaultExtensions) : this(defaultExtensions, DateTime.Now) { }
 
         internal DefaultExtensions(IEnumerable<MimeType> defaultExtensions, DateTime lastModified)
         {
@@ -168,8 +168,8 @@ namespace WebsiteRipper
         DefaultExtensions Save(string path)
         {
             if (path == null) throw new ArgumentNullException("path");
-            const int MimeTypeWidth = 48;
-            const int TabulationWidth = 8;
+            const int mimeTypeWidth = 48;
+            const int tabulationWidth = 8;
             using (var streamWriter = new StreamWriter(path, false, Encoding.Default))
             {
                 streamWriter.Write(LastModifiedFormat, LastModified.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
@@ -182,7 +182,7 @@ namespace WebsiteRipper
                     if (mimeType.Extensions != null)
                     {
                         streamWriter.Write("{0}{1}{2}\n", mimeTypeName,
-                            new string('\t', mimeTypeName.Length < MimeTypeWidth ? (MimeTypeWidth - mimeTypeName.Length) / TabulationWidth + 1 : 1),
+                            new string('\t', mimeTypeName.Length < mimeTypeWidth ? (mimeTypeWidth - mimeTypeName.Length) / tabulationWidth + 1 : 1),
                             string.Join(" ", mimeType.Extensions.Select(extension => extension.Substring(1))));
                     }
                     else

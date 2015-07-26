@@ -26,8 +26,11 @@ namespace WebsiteRipper.Tests.Fixtures
         {
             var factAttributeType = typeof(FactAttribute);
             var theoryAttributeType = typeof(TheoryAttribute);
-            var factMethod = new StackTrace().GetFrames().Select(frame => frame.GetMethod())
+            var stackFrames = new StackTrace().GetFrames();
+            if (stackFrames == null) throw new InvalidOperationException("No stack frames in current context.");
+            var factMethod = stackFrames.Select(frame => frame.GetMethod())
                 .First(method => method.GetCustomAttributes(factAttributeType, false).Length > 0 || method.GetCustomAttributes(theoryAttributeType, false).Length > 0);
+            if (factMethod.DeclaringType == null) throw new NotSupportedException("No type in current context.");
             return string.Format("{0}.{1}", factMethod.DeclaringType.FullName, factMethod.Name);
         }
 

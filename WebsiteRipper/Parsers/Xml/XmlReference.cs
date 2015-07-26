@@ -1,5 +1,4 @@
 ﻿using System.Xml;
-using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper.Parsers.Xml
 {

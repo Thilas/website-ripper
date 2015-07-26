@@ -11,7 +11,7 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_BasicHtml_ReturnsResourceWithHtmlParser()
         {
-            var html = "Body";
+            const string html = "Body";
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = typeof(HtmlParser);
@@ -23,8 +23,7 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_BasicHtml_ReturnsResourceWithHtmlMimeType()
         {
-
-            var html = "Body";
+            const string html = "Body";
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = HtmlParser.MimeType;
@@ -36,7 +35,7 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_BasicHtml_ReturnsResourceWithRequestedUri()
         {
-            var html = "Body";
+            const string html = "Body";
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = webTest.Uri;
@@ -63,11 +62,14 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_DuplicateBaseHtml_ThrowsDuplicateBaseHtmlElementException()
         {
-            var html = "<html><head><title>Title</title><base href=http://base1><base href=http://base2></head><body>Body</body></html>";
-            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            const string html = "<html><head><title>Title</title><base href=http://base1><base href=http://base2></head><body>Body</body></html>";
+            Assert.Throws<DuplicateBaseHtmlElementException>(() =>
             {
-                Assert.Throws<DuplicateBaseHtmlElementException>(() => WebTest.GetActualResources(webTest));
-            }
+                using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+                {
+                    WebTest.GetActualResources(webTest);
+                }
+            });
         }
 
         [Theory]
@@ -88,7 +90,7 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_BasicHtml_ReturnsExpectedSubResources()
         {
-            var html = "<html><head><title>Title</title></head><body>Body<a href=a>A</a></body></html>";
+            const string html = "<html><head><title>Title</title></head><body>Body<a href=a>A</a></body></html>";
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var subUri = new Uri(webTest.Uri, "a");

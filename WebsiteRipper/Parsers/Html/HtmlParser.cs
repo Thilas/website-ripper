@@ -47,22 +47,22 @@ namespace WebsiteRipper.Parsers.Html
         /// </remarks>
         Uri GetBaseUri()
         {
-            const string HrefAttributeName = "href";
-            const string TargetAttributeName = "target";
+            const string hrefAttributeName = "href";
+            const string targetAttributeName = "target";
             HtmlNode baseNode;
             try
             {
                 baseNode = _htmlDocument.DocumentNode.Descendants("base").
-                    SingleOrDefault(node => node.Attributes[HrefAttributeName] != null || node.Attributes[TargetAttributeName] != null);
+                    SingleOrDefault(node => node.Attributes[hrefAttributeName] != null || node.Attributes[targetAttributeName] != null);
             }
             catch (Exception exception) { throw new DuplicateBaseHtmlElementException(exception); }
             if (baseNode == null) return null;
-            var hrefAttribute = baseNode.Attributes[HrefAttributeName];
+            var hrefAttribute = baseNode.Attributes[hrefAttributeName];
             if (hrefAttribute == null) return null;
             Uri baseUri;
             if (!Uri.TryCreate(hrefAttribute.Value, UriKind.Absolute, out baseUri)) baseUri = null;
             AnyChange = true;
-            if (baseNode.Attributes[TargetAttributeName] == null)
+            if (baseNode.Attributes[targetAttributeName] == null)
                 baseNode.Remove();
             else
                 hrefAttribute.Remove();

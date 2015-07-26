@@ -6,7 +6,7 @@ using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.CommandLine
 {
-    enum ExitCode : int
+    enum ExitCode
     {
         Success = 0,
         UnexpectedError = -1,
@@ -26,9 +26,9 @@ namespace WebsiteRipper.CommandLine
                 .ToList().AsEnumerable();
         });
 
-        internal static int Process(string[] args)
+        internal static int Process(IEnumerable<string> args)
         {
-            ExitCode exitCode = ExitCode.Success;
+            var exitCode = ExitCode.Success;
             try
             {
                 Parser.Default.ParseArguments(args, _verbs.Value.ToArray())

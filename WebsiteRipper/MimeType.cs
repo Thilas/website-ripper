@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace WebsiteRipper
@@ -21,8 +20,8 @@ namespace WebsiteRipper
 
         internal MimeType SetExtensions(IEnumerable<string> extensions)
         {
-            if (extensions != null && extensions.Count() == 0) extensions = null;
-            return object.ReferenceEquals(extensions, Extensions) ? this : new MimeType(TypeName, SubtypeName) { Extensions = extensions };
+            if (extensions != null && !extensions.Any()) extensions = null;
+            return ReferenceEquals(extensions, Extensions) ? this : new MimeType(TypeName, SubtypeName) { Extensions = extensions };
         }
     }
 }
