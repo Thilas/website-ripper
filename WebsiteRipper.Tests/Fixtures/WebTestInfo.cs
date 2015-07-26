@@ -7,11 +7,13 @@ using Xunit;
 
 namespace WebsiteRipper.Tests.Fixtures
 {
-    sealed class WebTestInfo
+    sealed class WebTestInfo : IDisposable
     {
-        public string Name { get; private set; }
+        readonly string _rootPath;
+        readonly Lazy<Ripper> _ripperLazy;
+        public Ripper Ripper { get { return _ripperLazy.Value; } }
 
-        public Uri Uri { get { return new Uri(string.Format("{0}://{1}", WebTest.Scheme, Name)); } }
+        public Uri Uri { get; private set; }
 
         public string MimeType { get; private set; }
 
@@ -31,12 +33,24 @@ namespace WebsiteRipper.Tests.Fixtures
 
         public WebTestInfo(string mimeType, string content) : this(GetName(), mimeType, content) { }
 
-        public WebTestInfo(string name, string mimeType, string content)
+        public WebTestInfo(string name, string mimeType, string content) : this(null, new Uri(string.Format("{0}://{1}", WebTest.Scheme, name)), mimeType, content) { }
+
+        public WebTestInfo(WebTestInfo webTest, string relativeUri, string mimeType, string content) : this(webTest, new Uri(webTest.Uri, relativeUri), mimeType, content) { }
+
+        WebTestInfo(WebTestInfo webTest, Uri uri, string mimeType, string content)
         {
-            Name = name;
+            _rootPath = webTest == null ? Path.GetTempFileName() : null;
+            if (_rootPath != null) File.Delete(_rootPath);
+            _ripperLazy = new Lazy<Ripper>(() => _rootPath != null ? new Ripper(Uri, _rootPath) : null);
+            Uri = uri;
             MimeType = mimeType;
             Content = content;
             _streamLazy = new Lazy<Stream>(() => new MemoryStream(Encoding.UTF8.GetBytes(Content)));
+        }
+
+        public void Dispose()
+        {
+            if (_rootPath != null && Directory.Exists(_rootPath)) Directory.Delete(_rootPath, true);
         }
     }
 }

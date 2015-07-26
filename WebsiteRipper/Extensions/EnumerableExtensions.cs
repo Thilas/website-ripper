@@ -6,6 +6,15 @@ namespace WebsiteRipper.Extensions
 {
     static class EnumerableExtensions
     {
+        public static IEnumerable<T> Prepend<T>(this IEnumerable<T> eumerable, T value)
+        {
+            yield return value;
+            foreach (var item in eumerable)
+            {
+                yield return item;
+            }
+        }
+
         //public static IEnumerable<TResult> OuterJoin<T, TKey, TResult>(this IEnumerable<T> outer, IEnumerable<T> inner, Func<T, TKey> keySelector, Func<T, T, TResult> resultSelector)
         //{
         //    return OuterJoin(outer, inner, keySelector, keySelector, resultSelector, default(T), default(T), null);

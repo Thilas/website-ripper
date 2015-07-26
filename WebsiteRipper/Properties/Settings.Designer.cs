@@ -34,6 +34,15 @@ namespace WebsiteRipper.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://www.iana.org/assignments")]
+        public string IanaAssignmentsNamespace {
+            get {
+                return ((string)(this["IanaAssignmentsNamespace"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("http://svn.apache.org/viewvc/httpd/httpd/trunk/docs/conf/mime.types?view=co")]
         public string ApacheMimeTypesUri {
             get {

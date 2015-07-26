@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WebsiteRipper.Core;
+using WebsiteRipper.Downloaders;
 using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper
@@ -21,10 +22,11 @@ namespace WebsiteRipper
 
     public class Ripper
     {
-        Dictionary<Uri, Resource> _uris;
-        Dictionary<Resource, Uri> _resources;
+        Dictionary<Uri, Resource> _uris = new Dictionary<Uri, Resource>();
+        Dictionary<Resource, Uri> _resources = new Dictionary<Resource, Uri>();
 
-        public Resource Resource { get; private set; }
+        readonly Lazy<Resource> _resourceLazy;
+        public Resource Resource { get { return _resourceLazy.Value; } }
         public string RootPath { get; private set; }
 
         public IEnumerable<CultureInfo> Languages { get; private set; }
@@ -67,14 +69,28 @@ namespace WebsiteRipper
             return defaultLanguages.Distinct();
         }
 
-        public Ripper(string uri, string rootPath) : this(new Uri(uri), rootPath) { }
-
-        public Ripper(string uri, string rootPath, CultureInfo language) : this(new Uri(uri), rootPath, language) { }
-
-        public Ripper(string uri, string rootPath, IEnumerable<CultureInfo> languages)
+        Ripper(IEnumerable<CultureInfo> languages, string rootPath)
         {
-            if (uri == null) throw new ArgumentNullException("uri");
-            Initialize(new Uri(uri), rootPath, languages);
+            if (languages == null) throw new ArgumentNullException("languages");
+            if (rootPath == null) throw new ArgumentNullException("rootPath");
+            ServicePointManager.DefaultConnectionLimit = 1000;
+            Timeout = DefaultExtensions.Timeout;
+            Languages = languages;
+            IsBase = false;
+            MaxDepth = 0;
+            RootPath = Path.GetFullPath(rootPath);
+        }
+
+        public Ripper(string uriString, string rootPath) : this(uriString, rootPath, GetDefaultLanguages()) { }
+
+        public Ripper(string uriString, string rootPath, CultureInfo language) : this(uriString, rootPath, new[] { language }) { }
+
+        public Ripper(string uriString, string rootPath, IEnumerable<CultureInfo> languages)
+            : this(languages, rootPath)
+        {
+            if (uriString == null) throw new ArgumentNullException("uriString");
+            var uri = new Uri(uriString);
+            _resourceLazy = new Lazy<Resource>(() => new Resource(this, uri));
         }
 
         public Ripper(Uri uri, string rootPath) : this(uri, rootPath, GetDefaultLanguages()) { }
@@ -82,22 +98,10 @@ namespace WebsiteRipper
         public Ripper(Uri uri, string rootPath, CultureInfo language) : this(uri, rootPath, new[] { language }) { }
 
         public Ripper(Uri uri, string rootPath, IEnumerable<CultureInfo> languages)
+            : this(languages, rootPath)
         {
             if (uri == null) throw new ArgumentNullException("uri");
-            Initialize(uri, rootPath, languages);
-        }
-
-        void Initialize(Uri uri, string rootPath, IEnumerable<CultureInfo> languages)
-        {
-            if (rootPath == null) throw new ArgumentNullException("rootPath");
-            if (languages == null) throw new ArgumentNullException("languages");
-            ServicePointManager.DefaultConnectionLimit = 1000;
-            RootPath = Path.GetFullPath(rootPath);
-            Languages = languages;
-            Timeout = DefaultExtensions.Timeout;
-            IsBase = false;
-            MaxDepth = 0;
-            Resource = new Resource(this, uri);
+            _resourceLazy = new Lazy<Resource>(() => new Resource(this, uri));
         }
 
         public void Rip(RipMode ripMode)
@@ -108,14 +112,13 @@ namespace WebsiteRipper
         public async Task RipAsync(RipMode ripMode)
         {
             if (_cancellationTokenSource != null) throw new InvalidOperationException("Ripping has already started.");
-            _uris = new Dictionary<Uri, Resource>();
-            _resources = new Dictionary<Resource, Uri>();
             try
             {
                 using (_cancellationTokenSource = new CancellationTokenSource())
                 {
                     _uris.Add(Resource.OriginalUri, Resource);
                     _resources.Add(Resource, Resource.OriginalUri);
+                    // TODO: Handle not empty directory
                     if (ripMode == RipMode.Create && Directory.Exists(RootPath)) Directory.Delete(RootPath, true);
                     await Resource.RipAsync(ripMode, 0);
                 }
@@ -125,6 +128,8 @@ namespace WebsiteRipper
                 lock (_uris)
                 {
                     foreach (var resource in _resources.Keys) resource.Dispose();
+                    _resources.Clear();
+                    _uris.Clear();
                 }
             }
         }
@@ -148,7 +153,7 @@ namespace WebsiteRipper
             if (reference == null) throw new ArgumentNullException("reference");
             var subUri = reference.GetAbsoluteUri(resource);
             if (subUri == null) return null;
-            var isInScope = (subUri.Scheme == Uri.UriSchemeHttp || subUri.Scheme == Uri.UriSchemeHttps) && (
+            var isInScope = Downloader.Supports(subUri) && (
                 reference.Kind == ReferenceKind.ExternalResource ||
                 (MaxDepth <= 0 || depth <= MaxDepth) && (
                     !IsBase && _includeRegex == null ||

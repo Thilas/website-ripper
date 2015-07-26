@@ -42,7 +42,7 @@ namespace WebsiteRipper.Core
 
         static readonly Dictionary<string, MimeType> _templates = new Dictionary<string, MimeType>();
 
-        static Lazy<Regex> _fileExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _fileExtensionsRegex = new Lazy<Regex>(() => new Regex(
             @"\bFile\s+extension(?:\(s\))?\s*:\s*(?<extensions>[\w\W]*?)\s*(?:\n\s*\n|(?:\n|\b\d\.|\bMacintosh\b)[^\n:]+:[^/]{2})",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant));
 
@@ -76,16 +76,16 @@ namespace WebsiteRipper.Core
             }
         }
 
-        static Lazy<Regex> _noExtensionRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _noExtensionRegex = new Lazy<Regex>(() => new Regex(
             @"\b(?:n/a|not?\b.+\bspecific\b.+\bextensions?|not\s+(?:applicable|expected|required)|none(?!\s+or)|see\s+registration|unknown)\b",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant));
-        static Lazy<Regex> _doubleQuotedExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _doubleQuotedExtensionsRegex = new Lazy<Regex>(() => new Regex(
             string.Format(@"""(?:\*?\.)?(?<extensions>{0})""", DefaultExtensions.ExtensionRegexClass), RegexOptions.Compiled));
-        static Lazy<Regex> _singleQuotedExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _singleQuotedExtensionsRegex = new Lazy<Regex>(() => new Regex(
             string.Format(@"'(?:\*?\.)?(?<extensions>{0})'", DefaultExtensions.ExtensionRegexClass), RegexOptions.Compiled));
-        static Lazy<Regex> _dottedExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _dottedExtensionsRegex = new Lazy<Regex>(() => new Regex(
             string.Format(@"(?:^|\s|,)\*?\.(?<extensions>{0})\b", DefaultExtensions.ExtensionRegexClass), RegexOptions.Compiled));
-        static Lazy<Regex> _extensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _extensionsRegex = new Lazy<Regex>(() => new Regex(
             string.Format(@"(?:\b(?:and|(?:are\s+both|is)\s+declared\s+at\s+[\w\W]+|extension|or)\b|\([^\)]*\)|<[^>)]*>|\b(?<extensions>{0})\b)", DefaultExtensions.ExtensionRegexClass),
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant));
 
@@ -109,7 +109,6 @@ namespace WebsiteRipper.Core
 
         internal sealed override Resource GetSubResource(int depth, Resource resource, Reference reference)
         {
-
             var subResource = base.GetSubResource(depth, resource, reference);
             var defaultExtensionsReference = reference as DefaultExtensionsReference;
             if (subResource == null || defaultExtensionsReference == null) return subResource;

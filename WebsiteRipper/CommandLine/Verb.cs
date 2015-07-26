@@ -15,7 +15,7 @@ namespace WebsiteRipper.CommandLine
 
     abstract class Verb
     {
-        static Lazy<IEnumerable<Type>> _verbs = new Lazy<IEnumerable<Type>>(() =>
+        static readonly Lazy<IEnumerable<Type>> _verbs = new Lazy<IEnumerable<Type>>(() =>
         {
             var abstractVerbType = typeof(Verb);
             var verbAttributeType = typeof(VerbAttribute);

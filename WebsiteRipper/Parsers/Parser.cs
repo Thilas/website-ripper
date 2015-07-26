@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 
 namespace WebsiteRipper.Parsers
 {
@@ -24,17 +23,15 @@ namespace WebsiteRipper.Parsers
 
         internal static Dictionary<string, Type> ParserTypes { get { return _parserTypes.Value; } }
 
-        internal static Parser CreateDefault(string contentType, Uri uri)
+        internal static Parser CreateDefault(string mimeType, Uri uri)
         {
-            var mimeType = contentType != null ? new ContentType(contentType).MediaType : null;
             return new DefaultParser(mimeType, uri);
         }
 
-        internal static Parser Create(string contentType)
+        internal static Parser Create(string mimeType)
         {
-            var mimeType = new ContentType(contentType).MediaType;
             Type parserType;
-            if (!string.IsNullOrEmpty(mimeType) && ParserTypes.TryGetValue(mimeType, out parserType))
+            if (mimeType != null && ParserTypes.TryGetValue(mimeType, out parserType))
                 return (Parser)Activator.CreateInstance(parserType, mimeType);
             return new DefaultParser(mimeType, null);
         }

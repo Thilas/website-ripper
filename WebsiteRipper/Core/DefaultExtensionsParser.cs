@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using WebsiteRipper.Parsers;
 using WebsiteRipper.Parsers.Xml;
+using WebsiteRipper.Properties;
 
 namespace WebsiteRipper.Core
 {
@@ -14,13 +15,12 @@ namespace WebsiteRipper.Core
 
         protected override string GetDefaultExtension() { return ".xml"; }
 
-        static Lazy<Regex> _subtypeNameRegex = new Lazy<Regex>(() => new Regex("^[^ ]+", RegexOptions.Compiled));
+        static readonly Lazy<Regex> _subtypeNameRegex = new Lazy<Regex>(() => new Regex(@"^\S+", RegexOptions.Compiled));
 
         protected override IEnumerable<Reference> GetReferences()
         {
-            const string AssignmentsNamespace = "http://www.iana.org/assignments";
             var xmlNamespaceManager = new XmlNamespaceManager(XmlDocument.NameTable);
-            xmlNamespaceManager.AddNamespace("a", AssignmentsNamespace);
+            xmlNamespaceManager.AddNamespace("a", Settings.Default.IanaAssignmentsNamespace);
             var files = XmlDocument.SelectNodes("/a:registry[@id='media-types']/a:registry[a:title!='']/a:record[a:name!='']/a:file[@type='template' and text()!='']/text()", xmlNamespaceManager);
             return files != null ? files.OfType<XmlText>().Select(file =>
             {

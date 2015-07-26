@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
+using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Tests.Fixtures
 {
@@ -18,46 +18,33 @@ namespace WebsiteRipper.Tests.Fixtures
             if (!WebRequest.RegisterPrefix(string.Format("{0}:", Scheme), new WebTest())) throw new NotSupportedException(string.Format("WebRequest does not support registering scheme \"{0}\".", Scheme));
         }
 
-        public static Resource GetActualResource(WebTestInfo webTest)
+        public static IEnumerable<Resource> GetExpectedResources(WebTestInfo webTest, params Uri[] uris)
         {
-            return GetActual((resource, subResources) => resource, webTest, null);
+            return Resource.Create(webTest.Ripper, uris.Prepend(webTest.Uri).ToArray()).ToList();
         }
 
-        public static IEnumerable<Resource> GetExpectedSubResources(params Resource[] resources)
-        {
-            return resources.ToList();
-        }
-
-        public static IEnumerable<Resource> GetActualSubResources(WebTestInfo webTest)
-        {
-            return GetActualSubResources(webTest, null);
-        }
-
-        public static IEnumerable<Resource> GetActualSubResources(WebTestInfo webTest, params WebTestInfo[] subWebTests)
-        {
-            return GetActual((resource, subResources) => subResources, webTest, subWebTests);
-        }
-
-        static T GetActual<T>(Func<Resource, IEnumerable<Resource>, T> selector, WebTestInfo webTest, params WebTestInfo[] subWebTests)
+        public static IEnumerable<Resource> GetActualResources(WebTestInfo webTest, params WebTestInfo[] subWebTests)
         {
             lock (_webTests)
             {
-                var rootPath = Path.GetTempFileName();
-                File.Delete(rootPath);
                 try
                 {
                     _locked = true;
                     _webTests.Add(webTest.Uri, webTest);
-                    if (subWebTests != null)
-                        foreach (var subWebTest in subWebTests) _webTests.Add(subWebTest.Uri, subWebTest);
-                    var ripper = new Ripper(webTest.Uri, rootPath);
-                    var subResources = ripper.Resource.GetResources(RipMode.Create, 0).Result.ToList();
-                    return selector(ripper.Resource, subResources);
+                    foreach (var subWebTest in subWebTests) _webTests.Add(subWebTest.Uri, subWebTest);
+                    var resource = webTest.Ripper.Resource;
+                    return resource.RipAsync(RipMode.Create, 0).Result.ToList();
+                }
+                catch (AggregateException aggregateException)
+                {
+                    if (aggregateException.InnerExceptions.Count == 1)
+                        throw aggregateException.InnerException;
+                    else
+                        throw;
                 }
                 finally
                 {
                     _webTests.Clear();
-                    if (Directory.Exists(rootPath)) Directory.Delete(rootPath, true);
                     _locked = false;
                 }
             }

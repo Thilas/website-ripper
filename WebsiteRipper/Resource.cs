@@ -25,12 +25,24 @@ namespace WebsiteRipper
 
         public DateTime LastModified { get; private set; }
 
-        internal Resource(Ripper ripper, Uri uri, bool hyperlink = true)
+        internal static IEnumerable<Resource> Create(Ripper ripper, params Uri[] uris)
+        {
+            foreach (var uri in uris) yield return new Resource(ripper, false) { OriginalUri = uri };
+        }
+
+        Resource(Ripper ripper, bool hyperlink)
         {
             if (ripper == null) throw new ArgumentNullException("ripper");
-            if (uri == null) throw new ArgumentNullException("uri");
             _ripper = ripper;
             _hyperlink = hyperlink;
+        }
+
+        internal Resource(Ripper ripper, Uri uri) : this(ripper, uri, true) { }
+
+        internal Resource(Ripper ripper, Uri uri, bool hyperlink)
+            : this(ripper, hyperlink)
+        {
+            if (uri == null) throw new ArgumentNullException("uri");
             _downloader = Downloader.Create(uri, ripper.Timeout, ripper.PreferredLanguages);
             try
             {
@@ -48,22 +60,22 @@ namespace WebsiteRipper
                 if (!_downloader.SetResponse(exception)) Dispose();
                 LastModified = _downloader != null ? _downloader.LastModified : DateTime.Now;
                 uri = _downloader != null ? _downloader.ResponseUri : uri;
-                Parser = Parser.CreateDefault(_downloader != null ? _downloader.ContentType : null, uri);
+                Parser = Parser.CreateDefault(_downloader != null ? _downloader.MimeType : null, uri);
                 OriginalUri = uri;
                 NewUri = GetNewUri(uri);
                 throw new ResourceUnavailableException(this, exception);
             }
             uri = _downloader.ResponseUri;
-            Parser = Parser.Create(_downloader.ContentType);
+            Parser = Parser.Create(_downloader.MimeType);
             OriginalUri = uri;
             NewUri = GetNewUri(uri);
         }
 
         public override bool Equals(object obj) { return Equals(obj as Resource); }
 
-        public bool Equals(Resource resource) { return resource != null && NewUri.Equals(resource.NewUri); }
+        public bool Equals(Resource resource) { return resource != null && OriginalUri.Equals(resource.OriginalUri); }
 
-        public override int GetHashCode() { return NewUri.GetHashCode(); }
+        public override int GetHashCode() { return OriginalUri.GetHashCode(); }
 
         public override string ToString() { return OriginalUri.ToString(); }
 
@@ -114,23 +126,19 @@ namespace WebsiteRipper
         }
 
         bool _ripped = false;
-        internal async Task RipAsync(RipMode ripMode, int depth)
+        internal async Task<IEnumerable<Resource>> RipAsync(RipMode ripMode, int depth)
         {
-            if (_ripped) return;
+            if (_ripped) return Enumerable.Empty<Resource>();
             lock (this)
             {
-                if (_ripped) return;
+                if (_ripped) return Enumerable.Empty<Resource>();
                 _ripped = true;
             }
-            var resources = await GetResources(ripMode, depth);
-            await Task.WhenAll(resources.Select(subResource => subResource.RipAsync(ripMode, depth)));
-        }
-
-        internal async Task<IEnumerable<Resource>> GetResources(RipMode ripMode, int depth)
-        {
             await DownloadAsync(ripMode);
             if (_hyperlink) depth++;
-            return Parser.GetResources(_ripper, depth, this);
+            var subResources = await Task.WhenAll(Parser.GetResources(_ripper, depth, this)
+                .Select(subResource => subResource.RipAsync(ripMode, depth)));
+            return subResources.SelectMany(subResource => subResource).Prepend(this);
         }
 
         async Task<bool> DownloadAsync(RipMode ripMode)

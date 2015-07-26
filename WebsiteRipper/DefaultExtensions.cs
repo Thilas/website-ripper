@@ -26,14 +26,14 @@ namespace WebsiteRipper
         const string DefaultExtensionsFile = "default.extensions";
         static readonly string _defaultExtensionsPath = Path.Combine(_rootPath, DefaultExtensionsFile);
 
-        static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\.,{0}\p{{Z}}]+", Regex.Escape(string.Join(string.Empty, new char[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
+        static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\s\.,{0}]+", Regex.Escape(string.Join(string.Empty, new char[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
         internal static string ExtensionRegexClass { get { return _extensionRegexClass; } }
 
-        static Lazy<DefaultExtensions> _empty = new Lazy<DefaultExtensions>(() => new DefaultExtensions(Enumerable.Empty<MimeType>()));
+        static readonly Lazy<DefaultExtensions> _empty = new Lazy<DefaultExtensions>(() => new DefaultExtensions(Enumerable.Empty<MimeType>()));
         internal static DefaultExtensions Empty { get { return _empty.Value; } }
 
         static DefaultExtensions _all = null;
-        static Lazy<DefaultExtensions> _allLazy = new Lazy<DefaultExtensions>(() => Load(_defaultExtensionsPath));
+        static readonly Lazy<DefaultExtensions> _allLazy = new Lazy<DefaultExtensions>(() => Load(_defaultExtensionsPath));
         public static DefaultExtensions All { get { return _all ?? _allLazy.Value; } }
 
         public static void Update()
@@ -132,13 +132,13 @@ namespace WebsiteRipper
         }
 
         const string LastModifiedFormat = "# Last modified: {0}";
-        static Lazy<Regex> _defaultExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _defaultExtensionsRegex = new Lazy<Regex>(() => new Regex(
             string.Format(@"^(?:{0}|(?:\s*#\s*)?(?<type>\S+)/(?<subtype>\S+)(?:\s+(?<extensions>{1})\b)*)\r?$", string.Format(LastModifiedFormat, @"(?<date>\S+)"), ExtensionRegexClass),
             RegexOptions.Multiline | RegexOptions.Compiled));
 
         static DefaultExtensions Load(string path)
         {
-            return Load(path, DateTime.Now);
+            return Load(path, DateTime.MinValue);
         }
 
         static DefaultExtensions Load(string path, DateTime defaultLastModified)
