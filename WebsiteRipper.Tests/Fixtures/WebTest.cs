@@ -15,7 +15,19 @@ namespace WebsiteRipper.Tests.Fixtures
 
         static WebTest()
         {
-            if (!WebRequest.RegisterPrefix(string.Format("{0}:", Scheme), new WebTest())) throw new NotSupportedException(string.Format("WebRequest does not support registering scheme \"{0}\".", Scheme));
+            if (!WebRequest.RegisterPrefix(string.Format("{0}:", Scheme), new WebTest()))
+                throw new NotSupportedException(string.Format("WebRequest does not support registering scheme \"{0}\".", Scheme));
+        }
+
+        public static IEnumerable<Resource> GetExpectedResources(WebTestInfo webTest)
+        {
+            return GetExpectedResources(webTest, new Uri[] { });
+        }
+
+        public static IEnumerable<Resource> GetExpectedResources(WebTestInfo webTest, params string[] relativeUriStrings)
+        {
+            var uris = relativeUriStrings.Select(relativeUriString => new Uri(webTest.Uri, relativeUriString)).ToArray();
+            return GetExpectedResources(webTest, uris);
         }
 
         public static IEnumerable<Resource> GetExpectedResources(WebTestInfo webTest, params Uri[] uris)

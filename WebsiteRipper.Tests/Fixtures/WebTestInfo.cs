@@ -40,7 +40,7 @@ namespace WebsiteRipper.Tests.Fixtures
 
         public WebTestInfo(WebTestInfo webTest, string relativeUri, string mimeType, string content) : this(webTest, new Uri(webTest.Uri, relativeUri), mimeType, content) { }
 
-        WebTestInfo(WebTestInfo webTest, Uri uri, string mimeType, string content)
+        public WebTestInfo(WebTestInfo webTest, Uri uri, string mimeType, string content)
         {
             _rootPath = webTest == null ? Path.GetTempFileName() : null;
             if (_rootPath != null) File.Delete(_rootPath);
