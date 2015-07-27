@@ -8,7 +8,12 @@ namespace WebsiteRipper.Tests.Fixtures
 {
     sealed class WebTest : IWebRequestCreate
     {
-        public const string Scheme = "website-ripper-test";
+        public const string Scheme = "test";
+
+        public static Uri GetUri(string uriStringWithoutScheme)
+        {
+            return new Uri(string.Format("{0}://{1}", Scheme, uriStringWithoutScheme));
+        }
 
         static readonly Dictionary<Uri, WebTestInfo> _webTests = new Dictionary<Uri, WebTestInfo>();
         static bool _locked = false;

@@ -8,11 +8,22 @@ namespace WebsiteRipper.Tests.Parsers
 {
     public sealed class HtmlParserTests
     {
+        const string EmptyHtml = "Empty";
+        const string HtmlFormat = "<html{0}><head{1}><title>Title</title>{2}{3}</head><body{4}>Body{5}</body></html>";
+        const string BaseFormat = "<base href={0}>";
+
+        static string GetHtml(string htmlAttribute = null, string headAttribute = null, string baseElement = null, string headElement = null,
+            string bodyAttribute = null, string bodyElement = null)
+        {
+            return string.Format(HtmlFormat, htmlAttribute, headAttribute, baseElement, headElement, bodyAttribute, bodyElement);
+        }
+
+        static string GetBaseElement(string baseUriStringWithoutScheme) { return string.Format(BaseFormat, WebTest.GetUri(baseUriStringWithoutScheme)); }
+
         [Fact]
         public void Rip_BasicHtml_ReturnsResourceWithHtmlParser()
         {
-            const string html = "Body";
-            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            using (var webTest = new WebTestInfo(HtmlParser.MimeType, EmptyHtml))
             {
                 var expected = typeof(HtmlParser);
                 var actual = WebTest.GetActualResources(webTest).Single().Parser;
@@ -23,8 +34,7 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_BasicHtml_ReturnsResourceWithHtmlMimeType()
         {
-            const string html = "Body";
-            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            using (var webTest = new WebTestInfo(HtmlParser.MimeType, EmptyHtml))
             {
                 var expected = HtmlParser.MimeType;
                 var actual = WebTest.GetActualResources(webTest).Single().Parser.ActualMimeType;
@@ -35,8 +45,7 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_BasicHtml_ReturnsResourceWithRequestedUri()
         {
-            const string html = "Body";
-            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            using (var webTest = new WebTestInfo(HtmlParser.MimeType, EmptyHtml))
             {
                 var expected = webTest.Uri;
                 var actual = WebTest.GetActualResources(webTest).Single().OriginalUri;
@@ -45,15 +54,17 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData("<html><head><title>Title</title></head><body>Body</body></html>", null)]
-        [InlineData("<html><head><title>Title</title><base target=_blank></head><body>Body</body></html>", null)]
-        [InlineData("<html><head><title>Title</title><base href=invalid></head><body>Body</body></html>", null)]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body</body></html>", "http://base")]
-        public void Rip_Html_ReturnsResourceWithExpectedBase(string html, string baseUriString)
+        [InlineData("", null)]
+        [InlineData("<base target=_blank>", null)]
+        [InlineData("<base href=invalid>", null)]
+        [InlineData("<base href={0}>", "base")]
+        public void Rip_BaseHtml_ReturnsResourceWithExpectedBase(string baseElementFormat, string baseUriStringWithoutScheme)
         {
+            var baseUri = baseUriStringWithoutScheme != null ? WebTest.GetUri(baseUriStringWithoutScheme) : null;
+            var html = GetHtml(baseElement: string.Format(baseElementFormat, baseUri));
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
-                var expected = baseUriString != null ? new Uri(baseUriString) : null;
+                var expected = baseUri;
                 var actual = ((HtmlParser)WebTest.GetActualResources(webTest).Single().Parser).BaseUri;
                 Assert.Equal(expected, actual);
             }
@@ -62,7 +73,7 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_DuplicateBaseHtml_ThrowsDuplicateBaseHtmlElementException()
         {
-            const string html = "<html><head><title>Title</title><base href=http://base1><base href=http://base2></head><body>Body</body></html>";
+            var html = GetHtml(baseElement: string.Format("{0}{1}", GetBaseElement("base1"), GetBaseElement("base2")));
             Assert.Throws<DuplicateBaseHtmlElementException>(() =>
             {
                 using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
@@ -74,16 +85,8 @@ namespace WebsiteRipper.Tests.Parsers
 
         [Theory]
         [InlineData("")]
-        [InlineData("Body")]
-        [InlineData("<html><head><title>Title</title></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<fake href=fake>Fake</fake></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<applet archive=sub>Sub</applet></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<applet codebase=sub>Sub</applet></body></html>")]
-        [InlineData("<html><head><title>Title</title><link rel=dns-prefetch href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<object archive=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<object codebase=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<source srcset=sub>Sub</source></body></html>")]
-        public void Rip_BasicHtml_ReturnsNoSubResources(string html)
+        [InlineData(EmptyHtml)]
+        public void Rip_EmptyHtml_ReturnsNoSubResources(string html)
         {
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
@@ -94,110 +97,134 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData("<html><head><title>Title</title></head><body>Body<a href=sub>Sub</a></body></html>")]
-        //[InlineData("<html><head><title>Title</title></head><body>Body<applet archive=sub>Sub</applet></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<applet code=sub>Sub</applet></body></html>")]
-        //[InlineData("<html><head><title>Title</title></head><body>Body<applet codebase=sub>Sub</applet></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<area href=sub>Sub</area></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<audio src=sub>Sub</audio></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body background=sub>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<embed src=sub>Sub</embed></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<frame longdesc=sub>Sub</frame></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<frame src=sub>Sub</frame></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<area href=sub>Sub</area></body></html>")]
-        [InlineData("<html><head profile=sub><title>Title</title></head><body>Body</body></html>")]
-        [InlineData("<html manifest=sub><head><title>Title</title></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<iframe longdesc=sub>Sub</iframe></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<iframe src=sub>Sub</iframe></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<img longdesc=sub>Sub</img></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<img src=sub>Sub</img></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<input src=sub>Sub</input></body></html>")]
-        //[InlineData("<html><head><title>Title</title><link rel=dns-prefetch href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><link rel=icon href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><link rel=pingback href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><link rel=prefetch href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><link rel=stylesheet href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<menuitem icon=sub>Sub</menuitem></body></html>")]
-        //[InlineData("<html><head><title>Title</title></head><body>Body<object archive=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<object classid=sub>Sub</object></body></html>")]
-        //[InlineData("<html><head><title>Title</title></head><body>Body<object codebase=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<object data=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<script src=sub>Sub</script></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<source src=sub>Sub</source></body></html>")]
-        //[InlineData("<html><head><title>Title</title></head><body>Body<source srcset=sub>Sub</source></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<track src=sub>Sub</track></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<video poster=sub>Sub</video></body></html>")]
-        [InlineData("<html><head><title>Title</title></head><body>Body<video src=sub>Sub</video></body></html>")]
-        public void Rip_BasicHtml_ReturnsExpectedSubResources(string html)
+        [InlineData(null, null)]
+        [InlineData(null, "<fake href=fake>Fake</fake>")]
+        // Not yet supported attributes
+        [InlineData(null, "<applet archive=sub>Sub</applet>")]
+        [InlineData(null, "<applet codebase=sub>Sub</applet>")]
+        [InlineData("<link rel=dns-prefetch href=sub>Sub</link>", null)]
+        [InlineData(null, "<object archive=sub>Sub</object>")]
+        [InlineData(null, "<object codebase=sub>Sub</object>")]
+        [InlineData(null, "<source srcset=sub>Sub</source>")]
+        public void Rip_BasicHtml_ReturnsNoSubResources(string headElement, string bodyElement)
         {
+            var html = GetHtml(headElement: headElement, bodyElement: bodyElement);
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
-                const string subUriString = "sub";
-                const string subHtml = "Body";
-                var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, subHtml));
+                var expected = WebTest.GetExpectedResources(webTest);
+                var actual = WebTest.GetActualResources(webTest);
                 Assert.Equal(expected, actual);
             }
         }
 
         [Theory]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<a href=sub>Sub</a></body></html>")]
-        //[InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<applet archive=sub>Sub</applet></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<applet code=sub>Sub</applet></body></html>")]
-        //[InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<applet codebase=sub>Sub</applet></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<area href=sub>Sub</area></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<audio src=sub>Sub</audio></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body background=sub>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<embed src=sub>Sub</embed></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<frame longdesc=sub>Sub</frame></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<frame src=sub>Sub</frame></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<area href=sub>Sub</area></body></html>")]
-        [InlineData("<html><head profile=sub><title>Title</title><base href=http://base></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<iframe longdesc=sub>Sub</iframe></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<iframe src=sub>Sub</iframe></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<img longdesc=sub>Sub</img></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<img src=sub>Sub</img></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<input src=sub>Sub</input></body></html>")]
-        //[InlineData("<html><head><title>Title</title><base href=http://base><link rel=dns-prefetch href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base><link rel=icon href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base><link rel=pingback href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base><link rel=prefetch href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base><link rel=stylesheet href=sub>Sub</link></head><body>Body</body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<menuitem icon=sub>Sub</menuitem></body></html>")]
-        //[InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<object archive=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<object classid=sub>Sub</object></body></html>")]
-        //[InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<object codebase=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<object data=sub>Sub</object></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<script src=sub>Sub</script></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<source src=sub>Sub</source></body></html>")]
-        //[InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<source srcset=sub>Sub</source></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<track src=sub>Sub</track></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<video poster=sub>Sub</video></body></html>")]
-        [InlineData("<html><head><title>Title</title><base href=http://base></head><body>Body<video src=sub>Sub</video></body></html>")]
-        public void Rip_BasicHtml_ReturnsExpectedRebasedSubResources(string html)
+        [InlineData(null, null, null, null, "<a href=sub>Sub</a>")]
+        //[InlineData(null, null, null, null, "<applet archive=sub>Sub</applet>")]
+        [InlineData(null, null, null, null, "<applet code=sub>Sub</applet>")]
+        //[InlineData(null, null, null, null, "<applet codebase=sub>Sub</applet>")]
+        [InlineData(null, null, null, null, "<area href=sub>Sub</area>")]
+        [InlineData(null, null, null, null, "<audio src=sub>Sub</audio>")]
+        [InlineData(null, null, null, " background=sub", null)]
+        [InlineData(null, null, null, null, "<embed src=sub>Sub</embed>")]
+        [InlineData(null, null, null, null, "<frame longdesc=sub>Sub</frame>")]
+        [InlineData(null, null, null, null, "<frame src=sub>Sub</frame>")]
+        [InlineData(null, null, null, null, "<area href=sub>Sub</area>")]
+        [InlineData(null, " profile=sub", null, null, null)]
+        [InlineData(" manifest=sub", null, null, null, null)]
+        [InlineData(null, null, null, null, "<iframe longdesc=sub>Sub</iframe>")]
+        [InlineData(null, null, null, null, "<iframe src=sub>Sub</iframe>")]
+        [InlineData(null, null, null, null, "<img longdesc=sub>Sub</img>")]
+        [InlineData(null, null, null, null, "<img src=sub>Sub</img>")]
+        [InlineData(null, null, null, null, "<input src=sub>Sub</input>")]
+        //[InlineData(null, null, "<link rel=dns-prefetch href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=icon href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=pingback href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=prefetch href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=stylesheet href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, null, null, "<menuitem icon=sub>Sub</menuitem>")]
+        //[InlineData(null, null, null, null, "<object archive=sub>Sub</object>")]
+        [InlineData(null, null, null, null, "<object classid=sub>Sub</object>")]
+        //[InlineData(null, null, null, null, "<object codebase=sub>Sub</object>")]
+        [InlineData(null, null, null, null, "<object data=sub>Sub</object>")]
+        [InlineData(null, null, null, null, "<script src=sub>Sub</script>")]
+        [InlineData(null, null, null, null, "<source src=sub>Sub</source>")]
+        //[InlineData(null, null, null, null, "<source srcset=sub>Sub</source>")]
+        [InlineData(null, null, null, null, "<track src=sub>Sub</track>")]
+        [InlineData(null, null, null, null, "<video poster=sub>Sub</video>")]
+        [InlineData(null, null, null, null, "<video src=sub>Sub</video>")]
+        public void Rip_BasicHtml_ReturnsExpectedSubResources(string htmlAttribute, string headAttribute, string headElement,
+            string bodyAttribute, string bodyElement)
         {
+            var html = GetHtml(htmlAttribute, headAttribute, null, headElement, bodyAttribute, bodyElement);
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
-                const string baseUriString = "http://base";
                 const string subUriString = "sub";
-                var subUri = new Uri(new Uri(baseUriString), subUriString);
-                const string subHtml = "Body";
+                var expected = WebTest.GetExpectedResources(webTest, subUriString);
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, EmptyHtml));
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Theory]
+        [InlineData(null, null, null, null, "<a href=sub>Sub</a>")]
+        //[InlineData(null, null, null, null, "<applet archive=sub>Sub</applet>")]
+        [InlineData(null, null, null, null, "<applet code=sub>Sub</applet>")]
+        //[InlineData(null, null, null, null, "<applet codebase=sub>Sub</applet>")]
+        [InlineData(null, null, null, null, "<area href=sub>Sub</area>")]
+        [InlineData(null, null, null, null, "<audio src=sub>Sub</audio>")]
+        [InlineData(null, null, null, " background=sub", null)]
+        [InlineData(null, null, null, null, "<embed src=sub>Sub</embed>")]
+        [InlineData(null, null, null, null, "<frame longdesc=sub>Sub</frame>")]
+        [InlineData(null, null, null, null, "<frame src=sub>Sub</frame>")]
+        [InlineData(null, null, null, null, "<area href=sub>Sub</area>")]
+        [InlineData(null, " profile=sub", null, null, null)]
+        [InlineData(null, null, null, null, "<iframe longdesc=sub>Sub</iframe>")]
+        [InlineData(null, null, null, null, "<iframe src=sub>Sub</iframe>")]
+        [InlineData(null, null, null, null, "<img longdesc=sub>Sub</img>")]
+        [InlineData(null, null, null, null, "<img src=sub>Sub</img>")]
+        [InlineData(null, null, null, null, "<input src=sub>Sub</input>")]
+        //[InlineData(null, null, "<link rel=dns-prefetch href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=icon href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=pingback href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=prefetch href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, "<link rel=stylesheet href=sub>Sub</link>", null, null)]
+        [InlineData(null, null, null, null, "<menuitem icon=sub>Sub</menuitem>")]
+        //[InlineData(null, null, null, null, "<object archive=sub>Sub</object>")]
+        [InlineData(null, null, null, null, "<object classid=sub>Sub</object>")]
+        //[InlineData(null, null, null, null, "<object codebase=sub>Sub</object>")]
+        [InlineData(null, null, null, null, "<object data=sub>Sub</object>")]
+        [InlineData(null, null, null, null, "<script src=sub>Sub</script>")]
+        [InlineData(null, null, null, null, "<source src=sub>Sub</source>")]
+        //[InlineData(null, null, null, null, "<source srcset=sub>Sub</source>")]
+        [InlineData(null, null, null, null, "<track src=sub>Sub</track>")]
+        [InlineData(null, null, null, null, "<video poster=sub>Sub</video>")]
+        [InlineData(null, null, null, null, "<video src=sub>Sub</video>")]
+        public void Rip_BasicHtml_ReturnsExpectedRebasedSubResources(string htmlAttribute, string headAttribute, string headElement,
+            string bodyAttribute, string bodyElement)
+        {
+            const string baseUriStringWithoutScheme = "base";
+            var html = GetHtml(htmlAttribute, headAttribute, GetBaseElement(baseUriStringWithoutScheme), headElement, bodyAttribute, bodyElement);
+            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            {
+                const string subUriString = "sub";
+                var subUri = new Uri(WebTest.GetUri(baseUriStringWithoutScheme), subUriString);
                 var expected = WebTest.GetExpectedResources(webTest, subUri);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUri, HtmlParser.MimeType, subHtml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUri, HtmlParser.MimeType, EmptyHtml));
                 Assert.Equal(expected, actual);
             }
         }
 
         [Theory]
-        [InlineData("<html manifest=sub><head><title>Title</title><base href=http://base></head><body>Body</body></html>")]
-        public void Rip_BasicHtml_ReturnsExpectedNotRebasedSubResources(string html)
+        [InlineData(" manifest=sub", null, null, null, null)]
+        public void Rip_BasicHtml_ReturnsExpectedNotRebasedSubResources(string htmlAttribute, string headAttribute, string headElement,
+            string bodyAttribute, string bodyElement)
         {
+            var html = GetHtml(htmlAttribute, headAttribute, null, headElement, bodyAttribute, bodyElement);
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 const string subUriString = "sub";
-                const string subHtml = "Body";
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, subHtml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, EmptyHtml));
                 Assert.Equal(expected, actual);
             }
         }

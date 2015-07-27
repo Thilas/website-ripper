@@ -36,7 +36,7 @@ namespace WebsiteRipper.Tests.Fixtures
 
         public WebTestInfo(string mimeType, string content) : this(GetName(), mimeType, content) { }
 
-        public WebTestInfo(string name, string mimeType, string content) : this(null, new Uri(string.Format("{0}://{1}", WebTest.Scheme, name)), mimeType, content) { }
+        public WebTestInfo(string name, string mimeType, string content) : this(null, WebTest.GetUri(name), mimeType, content) { }
 
         public WebTestInfo(WebTestInfo webTest, string relativeUri, string mimeType, string content) : this(webTest, new Uri(webTest.Uri, relativeUri), mimeType, content) { }
 
