@@ -7,7 +7,7 @@ namespace WebsiteRipper.Parsers
 {
     public abstract class Parser
     {
-        static readonly Lazy<Dictionary<string, Type>> _parserTypes = new Lazy<Dictionary<string, Type>>(() =>
+        static readonly Lazy<Dictionary<string, Type>> _parserTypesLazy = new Lazy<Dictionary<string, Type>>(() =>
         {
             var parserType = typeof(Parser);
             var parserConstructorTypes = new[] { typeof(string) };
@@ -21,7 +21,7 @@ namespace WebsiteRipper.Parsers
                 .ToDictionary(parser => parser.MimeType, parser => parser.Type, StringComparer.OrdinalIgnoreCase);
         });
 
-        internal static Dictionary<string, Type> ParserTypes { get { return _parserTypes.Value; } }
+        internal static Dictionary<string, Type> ParserTypes { get { return _parserTypesLazy.Value; } }
 
         internal static Parser CreateDefault(string mimeType, Uri uri)
         {

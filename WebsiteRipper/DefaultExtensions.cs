@@ -29,8 +29,8 @@ namespace WebsiteRipper
         static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\s\.,{0}]+", Regex.Escape(string.Join(string.Empty, new[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
         internal static string ExtensionRegexClass { get { return _extensionRegexClass; } }
 
-        static readonly Lazy<DefaultExtensions> _empty = new Lazy<DefaultExtensions>(() => new DefaultExtensions(Enumerable.Empty<MimeType>()));
-        internal static DefaultExtensions Empty { get { return _empty.Value; } }
+        static readonly Lazy<DefaultExtensions> _emptyLazy = new Lazy<DefaultExtensions>(() => new DefaultExtensions(Enumerable.Empty<MimeType>()));
+        internal static DefaultExtensions Empty { get { return _emptyLazy.Value; } }
 
         static DefaultExtensions _all = null;
         static readonly Lazy<DefaultExtensions> _allLazy = new Lazy<DefaultExtensions>(() => Load(_defaultExtensionsPath));
@@ -78,7 +78,7 @@ namespace WebsiteRipper
             return factory(uri, lastModified).Save(path);
         }
 
-        static readonly Lazy<DefaultExtensions> _iana = new Lazy<DefaultExtensions>(() =>
+        static readonly Lazy<DefaultExtensions> _ianaLazy = new Lazy<DefaultExtensions>(() =>
         {
             const string ianaMimeTypesFile = "iana.mime.types";
             return GetDefaultExtensions(ianaMimeTypesFile, Settings.Default.IanaMediaTypesUri, (uri, lastModified) =>
@@ -95,9 +95,9 @@ namespace WebsiteRipper
                 }
             });
         });
-        internal static DefaultExtensions Iana { get { return _iana.Value; } }
+        internal static DefaultExtensions Iana { get { return _ianaLazy.Value; } }
 
-        static readonly Lazy<DefaultExtensions> _apache = new Lazy<DefaultExtensions>(() =>
+        static readonly Lazy<DefaultExtensions> _apacheLazy = new Lazy<DefaultExtensions>(() =>
         {
             const string mimeTypesFile = "apache.mime.types";
             return GetDefaultExtensions(mimeTypesFile, Settings.Default.ApacheMimeTypesUri, (uri, lastModified) =>
@@ -117,7 +117,7 @@ namespace WebsiteRipper
                 }
             });
         });
-        internal static DefaultExtensions Apache { get { return _apache.Value; } }
+        internal static DefaultExtensions Apache { get { return _apacheLazy.Value; } }
 
         readonly Dictionary<string, MimeType> _defaultExtensions;
 
@@ -132,7 +132,7 @@ namespace WebsiteRipper
         }
 
         const string LastModifiedFormat = "# Last modified: {0}";
-        static readonly Lazy<Regex> _defaultExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _defaultExtensionsRegexLazy = new Lazy<Regex>(() => new Regex(
             string.Format(@"^(?:{0}|(?:\s*#\s*)?(?<type>\S+)/(?<subtype>\S+)(?:\s+(?<extensions>{1})\b)*)\r?$", string.Format(LastModifiedFormat, @"(?<date>\S+)"), ExtensionRegexClass),
             RegexOptions.Multiline | RegexOptions.Compiled));
 
@@ -146,7 +146,7 @@ namespace WebsiteRipper
             if (path == null) throw new ArgumentNullException("path");
             using (var streamReader = new StreamReader(path, Encoding.Default))
             {
-                var matches = _defaultExtensionsRegex.Value.Matches(streamReader.ReadToEnd());
+                var matches = _defaultExtensionsRegexLazy.Value.Matches(streamReader.ReadToEnd());
                 var lastModifiedGroup = matches.Cast<Match>().Select(match => match.Groups["date"]).SingleOrDefault(group => group.Success);
                 DateTime lastModified;
                 if (lastModifiedGroup == null || !DateTime.TryParseExact(lastModifiedGroup.Value, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out lastModified))

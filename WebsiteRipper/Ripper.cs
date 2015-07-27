@@ -46,14 +46,14 @@ namespace WebsiteRipper
         public int MaxDepth { get; set; }
 
         string _includePattern = null;
-        Lazy<Regex> _includeRegex = null;
+        Lazy<Regex> _includeRegexLazy = null;
         public string IncludePattern
         {
             get { return _includePattern; }
             set
             {
                 _includePattern = value;
-                _includeRegex = !string.IsNullOrEmpty(_includePattern) ? new Lazy<Regex>(() => new Regex(_includePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)) : null;
+                _includeRegexLazy = !string.IsNullOrEmpty(_includePattern) ? new Lazy<Regex>(() => new Regex(_includePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)) : null;
             }
         }
 
@@ -152,9 +152,9 @@ namespace WebsiteRipper
             var isInScope = Downloader.Supports(subUri) && (
                 reference.Kind == ReferenceKind.ExternalResource ||
                 (MaxDepth <= 0 || depth <= MaxDepth) && (
-                    !IsBase && _includeRegex == null ||
+                    !IsBase && _includeRegexLazy == null ||
                     IsBase && Resource.OriginalUri.IsBaseOf(subUri) ||
-                    _includeRegex != null && _includeRegex.Value.IsMatch(subUri.ToString())
+                    _includeRegexLazy != null && _includeRegexLazy.Value.IsMatch(subUri.ToString())
                 )
             );
             var subResource = isInScope ? GetResource(subUri, reference.Kind == ReferenceKind.Hyperlink) : null;

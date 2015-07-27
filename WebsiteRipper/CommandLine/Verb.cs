@@ -15,7 +15,7 @@ namespace WebsiteRipper.CommandLine
 
     abstract class Verb
     {
-        static readonly Lazy<IEnumerable<Type>> _verbs = new Lazy<IEnumerable<Type>>(() =>
+        static readonly Lazy<IEnumerable<Type>> _verbsLazy = new Lazy<IEnumerable<Type>>(() =>
         {
             var abstractVerbType = typeof(Verb);
             var verbAttributeType = typeof(VerbAttribute);
@@ -31,7 +31,7 @@ namespace WebsiteRipper.CommandLine
             var exitCode = ExitCode.Success;
             try
             {
-                Parser.Default.ParseArguments(args, _verbs.Value.ToArray())
+                Parser.Default.ParseArguments(args, _verbsLazy.Value.ToArray())
                     .WithParsed<Verb>(verb => verb.Process())
                     .WithNotParsed(_ => exitCode = ExitCode.ArgumentsError);
             }

@@ -9,7 +9,7 @@ namespace WebsiteRipper.Downloaders
 {
     public abstract class Downloader : IDisposable
     {
-        static readonly Lazy<Dictionary<string, Type>> _downloaderTypes = new Lazy<Dictionary<string, Type>>(() =>
+        static readonly Lazy<Dictionary<string, Type>> _downloaderTypesLazy = new Lazy<Dictionary<string, Type>>(() =>
         {
             var downloaderType = typeof(Downloader);
             var downloaderConstructorTypes = new[] { typeof(Uri), typeof(int), typeof(string) };
@@ -23,7 +23,7 @@ namespace WebsiteRipper.Downloaders
                 .ToDictionary(downloader => downloader.Scheme, downloader => downloader.Type, StringComparer.OrdinalIgnoreCase);
         });
 
-        internal static Dictionary<string, Type> DownloaderTypes { get { return _downloaderTypes.Value; } }
+        internal static Dictionary<string, Type> DownloaderTypes { get { return _downloaderTypesLazy.Value; } }
 
         internal static Downloader Create(Uri uri, int timeout, string preferredLanguages)
         {
@@ -42,11 +42,11 @@ namespace WebsiteRipper.Downloaders
             return DownloaderTypes.ContainsKey(scheme);
         }
 
-        static readonly Lazy<Regex> _contentTypeRegex = new Lazy<Regex>(() => new Regex(@";?\s*(?<type>[^\s/;]+)/(?<subtype>[^\s/;]+)\s*;?", RegexOptions.Compiled));
+        static readonly Lazy<Regex> _contentTypeRegexLazy = new Lazy<Regex>(() => new Regex(@";?\s*(?<type>[^\s/;]+)/(?<subtype>[^\s/;]+)\s*;?", RegexOptions.Compiled));
 
         static string GetMimeType(string contentType)
         {
-            var match = _contentTypeRegex.Value.Match(contentType);
+            var match = _contentTypeRegexLazy.Value.Match(contentType);
             if (!match.Success) return contentType; // TODO: Improve parsing
             return string.Format("{0}/{1}", match.Groups["type"].Value, match.Groups["subtype"].Value);
         }

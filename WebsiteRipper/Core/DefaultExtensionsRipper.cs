@@ -42,7 +42,7 @@ namespace WebsiteRipper.Core
 
         static readonly Dictionary<string, MimeType> _templates = new Dictionary<string, MimeType>();
 
-        static readonly Lazy<Regex> _fileExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _fileExtensionsRegexLazy = new Lazy<Regex>(() => new Regex(
             @"\bFile\s+extension(?:\(s\))?\s*:\s*(?<extensions>[\w\W]*?)\s*(?:\n\s*\n|(?:\n|\b\d\.|\bMacintosh\b)[^\n:]+:[^/]{2})",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant));
 
@@ -65,7 +65,7 @@ namespace WebsiteRipper.Core
                 }
 
                 // Extract file extensions
-                var fileExtensionsMatch = _fileExtensionsRegex.Value.Match(template);
+                var fileExtensionsMatch = _fileExtensionsRegexLazy.Value.Match(template);
                 if (!fileExtensionsMatch.Success) return mimeType;
                 var fileExtensions = GetFileExtensionsMatches(fileExtensionsMatch.Groups["extensions"].Value).OfType<Match>()
                     .SelectMany(match => match.Groups["extensions"].Captures.OfType<Capture>())
@@ -76,29 +76,29 @@ namespace WebsiteRipper.Core
             }
         }
 
-        static readonly Lazy<Regex> _noExtensionRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _noExtensionRegexLazy = new Lazy<Regex>(() => new Regex(
             @"\b(?:n/a|not?\b.+\bspecific\b.+\bextensions?|not\s+(?:applicable|expected|required)|none(?!\s+or)|see\s+registration|unknown)\b",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant));
-        static readonly Lazy<Regex> _doubleQuotedExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _doubleQuotedExtensionsRegexLazy = new Lazy<Regex>(() => new Regex(
             string.Format(@"""(?:\*?\.)?(?<extensions>{0})""", DefaultExtensions.ExtensionRegexClass), RegexOptions.Compiled));
-        static readonly Lazy<Regex> _singleQuotedExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _singleQuotedExtensionsRegexLazy = new Lazy<Regex>(() => new Regex(
             string.Format(@"'(?:\*?\.)?(?<extensions>{0})'", DefaultExtensions.ExtensionRegexClass), RegexOptions.Compiled));
-        static readonly Lazy<Regex> _dottedExtensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _dottedExtensionsRegexLazy = new Lazy<Regex>(() => new Regex(
             string.Format(@"(?:^|\s|,)\*?\.(?<extensions>{0})\b", DefaultExtensions.ExtensionRegexClass), RegexOptions.Compiled));
-        static readonly Lazy<Regex> _extensionsRegex = new Lazy<Regex>(() => new Regex(
+        static readonly Lazy<Regex> _extensionsRegexLazy = new Lazy<Regex>(() => new Regex(
             string.Format(@"(?:\b(?:and|(?:are\s+both|is)\s+declared\s+at\s+[\w\W]+|extension|or)\b|\([^\)]*\)|<[^>)]*>|\b(?<extensions>{0})\b)", DefaultExtensions.ExtensionRegexClass),
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant));
 
         static IEnumerable GetFileExtensionsMatches(string fileExtensions)
         {
-            if (_noExtensionRegex.Value.IsMatch(fileExtensions)) return Enumerable.Empty<object>();
-            var doubleQuotedExtensions = _doubleQuotedExtensionsRegex.Value.Matches(fileExtensions);
+            if (_noExtensionRegexLazy.Value.IsMatch(fileExtensions)) return Enumerable.Empty<object>();
+            var doubleQuotedExtensions = _doubleQuotedExtensionsRegexLazy.Value.Matches(fileExtensions);
             if (doubleQuotedExtensions.Count > 0) return doubleQuotedExtensions;
-            var singleQuotedExtensions = _singleQuotedExtensionsRegex.Value.Matches(fileExtensions);
+            var singleQuotedExtensions = _singleQuotedExtensionsRegexLazy.Value.Matches(fileExtensions);
             if (singleQuotedExtensions.Count > 0) return singleQuotedExtensions;
-            var dottedExtensions = _dottedExtensionsRegex.Value.Matches(fileExtensions);
+            var dottedExtensions = _dottedExtensionsRegexLazy.Value.Matches(fileExtensions);
             if (dottedExtensions.Count > 0) return dottedExtensions;
-            return _extensionsRegex.Value.Matches(fileExtensions);
+            return _extensionsRegexLazy.Value.Matches(fileExtensions);
         }
 
         DefaultExtensionsRipper(Uri mediaTypesUri, string rootPath)

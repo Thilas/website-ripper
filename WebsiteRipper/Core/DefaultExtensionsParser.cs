@@ -15,7 +15,7 @@ namespace WebsiteRipper.Core
 
         protected override string GetDefaultExtension() { return ".xml"; }
 
-        static readonly Lazy<Regex> _subtypeNameRegex = new Lazy<Regex>(() => new Regex(@"^\S+", RegexOptions.Compiled));
+        static readonly Lazy<Regex> _subtypeNameRegexLazy = new Lazy<Regex>(() => new Regex(@"^\S+", RegexOptions.Compiled));
 
         protected override IEnumerable<Reference> GetReferences()
         {
@@ -32,7 +32,7 @@ namespace WebsiteRipper.Core
                 if (typeName == null) return null;
                 var subtypeName = record.SelectSingleNode("a:name/text()", xmlNamespaceManager);
                 if (subtypeName == null) return null;
-                var subtypeNameMatch = _subtypeNameRegex.Value.Match(subtypeName.Value);
+                var subtypeNameMatch = _subtypeNameRegexLazy.Value.Match(subtypeName.Value);
                 if (!subtypeNameMatch.Success) return null;
                 return new DefaultExtensionsReference(this, typeName.Value, subtypeNameMatch.Value, file);
             }).Where(reference => reference != null) : Enumerable.Empty<Reference>();
