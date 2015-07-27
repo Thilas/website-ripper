@@ -10,7 +10,7 @@ namespace WebsiteRipper.Parsers.Html
         static readonly Lazy<Dictionary<string, IEnumerable<FullHtmlReferenceType>>> _htmlReferenceTypesLazy = new Lazy<Dictionary<string, IEnumerable<FullHtmlReferenceType>>>(() =>
         {
             var htmlReferenceType = typeof(HtmlReference);
-            var htmlReferenceConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(HtmlNode), typeof(string) };
+            var htmlReferenceConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(HtmlNode), typeof(HtmlAttribute) };
             var htmlReferenceAttributeType = typeof(HtmlReferenceAttribute);
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
@@ -31,18 +31,19 @@ namespace WebsiteRipper.Parsers.Html
         {
             IEnumerable<FullHtmlReferenceType> fullHtmlReferences;
             if (!_htmlReferenceTypesLazy.Value.TryGetValue(node.Name, out fullHtmlReferences)) return Enumerable.Empty<Reference>();
-            return fullHtmlReferences
-                .Select(fullHtmlReference => (Reference)Activator.CreateInstance(fullHtmlReference.Type, parser, fullHtmlReference.Kind, node, fullHtmlReference.AttributeName));
+            return node.Attributes.Join(fullHtmlReferences, attribute => attribute.Name, fullHtmlReference => fullHtmlReference.AttributeName,
+                (attribute, fullHtmlReference) => (Reference)Activator.CreateInstance(fullHtmlReference.Type, parser, fullHtmlReference.Kind, node, attribute),
+                StringComparer.OrdinalIgnoreCase);
         }
 
         readonly HtmlParser _htmlParser;
         readonly HtmlAttribute _attribute;
 
-        protected HtmlReference(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName)
+        protected HtmlReference(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute)
             : base(parser, kind)
         {
             _htmlParser = parser as HtmlParser;
-            _attribute = node.Attributes[attributeName];
+            _attribute = attribute;
         }
 
         protected override Uri GetBaseUri(Resource resource)

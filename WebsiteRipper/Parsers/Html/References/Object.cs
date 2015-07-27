@@ -8,6 +8,6 @@ namespace WebsiteRipper.Parsers.Html.References
     [HtmlReference("data")]
     public sealed class Object : HtmlReference
     {
-        public Object(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName) : base(parser, kind, node, attributeName) { }
+        public Object(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }
     }
 }

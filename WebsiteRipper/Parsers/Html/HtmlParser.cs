@@ -40,7 +40,7 @@ namespace WebsiteRipper.Parsers.Html
         /// Gets the base URL.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="DuplicateBaseHtmlElementException"></exception>
+        /// <exception cref="DuplicateBasesException"></exception>
         /// <remarks>
         /// Gets the unique (if it exists) base element with at least an href or a target attribute,
         /// remove the href attribute (or the whole element if no href) and returns its href value (or null if no href).
@@ -55,7 +55,7 @@ namespace WebsiteRipper.Parsers.Html
                 baseNode = _htmlDocument.DocumentNode.Descendants("base").
                     SingleOrDefault(node => node.Attributes[hrefAttributeName] != null || node.Attributes[targetAttributeName] != null);
             }
-            catch (Exception exception) { throw new DuplicateBaseHtmlElementException(exception); }
+            catch (Exception exception) { throw new DuplicateBasesException(exception); }
             if (baseNode == null) return null;
             var hrefAttribute = baseNode.Attributes[hrefAttributeName];
             if (hrefAttribute == null) return null;

@@ -5,6 +5,6 @@ namespace WebsiteRipper.Parsers.Html.References
     [HtmlReference("href", ReferenceKind.Hyperlink)]
     public sealed class Area : HtmlReference
     {
-        public Area(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName) : base(parser, kind, node, attributeName) { }
+        public Area(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }
     }
 }

@@ -7,6 +7,6 @@ namespace WebsiteRipper.Parsers.Html.References
     //[HtmlReference("codeBase")] // TODO: Optional base uri for applet
     public sealed class Applet : HtmlReference
     {
-        public Applet(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName) : base(parser, kind, node, attributeName) { }
+        public Applet(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }
     }
 }

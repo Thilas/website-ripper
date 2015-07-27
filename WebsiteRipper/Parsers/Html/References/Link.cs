@@ -23,6 +23,6 @@ namespace WebsiteRipper.Parsers.Html.References
             return defaultKind;
         }
 
-        public Link(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName) : base(parser, GetKind(kind, node), node, attributeName) { }
+        public Link(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, GetKind(kind, node), node, attribute) { }
     }
 }

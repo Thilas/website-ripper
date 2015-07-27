@@ -6,6 +6,6 @@ namespace WebsiteRipper.Parsers.Html.References
     [HtmlReference("src")]
     public sealed class Video : HtmlReference
     {
-        public Video(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName) : base(parser, kind, node, attributeName) { }
+        public Video(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }
     }
 }

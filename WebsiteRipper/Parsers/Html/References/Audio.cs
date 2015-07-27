@@ -5,6 +5,6 @@ namespace WebsiteRipper.Parsers.Html.References
     [HtmlReference("src")]
     public sealed class Audio : HtmlReference
     {
-        public Audio(Parser parser, ReferenceKind kind, HtmlNode node, string attributeName) : base(parser, kind, node, attributeName) { }
+        public Audio(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }
     }
 }

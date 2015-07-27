@@ -49,8 +49,7 @@ namespace WebsiteRipper.Tests.Fixtures
                     _locked = true;
                     _webTests.Add(webTest.Uri, webTest);
                     foreach (var subWebTest in subWebTests) _webTests.Add(subWebTest.Uri, subWebTest);
-                    var resource = webTest.Ripper.Resource;
-                    return resource.RipAsync(RipMode.Create, 0).Result.ToList();
+                    return webTest.Ripper.Resource.RipAsync(RipMode.Create, 0).Result.ToList();
                 }
                 catch (AggregateException aggregateException)
                 {

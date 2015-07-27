@@ -74,7 +74,7 @@
     <Compile Include="DownloadProgressChangedEventArgs.cs" />
     <Compile Include="MimeType.cs" />
     <Compile Include="Core\Tools.cs" />
-    <Compile Include="Parsers\Html\DuplicateBaseHtmlElementException.cs" />
+    <Compile Include="Parsers\Html\DuplicateBasesException.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Parsers\Css\ImportRuleReference.cs" />

@@ -48,7 +48,7 @@ namespace WebsiteRipper.Tests.Fixtures
             Uri = uri;
             MimeType = mimeType;
             Content = content;
-            _streamLazy = new Lazy<Stream>(() => new MemoryStream(Encoding.UTF8.GetBytes(Content)));
+            _streamLazy = new Lazy<Stream>(() => Content != null ? new MemoryStream(Encoding.UTF8.GetBytes(Content)) : new MemoryStream());
         }
 
         public void Dispose()
