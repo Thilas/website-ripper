@@ -136,7 +136,7 @@ namespace WebsiteRipper
             if (_hyperlink) depth++;
             var subResources = await Task.WhenAll(Parser.GetResources(_ripper, depth, this)
                 .Select(subResource => subResource.RipAsync(ripMode, depth)));
-            return subResources.SelectMany(subResource => subResource).Prepend(this);
+            return subResources.SelectMany(subResource => subResource.ToList()).Prepend(this);
         }
 
         async Task<bool> DownloadAsync(RipMode ripMode)

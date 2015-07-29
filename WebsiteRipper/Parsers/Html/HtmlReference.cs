@@ -1,49 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HtmlAgilityPack;
 
 namespace WebsiteRipper.Parsers.Html
 {
-    public abstract class HtmlReference : Reference
+    public abstract class HtmlReference : Reference<HtmlNode, HtmlAttribute>
     {
-        static readonly Lazy<Dictionary<string, IEnumerable<FullHtmlReferenceType>>> _htmlReferenceTypesLazy = new Lazy<Dictionary<string, IEnumerable<FullHtmlReferenceType>>>(() =>
-        {
-            var htmlReferenceType = typeof(HtmlReference);
-            var htmlReferenceConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(HtmlNode), typeof(HtmlAttribute) };
-            var htmlReferenceAttributeType = typeof(HtmlReferenceAttribute);
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => !type.IsAbstract && htmlReferenceType.IsAssignableFrom(type) && type.GetConstructor(htmlReferenceConstructorTypes) != null)
-                .SelectMany(type => ((HtmlReferenceAttribute[])type.GetCustomAttributes(htmlReferenceAttributeType, false))
-                    .Select(htmlReferenceAttribute => new { type.Name, Type = type, htmlReferenceAttribute.Kind, htmlReferenceAttribute.AttributeName }))
-                .GroupBy(
-                    htmlReference => htmlReference.Name,
-                    htmlReference => new FullHtmlReferenceType(htmlReference.Type, htmlReference.Kind, htmlReference.AttributeName),
-                    StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(
-                    grouping => grouping.Key,
-                    grouping => grouping.Distinct(FullHtmlReferenceTypeComparer.Comparer).ToList().AsEnumerable(),
-                    StringComparer.OrdinalIgnoreCase);
-        });
-
         internal static IEnumerable<Reference> Create(Parser parser, HtmlNode node)
         {
-            IEnumerable<FullHtmlReferenceType> fullHtmlReferences;
-            if (!_htmlReferenceTypesLazy.Value.TryGetValue(node.Name, out fullHtmlReferences)) return Enumerable.Empty<Reference>();
-            return node.Attributes.Join(fullHtmlReferences, attribute => attribute.Name, fullHtmlReference => fullHtmlReference.AttributeName,
-                (attribute, fullHtmlReference) => (Reference)Activator.CreateInstance(fullHtmlReference.Type, parser, fullHtmlReference.Kind, node, attribute),
-                StringComparer.OrdinalIgnoreCase);
+            return Reference<HtmlNode, HtmlAttribute>.Create(
+                htmlNode => htmlNode.Name,
+                htmlNode => htmlNode.Attributes,
+                attribute => attribute.Name,
+                parser, node);
         }
 
         readonly HtmlParser _htmlParser;
-        readonly HtmlAttribute _attribute;
 
         protected HtmlReference(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute)
-            : base(parser, kind)
+            : base(parser, kind, node, attribute)
         {
             _htmlParser = parser as HtmlParser;
-            _attribute = attribute;
         }
 
         protected override Uri GetBaseUri(Resource resource)
@@ -53,14 +30,8 @@ namespace WebsiteRipper.Parsers.Html
 
         protected sealed override string InternalUri
         {
-            get { return HtmlEntity.DeEntitize(EntitizedUri); }
-            set { EntitizedUri = HtmlEntity.Entitize(value); }
-        }
-
-        string EntitizedUri
-        {
-            get { return _attribute != null ? _attribute.Value : null; }
-            set { _attribute.Value = value; }
+            get { return HtmlEntity.DeEntitize(Attribute.Value); }
+            set { Attribute.Value = HtmlEntity.Entitize(value); }
         }
     }
 }

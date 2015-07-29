@@ -12,7 +12,7 @@ namespace WebsiteRipper.Parsers.Xml
         public const string TextMimeType = "text/xml";
         public const string MimeType = TextMimeType;
 
-        protected override string DefaultFileNameWithoutExtension { get { return "document"; } }
+        protected sealed override string DefaultFileNameWithoutExtension { get { return "document"; } }
 
         public XmlParser(string mimeType) : base(mimeType) { }
 
@@ -26,12 +26,8 @@ namespace WebsiteRipper.Parsers.Xml
 
         protected override IEnumerable<Reference> GetReferences()
         {
-            // TODO: Xml parser
-            //var a = _xmlDocument.DocumentType;
-            //var b = _xmlDocument.OfType<XmlProcessingInstruction>();
-            //.Where(xmlProcessingInstruction => string.Equals(xmlProcessingInstruction.LocalName, "xml-stylesheet"));
-            return Enumerable.Empty<Reference>();
-            //return _xmlDocument.ChildNodes.SelectMany(node => XmlReference.Create(this, node));
+            return XmlDocument.OfType<XmlProcessingInstruction>()
+                .SelectMany(processingInstruction => ProcessingInstructionReference.Create(this, processingInstruction));
         }
 
         protected sealed override void Save(string path)

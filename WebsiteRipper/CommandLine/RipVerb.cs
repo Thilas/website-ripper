@@ -30,7 +30,7 @@ namespace WebsiteRipper.CommandLine
                         Console.Error.WriteLine("Invalid language: {0}", lang);
                         return null;
                     }
-                }).Where(language => language != null);
+                }).Where(language => language != null).ToList();
                 return languages.Any() ? languages : null;
             }
         }

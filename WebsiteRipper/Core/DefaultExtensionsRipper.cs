@@ -67,8 +67,8 @@ namespace WebsiteRipper.Core
                 // Extract file extensions
                 var fileExtensionsMatch = _fileExtensionsRegexLazy.Value.Match(template);
                 if (!fileExtensionsMatch.Success) return mimeType;
-                var fileExtensions = GetFileExtensionsMatches(fileExtensionsMatch.Groups["extensions"].Value).OfType<Match>()
-                    .SelectMany(match => match.Groups["extensions"].Captures.OfType<Capture>())
+                var fileExtensions = GetFileExtensionsMatches(fileExtensionsMatch.Groups["extensions"].Value).Cast<Match>()
+                    .SelectMany(match => match.Groups["extensions"].Captures.Cast<Capture>())
                     .Select(capture => capture.Value).Distinct(StringComparer.OrdinalIgnoreCase)
                     .Select(extension => string.Format(".{0}", extension.ToLowerInvariant())).ToList();
                 if (fileExtensions.Count > 8) return mimeType;
@@ -91,7 +91,7 @@ namespace WebsiteRipper.Core
 
         static IEnumerable GetFileExtensionsMatches(string fileExtensions)
         {
-            if (_noExtensionRegexLazy.Value.IsMatch(fileExtensions)) return Enumerable.Empty<object>();
+            if (_noExtensionRegexLazy.Value.IsMatch(fileExtensions)) return Enumerable.Empty<Match>();
             var doubleQuotedExtensions = _doubleQuotedExtensionsRegexLazy.Value.Matches(fileExtensions);
             if (doubleQuotedExtensions.Count > 0) return doubleQuotedExtensions;
             var singleQuotedExtensions = _singleQuotedExtensionsRegexLazy.Value.Matches(fileExtensions);

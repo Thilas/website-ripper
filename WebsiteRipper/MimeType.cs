@@ -20,7 +20,7 @@ namespace WebsiteRipper
 
         internal MimeType SetExtensions(IEnumerable<string> extensions)
         {
-            if (extensions != null && !extensions.Any()) extensions = null;
+            if (extensions != null && !(extensions = extensions.ToList()).Any()) extensions = null;
             return ReferenceEquals(extensions, Extensions) ? this : new MimeType(TypeName, SubtypeName) { Extensions = extensions };
         }
     }

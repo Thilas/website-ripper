@@ -3,7 +3,7 @@
 namespace WebsiteRipper.Parsers.Html.References
 {
     //[HtmlReference("archive")] // TODO: Comma-separated archive list
-    [HtmlReference("code")]
+    [Reference("code")]
     //[HtmlReference("codeBase")] // TODO: Optional base uri for applet
     public sealed class Applet : HtmlReference
     {

@@ -1,18 +1,18 @@
 ﻿using System;
 
-namespace WebsiteRipper.Parsers.Html
+namespace WebsiteRipper.Parsers
 {
-    sealed class FullHtmlReferenceType
+    sealed class ReferenceType
     {
         public Type Type { get; private set; }
         public ReferenceKind Kind { get; private set; }
         public string AttributeName { get; private set; }
 
-        public FullHtmlReferenceType(Type type, ReferenceKind kind, string attributeName)
+        public ReferenceType(Type type, ReferenceAttribute referenceAttribute)
         {
             Type = type;
-            Kind = kind;
-            AttributeName = attributeName;
+            Kind = referenceAttribute.Kind;
+            AttributeName = referenceAttribute.AttributeName;
         }
 
         public override string ToString() { return AttributeName; }

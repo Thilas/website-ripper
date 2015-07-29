@@ -26,7 +26,7 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Fact]
-        public void Rip_BasicCss_ReturnsCssParser()
+        public void Rip_EmptyCss_ReturnsCssParser()
         {
             using (var webTest = new WebTestInfo(CssParser.MimeType, EmptyCss))
             {
@@ -37,7 +37,7 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Fact]
-        public void Rip_BasicCss_ReturnsCssMimeType()
+        public void Rip_EmptyCss_ReturnsCssMimeType()
         {
             using (var webTest = new WebTestInfo(CssParser.MimeType, EmptyCss))
             {
@@ -48,7 +48,7 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Fact]
-        public void Rip_BasicCss_ReturnsExpectedUri()
+        public void Rip_EmptyCss_ReturnsExpectedUri()
         {
             using (var webTest = new WebTestInfo(CssParser.MimeType, EmptyCss))
             {
@@ -71,16 +71,31 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData("@import 'sub'")]
-        [InlineData("@import 'sub' media")]
-        [InlineData("@import url('sub')")]
-        [InlineData("@import url('sub') media")]
-        [InlineData("selector {property:url('sub')}")]
-        public void Rip_BasicCssWithReference_ReturnsExpectedResources(string css)
+        [InlineData("@import '{0}'")]
+        [InlineData("@import '{0}' media")]
+        [InlineData("@import url('{0}')")]
+        [InlineData("@import url('{0}') media")]
+        [InlineData("selector {{property:url('{0}')}}")]
+        public void Rip_BasicCssWithReference_ReturnsExpectedResources(string cssFormat)
         {
+            const string subUriString = "uri";
+            var css = string.Format(cssFormat, subUriString);
             using (var webTest = new WebTestInfo(CssParser.MimeType, css))
             {
-                const string subUriString = "sub";
+                var expected = WebTest.GetExpectedResources(webTest, subUriString);
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, CssParser.MimeType, EmptyCss));
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void Rip_BasicCssWithComplexReference_ReturnsExpectedResources()
+        {
+            // TODO: Check escaped characters in CSS
+            const string subUriString = "uri'";
+            const string css = @"@import 'uri\''";
+            using (var webTest = new WebTestInfo(CssParser.MimeType, css))
+            {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
                 var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, CssParser.MimeType, EmptyCss));
                 Assert.Equal(expected, actual);
@@ -90,24 +105,24 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_ComplexCss_ReturnsExpectedResources()
         {
-            const string css = @"/* comment */
-@import 'subImport';
+            var subUriStrings = new[] { "importUri", "selector2Property2Uri", "selector3Property1Uri", "selector3Property2Uri" };
+            var css = string.Format(@"/* comment */
+@import '{0}';
 
-selector1 {
+selector1 {{
     property:value;
-}
-selector2 {
+}}
+selector2 {{
     property1:value;
-    property2:url('subValue1');
-}
-selector3 {
-    property1:url('subValue2');
-    property2:url('subValue3');
-}
-";
+    property2:url('{1}');
+}}
+selector3 {{
+    property1:url('{2}');
+    property2:url('{3}');
+}}
+", subUriStrings.Select(subUriString => (object)subUriString).ToArray());
             using (var webTest = new WebTestInfo(CssParser.MimeType, css))
             {
-                var subUriStrings = new[] { "subImport", "subValue1", "subValue2", "subValue3" };
                 var expected = WebTest.GetExpectedResources(webTest, subUriStrings);
                 var actual = WebTest.GetActualResources(webTest,
                     subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString, CssParser.MimeType, EmptyCss)).ToArray());

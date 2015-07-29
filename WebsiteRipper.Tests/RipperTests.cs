@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using WebsiteRipper.Tests.Fixtures;
-using Xunit;
-
+﻿
 namespace WebsiteRipper.Tests
 {
     public sealed class RipperTests

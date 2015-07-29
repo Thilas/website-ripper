@@ -71,15 +71,17 @@ namespace WebsiteRipper.Parsers
         }
 
         bool _loaded = false;
+        bool _failed = false;
 
         internal IEnumerable<Resource> GetResources(Ripper ripper, int depth, Resource resource)
         {
-            // TODO: Handle exceptions on Load and Save methods
             if (!_loaded)
             {
-                Load(resource.NewUri.LocalPath);
+                try { Load(resource.NewUri.LocalPath); }
+                catch { _failed = true; } // TODO: Log a warning
                 _loaded = true;
             }
+            if (_failed) yield break;
             foreach (var subResource in GetReferences().Where(reference => reference.Kind != ReferenceKind.Skip && !string.IsNullOrEmpty(reference.Uri))
                 .Select(reference => ripper.GetSubResource(depth, resource, reference)))
             {
@@ -87,7 +89,8 @@ namespace WebsiteRipper.Parsers
                 ripper.CancellationToken.ThrowIfCancellationRequested();
             }
             if (!AnyChange) yield break;
-            Save(resource.NewUri.LocalPath);
+            try { Save(resource.NewUri.LocalPath); }
+            catch { /* suppress errors */ }
             AnyChange = false;
         }
 

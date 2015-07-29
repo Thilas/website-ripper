@@ -2,7 +2,7 @@
 
 namespace WebsiteRipper.Parsers.Html.References
 {
-    [HtmlReference("href", ReferenceKind.Hyperlink)]
+    [Reference("href", Kind = ReferenceKind.Hyperlink)]
     public sealed class A : HtmlReference
     {
         public A(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }

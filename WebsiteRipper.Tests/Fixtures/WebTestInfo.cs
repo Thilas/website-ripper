@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace WebsiteRipper.Tests.Fixtures
@@ -48,7 +47,7 @@ namespace WebsiteRipper.Tests.Fixtures
             Uri = uri;
             MimeType = mimeType;
             Content = content;
-            _streamLazy = new Lazy<Stream>(() => Content != null ? new MemoryStream(Encoding.UTF8.GetBytes(Content)) : new MemoryStream());
+            _streamLazy = new Lazy<Stream>(() => Content != null ? new MemoryStream(WebTest.Encoding.GetBytes(Content)) : new MemoryStream());
         }
 
         public void Dispose()

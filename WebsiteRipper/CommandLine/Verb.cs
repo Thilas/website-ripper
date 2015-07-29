@@ -22,7 +22,10 @@ namespace WebsiteRipper.CommandLine
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsSubclassOf(abstractVerbType) && type.IsDefined(verbAttributeType, false))
-                .OrderBy(type => type.GetCustomAttribute<VerbAttribute>(false).Name, StringComparer.OrdinalIgnoreCase)
+                .Select(type => new { Type = type, Attribute = type.GetCustomAttribute<VerbAttribute>(false) })
+                .Where(verb => verb.Attribute != null)
+                .OrderBy(verb => verb.Attribute.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(verb => verb.Type)
                 .ToList().AsEnumerable();
         });
 

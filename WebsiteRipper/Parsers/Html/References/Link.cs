@@ -4,7 +4,7 @@ using HtmlAgilityPack;
 
 namespace WebsiteRipper.Parsers.Html.References
 {
-    [HtmlReference("href", ReferenceKind.Hyperlink)]
+    [Reference("href", Kind = ReferenceKind.Hyperlink)]
     public sealed class Link : HtmlReference
     {
         static readonly string[] _externalResourceRelationships = { "icon", "pingback", "prefetch", "stylesheet" };
