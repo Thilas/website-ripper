@@ -17,6 +17,7 @@ namespace WebsiteRipper.Parsers.Html.References
                 referenceArgs.Attribute);
         }
 
+        // TODO: Make this more generic
         static ReferenceKind GetKind(ReferenceKind defaultKind, HtmlNode node)
         {
             const char listSeparatorChar = ' ';

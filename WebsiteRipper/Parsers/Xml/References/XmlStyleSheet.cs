@@ -13,6 +13,7 @@ namespace WebsiteRipper.Parsers.Xml.References
                 GetMimeType(referenceArgs.Attribute), referenceArgs.Node, referenceArgs.Attribute);
         }
 
+        // TODO: Make this more generic
         static string GetMimeType(XmlAttribute attribute)
         {
             var typeAttribute = attribute.GetOwnerElement().Attributes["type"];
