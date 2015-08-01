@@ -18,9 +18,9 @@ namespace WebsiteRipper.Parsers.Xml
 
         internal const string XmlNsPrefix = "xmlns";
 
-        protected override string DefaultFileNameWithoutExtension { get { return "document"; } }
+        protected sealed override string DefaultFileNameWithoutExtension { get { return "document"; } }
 
-        public XmlParser(string mimeType) : base(mimeType) { }
+        public XmlParser(ParserArgs parserArgs) : base(parserArgs) { }
 
         protected XmlDocument Document { get; private set; }
 

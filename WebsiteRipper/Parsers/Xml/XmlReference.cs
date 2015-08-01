@@ -7,7 +7,7 @@ namespace WebsiteRipper.Parsers.Xml
         readonly XmlAttribute _attribute;
 
         public XmlReference(Parser parser, XmlAttribute attribute)
-            : base(parser, ReferenceKind.ExternalResource)
+            : base(new ReferenceArgs(parser, ReferenceKind.ExternalResource))
         {
             _attribute = attribute;
         }

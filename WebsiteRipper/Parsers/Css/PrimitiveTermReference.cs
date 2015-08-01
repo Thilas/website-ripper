@@ -7,7 +7,7 @@ namespace WebsiteRipper.Parsers.Css
         readonly PrimitiveTerm _primitiveTerm;
 
         public PrimitiveTermReference(Parser parser, PrimitiveTerm primitiveTerm)
-            : base(parser, ReferenceKind.ExternalResource)
+            : base(new ReferenceArgs(parser, ReferenceKind.ExternalResource))
         {
             _primitiveTerm = primitiveTerm;
         }

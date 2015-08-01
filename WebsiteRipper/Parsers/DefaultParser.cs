@@ -13,10 +13,10 @@ namespace WebsiteRipper.Parsers
 
         readonly Uri _uri;
 
-        internal DefaultParser(string mimeType, Uri uri)
-            : base(mimeType)
+        internal DefaultParser(ParserArgs parserArgs)
+            : base(parserArgs)
         {
-            _uri = uri;
+            _uri = parserArgs.Uri;
         }
 
         protected override string DefaultFileNameWithoutExtension { get { return "default"; } }

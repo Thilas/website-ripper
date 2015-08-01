@@ -8,7 +8,7 @@ namespace WebsiteRipper.Parsers.Html
     {
         internal static IEnumerable<Reference> Create(Parser parser, HtmlNode node)
         {
-            return Reference<HtmlNode, HtmlAttribute>.Create(
+            return Create(
                 htmlNode => htmlNode.Name,
                 htmlNode => htmlNode.Attributes,
                 htmlAttribute => htmlAttribute.Name,
@@ -17,10 +17,10 @@ namespace WebsiteRipper.Parsers.Html
 
         readonly HtmlParser _htmlParser;
 
-        protected HtmlReference(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute)
-            : base(parser, kind, node, attribute)
+        protected HtmlReference(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
+            : base(referenceArgs)
         {
-            _htmlParser = parser as HtmlParser;
+            _htmlParser = referenceArgs.Parser as HtmlParser;
         }
 
         protected override Uri GetBaseUri(Resource resource)

@@ -11,7 +11,7 @@ namespace WebsiteRipper.Parsers
         static readonly Lazy<Dictionary<string, Type>> _parserTypesLazy = new Lazy<Dictionary<string, Type>>(() =>
         {
             var parserType = typeof(Parser);
-            var parserConstructorTypes = new[] { typeof(string) };
+            var parserConstructorTypes = new[] { typeof(ParserArgs) };
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && parserType.IsAssignableFrom(type) && type.GetConstructor(parserConstructorTypes) != null)
@@ -23,26 +23,26 @@ namespace WebsiteRipper.Parsers
 
         internal static Dictionary<string, Type> ParserTypes { get { return _parserTypesLazy.Value; } }
 
-        internal static Parser CreateDefault(string mimeType, Uri uri)
+        internal static Parser CreateDefault(string mimeType, Uri uri = null)
         {
-            return new DefaultParser(mimeType, uri);
+            return new DefaultParser(new ParserArgs(mimeType, uri));
         }
 
         internal static Parser Create(string mimeType)
         {
             Type parserType;
             if (mimeType != null && ParserTypes.TryGetValue(mimeType, out parserType))
-                return (Parser)Activator.CreateInstance(parserType, mimeType);
-            return new DefaultParser(mimeType, null);
+                return (Parser)Activator.CreateInstance(parserType, new ParserArgs(mimeType));
+            return CreateDefault(mimeType);
         }
 
         protected internal string ActualMimeType { get; private set; }
 
         internal bool AnyChange { get; set; }
 
-        protected Parser(string mimeType)
+        protected Parser(ParserArgs parserArgs)
         {
-            ActualMimeType = mimeType;
+            ActualMimeType = parserArgs.MimeType;
             AnyChange = false;
         }
 

@@ -11,7 +11,7 @@ namespace WebsiteRipper.Parsers.Xml
     {
         internal static IEnumerable<Reference> Create(Parser parser, XmlProcessingInstruction node)
         {
-            return Reference<XmlProcessingInstruction, XmlAttribute>.Create(
+            return Create(
                 xmlProcessingInstruction => xmlProcessingInstruction.Name,
                 GetProcessingInstructionAttributes,
                 xmlAttribute => xmlAttribute.Name,
@@ -34,10 +34,10 @@ namespace WebsiteRipper.Parsers.Xml
 
         readonly XmlElement _processingInstructionElement;
 
-        protected ProcessingInstructionReference(Parser parser, ReferenceKind kind, string mimeType, XmlProcessingInstruction node, XmlAttribute attribute)
-            : base(parser, kind, mimeType, node, attribute)
+        protected ProcessingInstructionReference(ReferenceArgs<XmlProcessingInstruction, XmlAttribute> referenceArgs)
+            : base(referenceArgs)
         {
-            _processingInstructionElement = attribute.GetOwnerElement();
+            _processingInstructionElement = referenceArgs.Attribute.GetOwnerElement();
         }
 
         protected sealed override string InternalUri

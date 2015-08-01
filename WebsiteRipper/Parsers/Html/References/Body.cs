@@ -5,6 +5,6 @@ namespace WebsiteRipper.Parsers.Html.References
     [ReferenceAttribute("background")]
     public sealed class Body : HtmlReference
     {
-        public Body(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }
+        public Body(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
     }
 }

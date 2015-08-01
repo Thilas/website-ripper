@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using WebsiteRipper.Parsers;
 using WebsiteRipper.Extensions;
+using WebsiteRipper.Parsers;
 using Xunit;
 
 namespace WebsiteRipper.Tests.Fixtures

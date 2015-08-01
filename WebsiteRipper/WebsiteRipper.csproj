@@ -65,6 +65,7 @@
     <Compile Include="CommandLine\UpdateVerb.cs" />
     <Compile Include="CommandLine\VerbInvalidOperationException.cs" />
     <Compile Include="Downloaders\Downloader.cs" />
+    <Compile Include="Downloaders\DownloaderArgs.cs" />
     <Compile Include="Downloaders\DownloaderAttribute.cs" />
     <Compile Include="Downloaders\HttpDownloader.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
@@ -77,6 +78,8 @@
     <Compile Include="Extensions\XmlElementExtensions.cs" />
     <Compile Include="MimeType.cs" />
     <Compile Include="Core\Tools.cs" />
+    <Compile Include="Parsers\ParserArgs.cs" />
+    <Compile Include="Parsers\ReferenceArgs.cs" />
     <Compile Include="Parsers\ReferenceNodeAttribute.cs" />
     <Compile Include="Parsers\Html\DuplicateBasesException.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />

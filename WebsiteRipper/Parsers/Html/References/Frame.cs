@@ -6,6 +6,6 @@ namespace WebsiteRipper.Parsers.Html.References
     [ReferenceAttribute("src")]
     public sealed class Frame : HtmlReference
     {
-        public Frame(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, kind, node, attribute) { }
+        public Frame(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
     }
 }

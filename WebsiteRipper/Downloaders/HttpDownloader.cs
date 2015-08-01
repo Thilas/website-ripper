@@ -16,10 +16,10 @@ namespace WebsiteRipper.Downloaders
             }
         }
 
-        public HttpDownloader(Uri uri, string mimeType, int timeout, string preferredLanguages)
-            : base(uri, mimeType, timeout, preferredLanguages)
+        public HttpDownloader(DownloaderArgs downloaderArgs)
+            : base(downloaderArgs)
         {
-            WebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, preferredLanguages);
+            WebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, downloaderArgs.PreferredLanguages);
         }
     }
 }

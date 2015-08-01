@@ -8,7 +8,7 @@ namespace WebsiteRipper.Parsers.Xml
         XmlDocumentType _documentType;
 
         public DocumentTypeReference(Parser parser, XmlDocument document)
-            : base(parser, document.DocumentType != null ? ReferenceKind.ExternalResource : ReferenceKind.Skip)
+            : base(new ReferenceArgs(parser, document.DocumentType != null ? ReferenceKind.ExternalResource : ReferenceKind.Skip))
         {
             _document = document;
             _documentType = document.DocumentType;

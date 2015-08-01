@@ -10,6 +10,13 @@ namespace WebsiteRipper.Parsers.Html.References
         static readonly string[] _externalResourceRelationships = { "icon", "pingback", "prefetch", "stylesheet" };
         static readonly string[] _skipRelationships = { "dns-prefetch" };
 
+        static ReferenceArgs<HtmlNode, HtmlAttribute> FixReferenceArgs(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
+        {
+            return new ReferenceArgs<HtmlNode, HtmlAttribute>(referenceArgs.Parser,
+                GetKind(referenceArgs.Kind, referenceArgs.Node), referenceArgs.MimeType, referenceArgs.Node,
+                referenceArgs.Attribute);
+        }
+
         static ReferenceKind GetKind(ReferenceKind defaultKind, HtmlNode node)
         {
             const char listSeparatorChar = ' ';
@@ -23,6 +30,6 @@ namespace WebsiteRipper.Parsers.Html.References
             return defaultKind;
         }
 
-        public Link(Parser parser, ReferenceKind kind, HtmlNode node, HtmlAttribute attribute) : base(parser, GetKind(kind, node), node, attribute) { }
+        public Link(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(FixReferenceArgs(referenceArgs)) { }
     }
 }

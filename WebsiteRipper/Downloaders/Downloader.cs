@@ -13,7 +13,7 @@ namespace WebsiteRipper.Downloaders
         static readonly Lazy<Dictionary<string, Type>> _downloaderTypesLazy = new Lazy<Dictionary<string, Type>>(() =>
         {
             var downloaderType = typeof(Downloader);
-            var downloaderConstructorTypes = new[] { typeof(Uri), typeof(string), typeof(int), typeof(string) };
+            var downloaderConstructorTypes = new[] { typeof(DownloaderArgs) };
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && downloaderType.IsAssignableFrom(type) && type.GetConstructor(downloaderConstructorTypes) != null)
@@ -35,9 +35,8 @@ namespace WebsiteRipper.Downloaders
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
             Type downloaderType;
-            // TODO: Replace constructor with arguments by a dedicated method
             if (DownloaderTypes.TryGetValue(scheme, out downloaderType))
-                return (Downloader)Activator.CreateInstance(downloaderType, uri, mimeType, timeout, preferredLanguages);
+                return (Downloader)Activator.CreateInstance(downloaderType, new DownloaderArgs(uri, mimeType, timeout, preferredLanguages));
             throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
         }
 
@@ -67,13 +66,11 @@ namespace WebsiteRipper.Downloaders
         internal string MimeType { get { return _mimeType ?? GetMimeType(WebResponse.ContentType); } }
         internal Uri ResponseUri { get { return WebResponse.ResponseUri; } }
 
-        protected Downloader(Uri uri, string mimeType, int timeout, string preferredLanguages)
+        protected Downloader(DownloaderArgs downloaderArgs)
         {
-            if (uri == null) throw new ArgumentNullException("uri");
-            if (preferredLanguages == null) throw new ArgumentNullException("preferredLanguages");
-            _mimeType = mimeType;
-            WebRequest = WebRequest.Create(uri);
-            WebRequest.Timeout = timeout;
+            _mimeType = downloaderArgs.MimeType;
+            WebRequest = WebRequest.Create(downloaderArgs.Uri);
+            WebRequest.Timeout = downloaderArgs.Timeout;
         }
 
         public void Dispose()

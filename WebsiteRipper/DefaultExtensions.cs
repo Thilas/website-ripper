@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -199,7 +200,7 @@ namespace WebsiteRipper
 
         public IEnumerator<MimeType> GetEnumerator() { return _defaultExtensions.Values.GetEnumerator(); }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
         public MimeType this[string mimeTypeName]
         {

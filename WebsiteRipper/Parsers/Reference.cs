@@ -16,11 +16,11 @@ namespace WebsiteRipper.Parsers
     {
         readonly Parser _parser;
 
-        protected Reference(Parser parser, ReferenceKind kind, string mimeType = null)
+        protected Reference(ReferenceArgs referenceArgs)
         {
-            _parser = parser;
-            Kind = kind;
-            MimeType = !string.IsNullOrEmpty(mimeType) ? mimeType : null;
+            _parser = referenceArgs.Parser;
+            Kind = referenceArgs.Kind;
+            MimeType = referenceArgs.MimeType;
         }
 
         public override string ToString()
@@ -69,7 +69,7 @@ namespace WebsiteRipper.Parsers
         static readonly Lazy<Dictionary<string, IEnumerable<ReferenceType>>> _referenceTypesLazy = new Lazy<Dictionary<string, IEnumerable<ReferenceType>>>(() =>
         {
             var referenceType = typeof(Reference);
-            var referenceConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(TNode), typeof(TAttribute) };
+            var referenceConstructorTypes = new[] { typeof(ReferenceArgs<TNode, TAttribute>) };
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && referenceType.IsAssignableFrom(type) && type.GetConstructor(referenceConstructorTypes) != null)
@@ -94,21 +94,18 @@ namespace WebsiteRipper.Parsers
             IEnumerable<ReferenceType> references;
             if (!_referenceTypesLazy.Value.TryGetValue(nodeNameSelector(node), out references)) return Enumerable.Empty<Reference>();
             return nodeAttributesSelector(node).Join(references, attributeNameSelector, reference => reference.AttributeName,
-                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, parser, reference.Kind, node, attribute),
+                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, new ReferenceArgs<TNode, TAttribute>(parser, reference.Kind, null, node, attribute)),
                 StringComparer.OrdinalIgnoreCase);
         }
 
         protected TNode Node { get; private set; }
         protected TAttribute Attribute { get; private set; }
 
-        protected Reference(Parser parser, ReferenceKind kind, TNode node, TAttribute attribute)
-            : this(parser, kind, null, node, attribute) { }
-
-        protected Reference(Parser parser, ReferenceKind kind, string mimeType, TNode node, TAttribute attribute)
-            : base(parser, kind, mimeType)
+        protected Reference(ReferenceArgs<TNode, TAttribute> referenceArgs)
+            : base(referenceArgs)
         {
-            Node = node;
-            Attribute = attribute;
+            Node = referenceArgs.Node;
+            Attribute = referenceArgs.Attribute;
         }
     }
 }

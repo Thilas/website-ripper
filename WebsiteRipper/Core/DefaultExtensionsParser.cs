@@ -11,7 +11,7 @@ namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsParser : XmlParser
     {
-        public DefaultExtensionsParser(string mimeType) : base(mimeType) { }
+        public DefaultExtensionsParser(ParserArgs parserArgs) : base(parserArgs) { }
 
         protected override string GetDefaultExtension() { return ".xml"; }
 

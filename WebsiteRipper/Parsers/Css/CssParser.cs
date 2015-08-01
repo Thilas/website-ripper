@@ -13,7 +13,7 @@ namespace WebsiteRipper.Parsers.Css
 
         protected override string DefaultFileNameWithoutExtension { get { return "style"; } }
 
-        public CssParser(string mimeType) : base(mimeType) { }
+        public CssParser(ParserArgs parserArgs) : base(parserArgs) { }
 
         StyleSheet _styleSheet;
         Encoding _encoding;

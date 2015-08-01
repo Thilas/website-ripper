@@ -12,7 +12,7 @@ namespace WebsiteRipper.Parsers.Html
 
         protected override string DefaultFileNameWithoutExtension { get { return "index"; } }
 
-        public HtmlParser(string mimeType) : base(mimeType) { }
+        public HtmlParser(ParserArgs parserArgs) : base(parserArgs) { }
 
         public Uri BaseUri { get; private set; }
 

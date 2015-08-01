@@ -7,7 +7,7 @@ namespace WebsiteRipper.Parsers.Css
         readonly ImportRule _importRule;
 
         public ImportRuleReference(Parser parser, ImportRule importRule)
-            : base(parser, ReferenceKind.ExternalResource)
+            : base(new ReferenceArgs(parser, ReferenceKind.ExternalResource))
         {
             _importRule = importRule;
         }

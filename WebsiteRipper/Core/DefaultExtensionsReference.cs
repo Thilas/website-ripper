@@ -8,7 +8,7 @@ namespace WebsiteRipper.Core
         readonly string _file;
 
         public DefaultExtensionsReference(Parser parser, string typeName, string subtypeName, string file)
-            : base(parser, ReferenceKind.ExternalResource)
+            : base(new ReferenceArgs(parser, ReferenceKind.ExternalResource))
         {
             _mimeType = new MimeType(typeName, subtypeName);
             _file = file;

@@ -1,8 +1,8 @@
-﻿using CommandLine;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using CommandLine;
 
 namespace WebsiteRipper.CommandLine
 {
