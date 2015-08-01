@@ -178,21 +178,21 @@ namespace WebsiteRipper
             const int tabulationWidth = 8;
             using (var streamWriter = new StreamWriter(path, false, Encoding.Default))
             {
-                streamWriter.Write(LastModifiedFormat, LastModified.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
-                streamWriter.Write("\n#\n");
-                streamWriter.Write("# MIME type (lowercased)\t\t\tExtensions\n");
-                streamWriter.Write("# ============================================\t==========\n");
+                streamWriter.WriteLine(LastModifiedFormat, LastModified.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture));
+                streamWriter.WriteLine("#");
+                streamWriter.WriteLine("# MIME type (lowercased)\t\t\tExtensions");
+                streamWriter.WriteLine("# ============================================\t==========");
                 foreach (var mimeType in this.OrderBy(mimeType => mimeType.ToString(), StringComparer.OrdinalIgnoreCase))
                 {
                     var mimeTypeName = mimeType.ToString();
                     if (mimeType.Extensions != null)
                     {
-                        streamWriter.Write("{0}{1}{2}\n", mimeTypeName,
+                        streamWriter.WriteLine("{0}{1}{2}", mimeTypeName,
                             new string('\t', mimeTypeName.Length < mimeTypeWidth ? (mimeTypeWidth - mimeTypeName.Length) / tabulationWidth + 1 : 1),
                             string.Join(" ", mimeType.Extensions.Select(extension => extension.Substring(1))));
                     }
                     else
-                        streamWriter.Write("# {0}\n", mimeTypeName);
+                        streamWriter.WriteLine("# {0}", mimeTypeName);
                 }
             }
             return this;
