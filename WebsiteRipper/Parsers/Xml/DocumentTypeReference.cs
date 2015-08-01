@@ -16,7 +16,7 @@ namespace WebsiteRipper.Parsers.Xml
 
         protected override string InternalUri
         {
-            get { return _documentType != null ? _documentType.SystemId : null; }
+            get { return _documentType.SystemId; }
             set
             {
                 var documentType = _document.CreateDocumentType(_documentType.Name, _documentType.PublicId, value, _documentType.InternalSubset);

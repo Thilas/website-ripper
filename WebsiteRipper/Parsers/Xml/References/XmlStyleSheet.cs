@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers.Xml.References
 {
@@ -6,7 +7,13 @@ namespace WebsiteRipper.Parsers.Xml.References
     [ReferenceAttribute("href")]
     public sealed class XmlStyleSheet : ProcessingInstructionReference
     {
-        // TODO: Handle "type" attribute
-        public XmlStyleSheet(Parser parser, ReferenceKind kind, XmlProcessingInstruction node, XmlAttribute attribute) : base(parser, kind, node, attribute) { }
+        static string GetMimeType(XmlAttribute attribute)
+        {
+            var typeAttribute = attribute.GetOwnerElement().Attributes["type"];
+            return typeAttribute != null ? typeAttribute.Value : null;
+        }
+
+        public XmlStyleSheet(Parser parser, ReferenceKind kind, XmlProcessingInstruction node, XmlAttribute attribute)
+            : base(parser, kind, GetMimeType(attribute), node, attribute) { }
     }
 }

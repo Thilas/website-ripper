@@ -10,6 +10,8 @@ namespace WebsiteRipper.Parsers
 
         public ReferenceKind Kind { get; set; }
 
+        public string MimeTypeAttributeName { get; set; }
+
         public ReferenceAttributeAttribute(string name)
         {
             if (name == null) throw new ArgumentNullException("name");

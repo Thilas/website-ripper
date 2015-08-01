@@ -8,6 +8,8 @@ namespace WebsiteRipper.Parsers.Xml
 {
     [Parser(ApplicationMimeType)]
     [Parser(TextMimeType)]
+    [Parser(XsltApplicationMimeType)]
+    [Parser(XsltTextMimeType)]
     public class XmlParser : Parser
     {
         internal const string ApplicationMimeType = "application/xml";
@@ -22,8 +24,8 @@ namespace WebsiteRipper.Parsers.Xml
 
         protected XmlDocument Document { get; private set; }
 
-        private Dictionary<string, IEnumerable<XmlAttribute>> _namespaces;
-        private Lazy<string> _defaultPrefixLazy;
+        Dictionary<string, IEnumerable<XmlAttribute>> _namespaces;
+        Lazy<string> _defaultPrefixLazy;
 
         protected sealed override void Load(string path)
         {
@@ -34,15 +36,13 @@ namespace WebsiteRipper.Parsers.Xml
 
         void InitializeNamespaces()
         {
-            var documentElement = Document.DocumentElement;
-            _namespaces = documentElement != null ? documentElement.DescendantsAndSelf()
+            _namespaces = Document.GetDocumentElement().DescendantsAndSelf()
                 .SelectMany(element => element.Attributes.Cast<XmlAttribute>())
                 .Where(attribute => string.Equals(string.IsNullOrEmpty(attribute.Prefix) ? attribute.LocalName : attribute.Prefix, XmlNsPrefix))
                 .GroupBy(attribute => attribute.Value)
                 .ToDictionary(
                     grouping => grouping.Key,
-                    grouping => grouping.ToList().AsEnumerable())
-                : new Dictionary<string, IEnumerable<XmlAttribute>>();
+                    grouping => grouping.ToList().AsEnumerable());
             _defaultPrefixLazy = new Lazy<string>(() =>
             {
                 var prefixes = new HashSet<string>(_namespaces.Values.SelectMany(attributes => attributes
@@ -71,12 +71,10 @@ namespace WebsiteRipper.Parsers.Xml
             if (!_namespaces.TryGetValue(namespaceUri, out attributes)) return Enumerable.Empty<Reference>();
             return attributes.SelectMany(attribute =>
             {
-                var element = attribute.OwnerElement;
-                if (element == null) throw new InvalidOperationException("Attribute has no owner element.");
                 var prefix = attribute.GetNamespacePrefix() ?? _defaultPrefixLazy.Value;
                 var namespaceManager = new XmlNamespaceManager(Document.NameTable);
                 namespaceManager.AddNamespace(prefix, namespaceUri);
-                var uris = element.SelectNodes(xPathFactory(prefix), namespaceManager);
+                var uris = attribute.GetOwnerElement().SelectNodes(xPathFactory(prefix), namespaceManager);
                 return uris != null ? uris.Cast<XmlAttribute>().Select(uri => new XmlReference(this, uri)) : Enumerable.Empty<Reference>();
             }).Where(reference => reference != null).ToList();
         }
@@ -92,6 +90,9 @@ namespace WebsiteRipper.Parsers.Xml
         }
 
         public const string XsltNamespace = "http://www.w3.org/1999/XSL/Transform";
+
+        internal const string XsltApplicationMimeType = "application/xslt+xml";
+        internal const string XsltTextMimeType = "text/xsl";
 
         IEnumerable<Reference> GetXsltReferences()
         {

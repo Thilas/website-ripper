@@ -158,13 +158,13 @@ namespace WebsiteRipper
                     _includeRegexLazy != null && _includeRegexLazy.Value.IsMatch(subUri.ToString())
                 )
             );
-            var subResource = isInScope ? GetResource(subUri, reference.Kind == ReferenceKind.Hyperlink) : null;
+            var subResource = isInScope ? GetResource(subUri, reference.Kind == ReferenceKind.Hyperlink, reference.MimeType) : null;
             var relativeUri = isInScope ? resource.NewUri.MakeRelativeUri(new Uri(subResource.NewUri, subUri.Fragment)) : subUri;
             reference.Uri = Uri.UnescapeDataString(relativeUri.OriginalString);
             return subResource;
         }
 
-        Resource GetResource(Uri uri, bool hyperlink)
+        Resource GetResource(Uri uri, bool hyperlink, string mimeType)
         {
             Resource resource;
             if (_uris.TryGetValue(uri, out resource)) return resource;
@@ -173,7 +173,7 @@ namespace WebsiteRipper
                 if (_uris.TryGetValue(uri, out resource)) return resource;
                 try
                 {
-                    resource = new Resource(this, uri, hyperlink);
+                    resource = new Resource(this, uri, hyperlink, mimeType);
                 }
                 catch (ResourceUnavailableException ex)
                 {

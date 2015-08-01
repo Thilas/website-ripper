@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers.Xml
 {
@@ -20,19 +21,23 @@ namespace WebsiteRipper.Parsers.Xml
         static IEnumerable<XmlAttribute> GetProcessingInstructionAttributes(XmlProcessingInstruction xmlProcessingInstruction)
         {
             var document = new XmlDocument();
-            document.LoadXml(string.Format("<ProcessingInstruction {0}/>", xmlProcessingInstruction.Data));
-            var documentElement = document.DocumentElement;
-            if (documentElement == null)
-                throw new NotSupportedException(string.Format("XmlParser does not support processing instruction \"{0}\".", xmlProcessingInstruction.Name));
-            return documentElement.Attributes.Cast<XmlAttribute>();
+            try
+            {
+                document.LoadXml(string.Format("<ProcessingInstruction {0}/>", xmlProcessingInstruction.Data));
+            }
+            catch (Exception exception)
+            {
+                throw new NotSupportedException(string.Format("XmlParser does not support processing instruction \"{0}\".", xmlProcessingInstruction.Name), exception);
+            }
+            return document.GetDocumentElement().Attributes.Cast<XmlAttribute>();
         }
 
         readonly XmlElement _processingInstructionElement;
 
-        protected ProcessingInstructionReference(Parser parser, ReferenceKind kind, XmlProcessingInstruction node, XmlAttribute attribute)
-            : base(parser, kind, node, attribute)
+        protected ProcessingInstructionReference(Parser parser, ReferenceKind kind, string mimeType, XmlProcessingInstruction node, XmlAttribute attribute)
+            : base(parser, kind, mimeType, node, attribute)
         {
-            _processingInstructionElement = attribute.OwnerElement;
+            _processingInstructionElement = attribute.GetOwnerElement();
         }
 
         protected sealed override string InternalUri

@@ -16,10 +16,11 @@ namespace WebsiteRipper.Parsers
     {
         readonly Parser _parser;
 
-        protected Reference(Parser parser, ReferenceKind kind)
+        protected Reference(Parser parser, ReferenceKind kind, string mimeType = null)
         {
             _parser = parser;
             Kind = kind;
+            MimeType = !string.IsNullOrEmpty(mimeType) ? mimeType : null;
         }
 
         public override string ToString()
@@ -28,6 +29,8 @@ namespace WebsiteRipper.Parsers
         }
 
         public ReferenceKind Kind { get; private set; }
+
+        public string MimeType { get; private set; }
 
         public Uri GetAbsoluteUri(Resource resource)
         {
@@ -99,7 +102,10 @@ namespace WebsiteRipper.Parsers
         protected TAttribute Attribute { get; private set; }
 
         protected Reference(Parser parser, ReferenceKind kind, TNode node, TAttribute attribute)
-            : base(parser, kind)
+            : this(parser, kind, null, node, attribute) { }
+
+        protected Reference(Parser parser, ReferenceKind kind, string mimeType, TNode node, TAttribute attribute)
+            : base(parser, kind, mimeType)
         {
             Node = node;
             Attribute = attribute;

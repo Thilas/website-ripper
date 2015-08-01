@@ -8,10 +8,11 @@ namespace WebsiteRipper.Extensions
 
         public static string MiddleTruncate(this string value, int totalWidth, string ellipsis = Ellipsis)
         {
+            if (value == null) throw new ArgumentNullException("value");
             ellipsis = ellipsis ?? string.Empty;
             // Check than totalWidth is greater or equal ellipsis length plus one leading character and one trailing character
             if (totalWidth < ellipsis.Length + 2) throw new ArgumentOutOfRangeException("totalWidth");
-            if (string.IsNullOrEmpty(value) || value.Length <= totalWidth) return value;
+            if (value.Length <= totalWidth) return value;
             var count = value.Length - totalWidth + ellipsis.Length;
             var start = (value.Length - count) / 2;
             value = value.Remove(start, count);

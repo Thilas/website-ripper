@@ -13,7 +13,7 @@ namespace WebsiteRipper.Downloaders
         static readonly Lazy<Dictionary<string, Type>> _downloaderTypesLazy = new Lazy<Dictionary<string, Type>>(() =>
         {
             var downloaderType = typeof(Downloader);
-            var downloaderConstructorTypes = new[] { typeof(Uri), typeof(int), typeof(string) };
+            var downloaderConstructorTypes = new[] { typeof(Uri), typeof(string), typeof(int), typeof(string) };
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && downloaderType.IsAssignableFrom(type) && type.GetConstructor(downloaderConstructorTypes) != null)
@@ -27,11 +27,17 @@ namespace WebsiteRipper.Downloaders
 
         internal static Downloader Create(Uri uri, int timeout, string preferredLanguages)
         {
+            return Create(uri, null, timeout, preferredLanguages);
+        }
+
+        internal static Downloader Create(Uri uri, string mimeType, int timeout, string preferredLanguages)
+        {
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
             Type downloaderType;
+            // TODO: Replace constructor with arguments by a dedicated method
             if (DownloaderTypes.TryGetValue(scheme, out downloaderType))
-                return (Downloader)Activator.CreateInstance(downloaderType, uri, timeout, preferredLanguages);
+                return (Downloader)Activator.CreateInstance(downloaderType, uri, mimeType, timeout, preferredLanguages);
             throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
         }
 
@@ -51,18 +57,21 @@ namespace WebsiteRipper.Downloaders
             return string.Format("{0}/{1}", match.Groups["type"].Value, match.Groups["subtype"].Value);
         }
 
+        readonly string _mimeType;
+
         protected WebRequest WebRequest { get; private set; }
         protected WebResponse WebResponse { get; private set; }
 
         internal long ContentLength { get { return WebResponse.ContentLength; } }
         protected internal virtual DateTime LastModified { get { return DateTime.Now; } }
-        internal string MimeType { get { return GetMimeType(WebResponse.ContentType); } }
+        internal string MimeType { get { return _mimeType ?? GetMimeType(WebResponse.ContentType); } }
         internal Uri ResponseUri { get { return WebResponse.ResponseUri; } }
 
-        protected Downloader(Uri uri, int timeout, string preferredLanguages)
+        protected Downloader(Uri uri, string mimeType, int timeout, string preferredLanguages)
         {
             if (uri == null) throw new ArgumentNullException("uri");
             if (preferredLanguages == null) throw new ArgumentNullException("preferredLanguages");
+            _mimeType = mimeType;
             WebRequest = WebRequest.Create(uri);
             WebRequest.Timeout = timeout;
         }

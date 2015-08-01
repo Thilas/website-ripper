@@ -73,6 +73,7 @@
     <Compile Include="Core\DefaultExtensionsRipper.cs" />
     <Compile Include="DownloadProgressChangedEventArgs.cs" />
     <Compile Include="Extensions\XmlAttributeExtensions.cs" />
+    <Compile Include="Extensions\XmlDocumentExtensions.cs" />
     <Compile Include="Extensions\XmlElementExtensions.cs" />
     <Compile Include="MimeType.cs" />
     <Compile Include="Core\Tools.cs" />

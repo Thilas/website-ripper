@@ -20,7 +20,7 @@ namespace WebsiteRipper.Core
             set { }
         }
 
-        internal MimeType MimeType
+        new internal MimeType MimeType
         {
             get { return _mimeType; }
         }

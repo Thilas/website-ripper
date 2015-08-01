@@ -37,11 +37,11 @@ namespace WebsiteRipper
             _hyperlink = hyperlink;
         }
 
-        internal Resource(Ripper ripper, Uri uri, bool hyperlink = true)
+        internal Resource(Ripper ripper, Uri uri, bool hyperlink = true, string mimeType = null)
             : this(ripper, hyperlink)
         {
             if (uri == null) throw new ArgumentNullException("uri");
-            _downloader = Downloader.Create(uri, ripper.Timeout, ripper.PreferredLanguages);
+            _downloader = Downloader.Create(uri, mimeType, ripper.Timeout, ripper.PreferredLanguages);
             try
             {
                 _downloader.SendRequest();
@@ -95,8 +95,8 @@ namespace WebsiteRipper
                 var extension = Path.GetExtension(path);
                 var defaultExtension = Path.GetExtension(Parser.DefaultFileName);
                 var otherExtensions = Parser.OtherExtensions;
-                if (string.IsNullOrEmpty(extension) || !string.Equals(extension, defaultExtension, StringComparison.OrdinalIgnoreCase) ||
-                    otherExtensions != null && otherExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(extension) || !string.Equals(extension, defaultExtension, StringComparison.OrdinalIgnoreCase) &&
+                    otherExtensions != null && !otherExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                 {
                     path = Path.Combine(path, Parser.DefaultFileName);
                 }

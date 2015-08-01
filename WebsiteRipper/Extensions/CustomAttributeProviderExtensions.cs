@@ -14,6 +14,7 @@ namespace WebsiteRipper.Extensions
 
         public static IEnumerable<T> GetCustomAttributes<T>(this ICustomAttributeProvider customAttributeProvider, bool inherit) where T : Attribute
         {
+            if (customAttributeProvider == null) throw new ArgumentNullException("customAttributeProvider");
             return customAttributeProvider.GetCustomAttributes(typeof(T), inherit).Cast<T>();
         }
     }

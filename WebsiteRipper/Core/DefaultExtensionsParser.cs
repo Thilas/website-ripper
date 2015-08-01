@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
+using WebsiteRipper.Extensions;
 using WebsiteRipper.Parsers;
 using WebsiteRipper.Parsers.Xml;
 
@@ -19,14 +20,12 @@ namespace WebsiteRipper.Core
         protected override IEnumerable<Reference> GetReferences()
         {
             var namespaceManager = new XmlNamespaceManager(Document.NameTable);
-            var documentElement = Document.DocumentElement;
-            if (documentElement == null) throw new InvalidOperationException("Document has no document element.");
             const string assignmentPrefix = "assignment";
-            namespaceManager.AddNamespace(assignmentPrefix, documentElement.NamespaceURI);
+            namespaceManager.AddNamespace(assignmentPrefix, Document.GetDocumentElement().NamespaceURI);
             var xPath = string.Format(
                 "{0}:registry[@id='media-types']/{0}:registry[{0}:title!='']/{0}:record[{0}:name!='']/{0}:file[@type='template' and text()!='']/text()",
                 assignmentPrefix);
-            var fileTexts = documentElement.SelectNodes(xPath, namespaceManager);
+            var fileTexts = Document.SelectNodes(xPath, namespaceManager);
             if (fileTexts == null) throw new InvalidOperationException("Document has no files.");
             return fileTexts.Cast<XmlText>().Select(fileText =>
             {

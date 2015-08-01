@@ -16,8 +16,8 @@ namespace WebsiteRipper.Downloaders
             }
         }
 
-        public HttpDownloader(Uri uri, int timeout, string preferredLanguages)
-            : base(uri, timeout, preferredLanguages)
+        public HttpDownloader(Uri uri, string mimeType, int timeout, string preferredLanguages)
+            : base(uri, mimeType, timeout, preferredLanguages)
         {
             WebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, preferredLanguages);
         }

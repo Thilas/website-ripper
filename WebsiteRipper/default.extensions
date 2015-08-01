@@ -1,4 +1,4 @@
-# Last modified: 2015-07-19T11:00:56.7790421Z
+# Last modified: 2015-08-01T18:26:58.3230890Z
 #
 # MIME type (lowercased)			Extensions
 # ============================================	==========
@@ -1665,6 +1665,7 @@ text/x-vcalendar					vcs
 text/x-vcard					vcf
 text/xml						xml
 text/xml-external-parsed-entity			xml ent
+text/xsl						xslt xsl
 # video/1d-interleaved-parityfec
 video/3gpp					3gp 3gpp
 # video/3gpp-tt
