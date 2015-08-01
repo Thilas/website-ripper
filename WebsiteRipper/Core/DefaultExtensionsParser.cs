@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using WebsiteRipper.Parsers;
 using WebsiteRipper.Parsers.Xml;
-using WebsiteRipper.Properties;
 
 namespace WebsiteRipper.Core
 {
@@ -19,23 +18,26 @@ namespace WebsiteRipper.Core
 
         protected override IEnumerable<Reference> GetReferences()
         {
-            var xmlNamespaceManager = new XmlNamespaceManager(XmlDocument.NameTable);
-            xmlNamespaceManager.AddNamespace("a", Settings.Default.IanaAssignmentsNamespace);
-            var files = XmlDocument.SelectNodes("/a:registry[@id='media-types']/a:registry[a:title!='']/a:record[a:name!='']/a:file[@type='template' and text()!='']/text()", xmlNamespaceManager);
-            return files != null ? files.Cast<XmlText>().Select(file =>
+            var namespaceManager = new XmlNamespaceManager(Document.NameTable);
+            var documentElement = Document.DocumentElement;
+            if (documentElement == null) throw new InvalidOperationException("Document has no document element.");
+            const string assignmentPrefix = "assignment";
+            namespaceManager.AddNamespace(assignmentPrefix, documentElement.NamespaceURI);
+            var xPath = string.Format(
+                "{0}:registry[@id='media-types']/{0}:registry[{0}:title!='']/{0}:record[{0}:name!='']/{0}:file[@type='template' and text()!='']/text()",
+                assignmentPrefix);
+            var fileTexts = documentElement.SelectNodes(xPath, namespaceManager);
+            if (fileTexts == null) throw new InvalidOperationException("Document has no files.");
+            return fileTexts.Cast<XmlText>().Select(fileText =>
             {
-                var record = file.ParentNode;
-                if (record == null || (record = record.ParentNode) == null) return null;
-                var registry = record.ParentNode;
-                if (registry == null) return null;
-                var typeName = registry.SelectSingleNode("a:title/text()", xmlNamespaceManager);
-                if (typeName == null) return null;
-                var subtypeName = record.SelectSingleNode("a:name/text()", xmlNamespaceManager);
-                if (subtypeName == null) return null;
-                var subtypeNameMatch = _subtypeNameRegexLazy.Value.Match(subtypeName.Value);
-                if (!subtypeNameMatch.Success) return null;
-                return new DefaultExtensionsReference(this, typeName.Value, subtypeNameMatch.Value, file);
-            }).Where(reference => reference != null) : Enumerable.Empty<Reference>();
+                var typeNameText = (XmlText)fileText.SelectSingleNode(string.Format("../../../{0}:title/text()", assignmentPrefix), namespaceManager);
+                if (typeNameText == null) throw new InvalidOperationException("File has no type.");
+                var subtypeNameText = (XmlText)fileText.SelectSingleNode(string.Format("../../{0}:name/text()", assignmentPrefix), namespaceManager);
+                if (subtypeNameText == null) throw new InvalidOperationException("File has no subtype.");
+                var subtypeNameMatch = _subtypeNameRegexLazy.Value.Match(subtypeNameText.Value);
+                if (!subtypeNameMatch.Success) throw new InvalidOperationException("File has an invalid subtype.");
+                return new DefaultExtensionsReference(this, typeNameText.Value, subtypeNameMatch.Value, fileText.Value);
+            });
         }
     }
 }

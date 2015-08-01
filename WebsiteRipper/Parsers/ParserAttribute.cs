@@ -5,7 +5,7 @@ namespace WebsiteRipper.Parsers
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
     public sealed class ParserAttribute : Attribute
     {
-        private readonly string _mimeType;
+        readonly string _mimeType;
         public string MimeType { get { return _mimeType; } }
 
         public ParserAttribute(string mimeType)

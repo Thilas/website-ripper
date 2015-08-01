@@ -8,11 +8,11 @@ namespace WebsiteRipper.Parsers
         public ReferenceKind Kind { get; private set; }
         public string AttributeName { get; private set; }
 
-        public ReferenceType(Type type, ReferenceAttribute referenceAttribute)
+        public ReferenceType(Type type, ReferenceAttributeAttribute attribute)
         {
             Type = type;
-            Kind = referenceAttribute.Kind;
-            AttributeName = referenceAttribute.AttributeName;
+            Kind = attribute.Kind;
+            AttributeName = attribute.Name;
         }
 
         public override string ToString() { return AttributeName; }

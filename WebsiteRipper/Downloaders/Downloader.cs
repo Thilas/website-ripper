@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Downloaders
 {
@@ -13,11 +14,10 @@ namespace WebsiteRipper.Downloaders
         {
             var downloaderType = typeof(Downloader);
             var downloaderConstructorTypes = new[] { typeof(Uri), typeof(int), typeof(string) };
-            var downloaderAttributeType = typeof(DownloaderAttribute);
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && downloaderType.IsAssignableFrom(type) && type.GetConstructor(downloaderConstructorTypes) != null)
-                .SelectMany(type => ((DownloaderAttribute[])type.GetCustomAttributes(downloaderAttributeType, false))
+                .SelectMany(type => type.GetCustomAttributes<DownloaderAttribute>(false)
                     .Select(downloaderAttribute => new { downloaderAttribute.Scheme, Type = type }))
                 .Distinct()
                 .ToDictionary(downloader => downloader.Scheme, downloader => downloader.Type, StringComparer.OrdinalIgnoreCase);

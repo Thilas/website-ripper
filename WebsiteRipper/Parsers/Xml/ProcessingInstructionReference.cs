@@ -11,23 +11,23 @@ namespace WebsiteRipper.Parsers.Xml
         internal static IEnumerable<Reference> Create(Parser parser, XmlProcessingInstruction node)
         {
             return Reference<XmlProcessingInstruction, XmlAttribute>.Create(
-                processingInstruction => processingInstruction.Name,
+                xmlProcessingInstruction => xmlProcessingInstruction.Name,
                 GetProcessingInstructionAttributes,
-                attribute => attribute.Name,
+                xmlAttribute => xmlAttribute.Name,
                 parser, node);
         }
 
-        static IEnumerable<XmlAttribute> GetProcessingInstructionAttributes(XmlProcessingInstruction processingInstruction)
+        static IEnumerable<XmlAttribute> GetProcessingInstructionAttributes(XmlProcessingInstruction xmlProcessingInstruction)
         {
-            var xmlDocument = new XmlDocument();
-            xmlDocument.LoadXml(string.Format("<pi {0}/>", processingInstruction.Data));
-            var documentElement = xmlDocument.DocumentElement;
+            var document = new XmlDocument();
+            document.LoadXml(string.Format("<ProcessingInstruction {0}/>", xmlProcessingInstruction.Data));
+            var documentElement = document.DocumentElement;
             if (documentElement == null)
-                throw new NotSupportedException(string.Format("XmlParser does not support processing instruction \"{0}\".", processingInstruction.Name));
+                throw new NotSupportedException(string.Format("XmlParser does not support processing instruction \"{0}\".", xmlProcessingInstruction.Name));
             return documentElement.Attributes.Cast<XmlAttribute>();
         }
 
-        private readonly XmlElement _processingInstructionElement;
+        readonly XmlElement _processingInstructionElement;
 
         protected ProcessingInstructionReference(Parser parser, ReferenceKind kind, XmlProcessingInstruction node, XmlAttribute attribute)
             : base(parser, kind, node, attribute)
@@ -37,10 +37,10 @@ namespace WebsiteRipper.Parsers.Xml
 
         protected sealed override string InternalUri
         {
-            get { return Attribute.InnerText; }
+            get { return Attribute.Value; }
             set
             {
-                Attribute.InnerText = value;
+                Attribute.Value = value;
                 Node.Data = GetProcessingInstructionData();
             }
         }
@@ -48,10 +48,10 @@ namespace WebsiteRipper.Parsers.Xml
         string GetProcessingInstructionData()
         {
             var stringBuilder = new StringBuilder();
-            using (var xmlWriter = XmlWriter.Create(stringBuilder, new XmlWriterSettings() { ConformanceLevel = ConformanceLevel.Fragment }))
+            using (var writer = XmlWriter.Create(stringBuilder, new XmlWriterSettings() { ConformanceLevel = ConformanceLevel.Fragment }))
             {
                 foreach (var attribute in _processingInstructionElement.Attributes.Cast<XmlAttribute>())
-                    xmlWriter.WriteAttributeString(attribute.LocalName, attribute.Value);
+                    writer.WriteAttributeString(attribute.LocalName, attribute.Value);
             }
             return stringBuilder.ToString();
         }

@@ -26,7 +26,7 @@ namespace WebsiteRipper
         const string DefaultExtensionsFile = "default.extensions";
         static readonly string _defaultExtensionsPath = Path.Combine(_rootPath, DefaultExtensionsFile);
 
-        static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\s\.,{0}]+", Regex.Escape(string.Join(string.Empty, new[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars()).Distinct()))));
+        static readonly string _extensionRegexClass = string.Format(@"{0}(?:\.{0})?", string.Format(@"[^\s\.,{0}]+", Regex.Escape(string.Join(string.Empty, new[] { '\f', '\n', '\r', '\t', '\v', '\x85' }.Union(Path.GetInvalidFileNameChars())))));
         internal static string ExtensionRegexClass { get { return _extensionRegexClass; } }
 
         static readonly Lazy<DefaultExtensions> _emptyLazy = new Lazy<DefaultExtensions>(() => new DefaultExtensions(Enumerable.Empty<MimeType>()));
@@ -39,8 +39,9 @@ namespace WebsiteRipper
         public static void Update()
         {
             var hardCodedDefaultExtensions = new[]
-            { 
-                new MimeType("application", "x-javascript").SetExtensions(new[] { ".js" }) 
+            {
+                new MimeType("application", "x-javascript").SetExtensions(new[] { ".js" }),
+                new MimeType("text", "xsl").SetExtensions(new[] { ".xslt", ".xsl" })
             };
             var defaultExtensions = Iana.OuterJoin(Apache, mimeType => mimeType.ToString(), MimeTypeResultSelector, null, StringComparer.OrdinalIgnoreCase)
                 .OuterJoin(hardCodedDefaultExtensions, mimeType => mimeType.ToString(), MimeTypeResultSelector, null, StringComparer.OrdinalIgnoreCase);
@@ -72,6 +73,10 @@ namespace WebsiteRipper
                 {
                     download.SendRequest();
                     if (download.LastModified <= defaultExtensions.LastModified) return defaultExtensions;
+#if DEBUG
+                    //  Debug test to catch all exceptions but HTTP status 404
+                    { } // Add a breakpoint here
+#endif
                     lastModified = download.LastModified;
                 }
             }

@@ -1,14 +1,13 @@
-﻿using System.Xml;
-using WebsiteRipper.Parsers;
+﻿using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper.Core
 {
     sealed class DefaultExtensionsReference : Reference
     {
         readonly MimeType _mimeType;
-        readonly XmlText _file;
+        readonly string _file;
 
-        public DefaultExtensionsReference(Parser parser, string typeName, string subtypeName, XmlText file)
+        public DefaultExtensionsReference(Parser parser, string typeName, string subtypeName, string file)
             : base(parser, ReferenceKind.ExternalResource)
         {
             _mimeType = new MimeType(typeName, subtypeName);
@@ -17,7 +16,7 @@ namespace WebsiteRipper.Core
 
         protected override string InternalUri
         {
-            get { return _file.Value; }
+            get { return _file; }
             set { }
         }
 

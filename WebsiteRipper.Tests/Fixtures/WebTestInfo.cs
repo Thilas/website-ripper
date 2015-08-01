@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using WebsiteRipper.Parsers;
+using WebsiteRipper.Extensions;
 using Xunit;
 
 namespace WebsiteRipper.Tests.Fixtures
@@ -23,19 +25,19 @@ namespace WebsiteRipper.Tests.Fixtures
 
         static string GetName()
         {
-            var factAttributeType = typeof(FactAttribute);
-            var theoryAttributeType = typeof(TheoryAttribute);
             var stackFrames = new StackTrace().GetFrames();
-            if (stackFrames == null) throw new InvalidOperationException("No stack frames in current context.");
+            if (stackFrames == null) throw new InvalidOperationException("Stack trace has no stack frames.");
             var factMethod = stackFrames.Select(frame => frame.GetMethod())
-                .First(method => method.GetCustomAttributes(factAttributeType, false).Length > 0 || method.GetCustomAttributes(theoryAttributeType, false).Length > 0);
-            if (factMethod.DeclaringType == null) throw new NotSupportedException("No type in current context.");
+                .First(method => method.GetCustomAttributes<FactAttribute>(false).Any() || method.GetCustomAttributes<TheoryAttribute>(false).Any());
+            if (factMethod.DeclaringType == null) throw new InvalidOperationException("Stack frame has no declaring type.");
             return string.Format("{0}.{1}", factMethod.DeclaringType.FullName, factMethod.Name);
         }
 
         public WebTestInfo(string mimeType, string content) : this(GetName(), mimeType, content) { }
 
         public WebTestInfo(string name, string mimeType, string content) : this(null, WebTest.GetUri(name), mimeType, content) { }
+
+        public WebTestInfo(WebTestInfo webTest, string relativeUri) : this(webTest, new Uri(webTest.Uri, relativeUri), DefaultParser.MimeType, null) { }
 
         public WebTestInfo(WebTestInfo webTest, string relativeUri, string mimeType, string content) : this(webTest, new Uri(webTest.Uri, relativeUri), mimeType, content) { }
 

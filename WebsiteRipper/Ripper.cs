@@ -147,6 +147,7 @@ namespace WebsiteRipper
         {
             if (resource == null) throw new ArgumentNullException("resource");
             if (reference == null) throw new ArgumentNullException("reference");
+            if (reference.Uri.StartsWith("#")) return null;
             var subUri = reference.GetAbsoluteUri(resource);
             if (subUri == null) return null;
             var isInScope = Downloader.Supports(subUri) && (

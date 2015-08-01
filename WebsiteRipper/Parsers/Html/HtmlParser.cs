@@ -16,24 +16,24 @@ namespace WebsiteRipper.Parsers.Html
 
         public Uri BaseUri { get; private set; }
 
-        HtmlDocument _htmlDocument = null;
+        HtmlDocument _document = null;
 
         protected override void Load(string path)
         {
-            _htmlDocument = new HtmlDocument();
-            _htmlDocument.Load(path, true);
+            _document = new HtmlDocument();
+            _document.Load(path, true);
             BaseUri = GetBaseUri();
         }
 
         protected override IEnumerable<Reference> GetReferences()
         {
-            return _htmlDocument.DocumentNode.DescendantsAndSelf()
+            return _document.DocumentNode.DescendantsAndSelf()
                 .SelectMany(node => HtmlReference.Create(this, node));
         }
 
         protected override void Save(string path)
         {
-            _htmlDocument.Save(path);
+            _document.Save(path);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace WebsiteRipper.Parsers.Html
             HtmlNode baseNode;
             try
             {
-                baseNode = _htmlDocument.DocumentNode.Descendants("base").
+                baseNode = _document.DocumentNode.Descendants("base").
                     SingleOrDefault(node => node.Attributes[hrefAttributeName] != null || node.Attributes[targetAttributeName] != null);
             }
             catch (Exception exception) { throw new DuplicateBasesException(exception); }

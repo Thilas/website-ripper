@@ -53,7 +53,7 @@ namespace WebsiteRipper
                 var webException = exception as System.Net.WebException;
                 //  Debug test to catch all exceptions but HTTP status 404
                 if (webException == null || webException.Response == null || ((System.Net.HttpWebResponse)webException.Response).StatusCode != System.Net.HttpStatusCode.NotFound)
-                    webException = null; // Add a breakpoint here
+                { } // Add a breakpoint here
 #endif
                 if (!_downloader.SetResponse(exception)) Dispose();
                 LastModified = _downloader != null ? _downloader.LastModified : DateTime.Now;

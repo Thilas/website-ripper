@@ -74,7 +74,7 @@ namespace WebsiteRipper.Tests.Fixtures
         public WebRequest Create(Uri uri)
         {
             if (uri == null) throw new ArgumentNullException("uri");
-            if (!_locked) throw new NotSupportedException("WebTest does not support web request creation in current context.");
+            if (!_locked) throw new NotSupportedException("WebTest does not support web request creation in the current context.");
             WebTestInfo webTest;
             if (!_webTests.TryGetValue(uri, out webTest)) throw new NotSupportedException(String.Format("WebTest does not support uri \"{0}\".", uri));
             return new WebTestRequest(uri, webTest);

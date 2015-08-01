@@ -5,9 +5,6 @@
     <Setting Name="IanaMediaTypesUri" Type="System.String" Scope="Application">
       <Value Profile="(Default)">http://www.iana.org/assignments/media-types/media-types.xml</Value>
     </Setting>
-    <Setting Name="IanaAssignmentsNamespace" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">http://www.iana.org/assignments</Value>
-    </Setting>
     <Setting Name="ApacheMimeTypesUri" Type="System.String" Scope="Application">
       <Value Profile="(Default)">http://svn.apache.org/viewvc/httpd/httpd/trunk/docs/conf/mime.types?view=co</Value>
     </Setting>

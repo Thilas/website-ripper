@@ -140,7 +140,7 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Fact]
-        public void Rip_BasicHtmlWithComplexReference_ReturnsExpectedResources()
+        public void Rip_BasicHtmlWithEscapedReference_ReturnsExpectedResources()
         {
             const string subUriString = "uri<&\">";
             var html = GetHtml(bodyElements: "<a href=uri&lt;&amp;&quot;&gt;>Text</a>");
@@ -159,7 +159,7 @@ namespace WebsiteRipper.Tests.Parsers
             {
                 "htmlManifestUri", "headProfileUri", "linkIconHrefUri", "linkPingBackHrefUri", "linkPrefetchHrefUri",
                 "linkStyleSheetHrefUri", "bodyBackgroundUri", "aHrefUri", "appletCodeUri", "areaHrefUri", "audioSrcUri",
-                "embedSrcUri", "frameLongDescUri", "frameSrcUri", "iFrameLongDescUri", "iFrameSrcUri", "imgLongDescUri",
+                "embedSrcUri", "frameLongDescUri", "frameSrcUri", "iframeLongDescUri", "iframeSrcUri", "imgLongDescUri",
                 "imgSrcUri", "inputSrcUri", "menuItemIconUri", "objectClassIdUri", "objectDataUri", "scriptSrcUri",
                 "sourceSrcUri", "trackSrcUri", "videoPosterUri", "videoSrcUri"
             };
@@ -179,9 +179,10 @@ namespace WebsiteRipper.Tests.Parsers
         Applet: <applet archive=value code={8} codebase=value>Text</applet><br>
         Area: <map><area href={9}>Text</area></map><br>
         Audio: <audio src={10}>Text</audio><br>
+        Element: <element attribute=value>Text</element>
         Embed: <embed src={11}>Text</embed><br>
         Frame: <frameset><frame longdesc={12} src={13}>Text</frame></frameset><br>
-        IFrame: <iframe longdesc={14} src={15}>Text</iframe><br>
+        Iframe: <iframe longdesc={14} src={15}>Text</iframe><br>
         Img: <img longdesc={16} src={17}>Text</img><br>
         Input: <input src={18}>Text</input><br>
         MenuItem: <menu><menuitem icon={19}>Text</menuitem></menu><br>
@@ -192,7 +193,7 @@ namespace WebsiteRipper.Tests.Parsers
         Video: <video poster={25} src={26}>Text</video><br>
     </body>
 </html>
-", subUriStrings.Select(subUriString => (object)subUriString).ToArray());
+", subUriStrings.Cast<object>().ToArray());
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriStrings);

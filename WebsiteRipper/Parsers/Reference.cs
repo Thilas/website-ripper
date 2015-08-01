@@ -59,8 +59,8 @@ namespace WebsiteRipper.Parsers
     {
         static string GetNodeName(Type type)
         {
-            var nodeAttribute = type.GetCustomAttribute<NodeAttribute>(false);
-            return nodeAttribute != null && !string.IsNullOrEmpty(nodeAttribute.NodeName) ? nodeAttribute.NodeName : type.Name;
+            var referenceNode = type.GetCustomAttribute<ReferenceNodeAttribute>(false);
+            return referenceNode != null && !string.IsNullOrEmpty(referenceNode.Name) ? referenceNode.Name : type.Name;
         }
 
         static readonly Lazy<Dictionary<string, IEnumerable<ReferenceType>>> _referenceTypesLazy = new Lazy<Dictionary<string, IEnumerable<ReferenceType>>>(() =>
@@ -70,11 +70,11 @@ namespace WebsiteRipper.Parsers
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && referenceType.IsAssignableFrom(type) && type.GetConstructor(referenceConstructorTypes) != null)
-                .SelectMany(type => type.GetCustomAttributes<ReferenceAttribute>(false)
-                    .Select(referenceAttribute => new { Type = type, NodeName = GetNodeName(type), ReferenceAttribute = referenceAttribute }))
+                .SelectMany(type => type.GetCustomAttributes<ReferenceAttributeAttribute>(false)
+                    .Select(attribute => new { Type = type, NodeName = GetNodeName(type), Attribute = attribute }))
                 .GroupBy(
                     reference => reference.NodeName,
-                    reference => new ReferenceType(reference.Type, reference.ReferenceAttribute),
+                    reference => new ReferenceType(reference.Type, reference.Attribute),
                     StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(
                     grouping => grouping.Key,

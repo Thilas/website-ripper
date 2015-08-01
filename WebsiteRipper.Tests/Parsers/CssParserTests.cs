@@ -89,11 +89,10 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Fact]
-        public void Rip_BasicCssWithComplexReference_ReturnsExpectedResources()
+        public void Rip_BasicCssWithEscapedReference_ReturnsExpectedResources()
         {
-            // TODO: Check escaped characters in CSS
             const string subUriString = "uri'";
-            const string css = @"@import 'uri\''";
+            const string css = "@import 'uri\\''";
             using (var webTest = new WebTestInfo(CssParser.MimeType, css))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
@@ -120,7 +119,7 @@ selector3 {{
     property1:url('{2}');
     property2:url('{3}');
 }}
-", subUriStrings.Select(subUriString => (object)subUriString).ToArray());
+", subUriStrings.Cast<object>().ToArray());
             using (var webTest = new WebTestInfo(CssParser.MimeType, css))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriStrings);

@@ -30,12 +30,12 @@ namespace WebsiteRipper.Parsers.Css
 
         protected override IEnumerable<Reference> GetReferences()
         {
-            return _styleSheet.ImportDirectives.Select(importRule => (Reference)new ImportRuleReference(this, importRule))
+            return _styleSheet.ImportDirectives.Select(importRule => new ImportRuleReference(this, importRule)).Cast<Reference>()
                 .Concat(GetPrimitiveTerms(_styleSheet.StyleRules
                     .SelectMany(styleRule => styleRule.Declarations)
                     .Select(declaration => declaration.Term))
                     .Where(primitiveTerm => primitiveTerm.PrimitiveType == UnitType.Uri)
-                    .Select(primitiveTerm => (Reference)new PrimitiveTermReference(this, primitiveTerm)));
+                    .Select(primitiveTerm => new PrimitiveTermReference(this, primitiveTerm)));
         }
 
         static IEnumerable<PrimitiveTerm> GetPrimitiveTerms(IEnumerable<Term> terms)

@@ -26,7 +26,7 @@ namespace WebsiteRipper.CommandLine
                 .Where(verb => verb.Attribute != null)
                 .OrderBy(verb => verb.Attribute.Name, StringComparer.OrdinalIgnoreCase)
                 .Select(verb => verb.Type)
-                .ToList().AsEnumerable();
+                .ToList();
         });
 
         internal static int Process(IEnumerable<string> args)

@@ -61,7 +61,7 @@ namespace WebsiteRipper.Core
                     !Regex.IsMatch(template, string.Format(@"\bSubtype\s+name\s*:.*\b{0}\b", Regex.Escape(mimeType.SubtypeName).Replace(@"vnd\.", @"(?:vnd\.)?")), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)) &&
                     !Regex.IsMatch(template, string.Format(@"\bThe\s+{0}\s+content-type\b", Regex.Escape(mimeType.ToString())), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 {
-                    return null;
+                    throw new InvalidOperationException("Template has an invalid mime type.");
                 }
 
                 // Extract file extensions

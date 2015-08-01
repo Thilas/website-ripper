@@ -11,7 +11,7 @@ namespace WebsiteRipper.Parsers.Html
             return Reference<HtmlNode, HtmlAttribute>.Create(
                 htmlNode => htmlNode.Name,
                 htmlNode => htmlNode.Attributes,
-                attribute => attribute.Name,
+                htmlAttribute => htmlAttribute.Name,
                 parser, node);
         }
 

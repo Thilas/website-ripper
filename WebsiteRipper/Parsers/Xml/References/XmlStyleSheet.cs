@@ -2,10 +2,11 @@
 
 namespace WebsiteRipper.Parsers.Xml.References
 {
-    [Node("xml-stylesheet")]
-    [Reference("href")]
+    [ReferenceNode("xml-stylesheet")]
+    [ReferenceAttribute("href")]
     public sealed class XmlStyleSheet : ProcessingInstructionReference
     {
+        // TODO: Handle "type" attribute
         public XmlStyleSheet(Parser parser, ReferenceKind kind, XmlProcessingInstruction node, XmlAttribute attribute) : base(parser, kind, node, attribute) { }
     }
 }

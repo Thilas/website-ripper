@@ -7,6 +7,8 @@ namespace WebsiteRipper.Parsers
 {
     public sealed class DefaultParser : Parser
     {
+        public const string MimeType = "application/octet-stream";
+
         const string DefaultExtension = ".html";
 
         readonly Uri _uri;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers
 {
@@ -11,11 +12,10 @@ namespace WebsiteRipper.Parsers
         {
             var parserType = typeof(Parser);
             var parserConstructorTypes = new[] { typeof(string) };
-            var parserAttributeType = typeof(ParserAttribute);
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && parserType.IsAssignableFrom(type) && type.GetConstructor(parserConstructorTypes) != null)
-                .SelectMany(type => ((ParserAttribute[])type.GetCustomAttributes(parserAttributeType, false))
+                .SelectMany(type => type.GetCustomAttributes<ParserAttribute>(false)
                     .Select(parserAttribute => new { parserAttribute.MimeType, Type = type }))
                 .Distinct()
                 .ToDictionary(parser => parser.MimeType, parser => parser.Type, StringComparer.OrdinalIgnoreCase);
@@ -52,12 +52,12 @@ namespace WebsiteRipper.Parsers
 
         protected virtual string GetDefaultExtension()
         {
-            if (string.IsNullOrEmpty(ActualMimeType)) throw new NotSupportedException("Parser does not support empty MIME type.");
+            if (string.IsNullOrEmpty(ActualMimeType)) throw new NotSupportedException("Parser does not support empty mime type.");
             string defaultExtension;
             if (!DefaultExtensions.All.TryGetDefaultExtension(ActualMimeType, out defaultExtension))
-                throw new NotSupportedException(string.Format("Parser does not support MIME type \"{0}\".", ActualMimeType));
+                throw new NotSupportedException(string.Format("Parser does not support mime type \"{0}\".", ActualMimeType));
             if (string.IsNullOrEmpty(defaultExtension))
-                throw new NotSupportedException(string.Format("Parser does not support MIME type \"{0}\" with no extensions.", ActualMimeType));
+                throw new NotSupportedException(string.Format("Parser does not support mime type \"{0}\" with no extensions.", ActualMimeType));
             return defaultExtension;
         }
 
@@ -65,8 +65,7 @@ namespace WebsiteRipper.Parsers
         {
             get
             {
-                if (string.IsNullOrEmpty(ActualMimeType)) return Enumerable.Empty<string>();
-                return DefaultExtensions.All.GetOtherExtensions(ActualMimeType);
+                return !string.IsNullOrEmpty(ActualMimeType) ? DefaultExtensions.All.GetOtherExtensions(ActualMimeType) : Enumerable.Empty<string>();
             }
         }
 

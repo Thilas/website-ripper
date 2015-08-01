@@ -9,10 +9,13 @@ namespace WebsiteRipper.Extensions
         public static IEnumerable<T> Prepend<T>(this IEnumerable<T> eumerable, T value)
         {
             yield return value;
-            foreach (var item in eumerable)
-            {
-                yield return item;
-            }
+            foreach (var item in eumerable) yield return item;
+        }
+
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> eumerable, T value)
+        {
+            foreach (var item in eumerable) yield return item;
+            yield return value;
         }
 
         //public static IEnumerable<TResult> OuterJoin<T, TKey, TResult>(this IEnumerable<T> outer, IEnumerable<T> inner, Func<T, TKey> keySelector, Func<T, T, TResult> resultSelector)

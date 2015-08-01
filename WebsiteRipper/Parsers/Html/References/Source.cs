@@ -2,7 +2,7 @@
 
 namespace WebsiteRipper.Parsers.Html.References
 {
-    [Reference("src")]
+    [ReferenceAttribute("src")]
     //[HtmlReference("srcset")] // TODO: Comma-separated list indicating a set of possible images
     public sealed class Source : HtmlReference
     {

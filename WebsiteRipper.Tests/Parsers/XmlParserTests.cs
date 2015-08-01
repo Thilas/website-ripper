@@ -10,15 +10,12 @@ namespace WebsiteRipper.Tests.Parsers
     {
         static readonly string _encodingName = WebTest.Encoding.WebName;
 
-        const string EmptyXml = "";
-        static readonly string _xmlFormat = string.Format("<?xml version=\"{{0}}\" encoding=\"{0}\"?>{{1}}<root><element attribute=\"value\">text</element></root>", _encodingName);
+        const string EmptyXml = "<root/>";
+        static readonly string _xmlFormat = string.Format("<?xml version=\"1.0\" encoding=\"{0}\"?>{{0}}<root><element attribute=\"value\">text</element></root>", _encodingName);
 
-        private const string XmlVersion10 = "1.0";
-        private const string XmlVersion11 = "1.1";
-
-        static string GetXml(string xmlVersion, string processingInstructions = null)
+        static string GetXml(string processingInstructions = null)
         {
-            return string.Format(_xmlFormat, xmlVersion, processingInstructions);
+            return string.Format(_xmlFormat, processingInstructions);
         }
 
         [Theory]
@@ -77,13 +74,11 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData(XmlVersion10, null)]
-        [InlineData(XmlVersion11, null)]
-        // Not yet supported
-        [InlineData(XmlVersion11, "<?xml-stylesheet href=\"value\"?>")]
-        public void Rip_BasicXmlWithNoReferences_ReturnsSingleResource(string xmlVersion, string processingInstructions)
+        [InlineData(null)]
+        [InlineData("<?processingInstruction data?>")]
+        public void Rip_BasicXmlWithNoReferences_ReturnsSingleResource(string processingInstructions)
         {
-            var xml = GetXml(xmlVersion, processingInstructions);
+            var xml = GetXml(processingInstructions);
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest);
@@ -93,52 +88,105 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData(XmlVersion10, "<?xml-stylesheet href=\"{0}\"?>")]
-        //[InlineData(XmlVersion11, "<?xml-stylesheet href=\"{0}\"?>")]
-        public void Rip_BasicXmlWithReference_ReturnsExpectedResources(string xmlVersion, string processingInstructionsFormat)
+        [InlineData("<!DOCTYPE root SYSTEM \"{0}\">")]
+        [InlineData("<?xml-stylesheet href=\"{0}\"?>")]
+        public void Rip_BasicXmlWithReference_ReturnsExpectedResources(string processingInstructionsFormat)
         {
             const string subUriString = "uri";
-            var xml = GetXml(xmlVersion, string.Format(processingInstructionsFormat, subUriString));
+            var xml = GetXml(string.Format(processingInstructionsFormat, subUriString));
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, XmlParser.MimeType, EmptyXml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
                 Assert.Equal(expected, actual);
             }
         }
 
         [Theory]
-        [InlineData(XmlVersion10, "<?xml-stylesheet href=\"uri&lt;&apos;&quot;&gt;\"?>")]
-        //[InlineData(XmlVersion11, "<?xml-stylesheet href=\"uri&lt;&apos;&quot;&gt;\"?>")]
-        public void Rip_BasicXmlWithComplexReference_ReturnsExpectedResources(string xmlVersion, string processingInstructions)
+        [InlineData("<?xml-stylesheet href=\"uri&lt;&apos;&quot;&gt;\"?>")]
+        public void Rip_BasicXmlWithEscapedReference_ReturnsExpectedResources(string processingInstructions)
         {
             const string subUriString = "uri<'\">";
-            var xml = GetXml(xmlVersion, processingInstructions);
+            var xml = GetXml(processingInstructions);
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, XmlParser.MimeType, EmptyXml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
                 Assert.Equal(expected, actual);
             }
         }
 
-        [Theory]
-        [InlineData(XmlVersion10)]
-        //[InlineData(XmlVersion11)]
-        public void Rip_ComplexXml_ReturnsExpectedResources(string xmlVersion)
+        [Fact]
+        public void Rip_ComplexXml_ReturnsExpectedResources()
         {
-            var subUriStrings = new[] { "xmlStyleSheetUri" };
-            var xml = string.Format(@"<?xml version=""{0}"" encoding=""UTF-8""?>
-<?xml-stylesheet href=""{1}""?>
-<root>
-    <element attribute=""value"">text</element>
+            var args = new[] { _encodingName, XmlParser.XsltNamespace };
+            var subUriStrings = new[]
+            {
+                "doctypeUri", "xmlStyleSheetUri", "prefixedImportHrefUri", "prefixedImportSchemaSchemaLocationUri",
+                "prefixedIncludeHrefUri", "importHrefUri", "importSchemaSchemaLocationUri", "includeHrefUri"
+            };
+            var xml = string.Format(@"<?xml version=""1.0"" encoding=""{0}""?>
+<!DOCTYPE root SYSTEM ""{2}"">
+<?xml-stylesheet href=""{3}""?>
+<root xmlns=""ns1Uri"" xmlns:prefix1=""ns2Uri"">
+    <element attribute=""value"" xmlns=""ns3Uri"" xmlns:prefix2=""ns4Uri"" xmlns:prefix3=""ns5Uri"" xmlns:prefix4=""ns6Uri"" xmlns:prefix5=""ns7Uri"">text</element>
+    <element attribute=""value"" xmlns=""ns3Uri"" xmlns:prefix2=""ns4Uri"" xmlns:prefix3=""ns8Uri"" xmlns:prefix6=""ns6Uri"" xmlns:prefix7=""ns9Uri"">text</element>
+    <element attribute=""value"" xmlns=""ns10Uri"">text</element>
+    <xsl:stylesheet xmlns:xsl=""{1}"" version=""1.0"">
+        <xsl:import href=""{4}""/>
+        <xsl:import-schema schema-location=""{5}""/>
+        <xsl:include href=""{6}""/>
+    </xsl:stylesheet>
+    <stylesheet xmlns=""{1}"" version=""2.0"">
+        <import href=""{7}""/>
+        <import-schema schema-location=""{8}""/>
+        <include href=""{9}""/>
+    </stylesheet>
 </root>
-", subUriStrings.Select(subUriString => (object)subUriString).Prepend(xmlVersion).ToArray());
+", args.Concat(subUriStrings).Cast<object>().ToArray());
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriStrings);
                 var actual = WebTest.GetActualResources(webTest,
-                    subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString, XmlParser.MimeType, EmptyXml)).ToArray());
+                    subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString)).ToArray());
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void Rip_ComplexXmlWithEmbeddedStyleSheet_ReturnsExpectedResources()
+        {
+            // This test comes from: http://www.w3.org/TR/2007/REC-xslt20-20070123/#embedded
+            var subUriStrings = new[] { "doc.dtd", "doc.xsl" };
+            var xml = string.Format(@"<?xml-stylesheet type=""application/xslt+xml"" href=""#style1""?>
+<!DOCTYPE doc SYSTEM ""{1}"">
+<doc>
+    <head>
+        <xsl:stylesheet id=""style1""
+                        version=""2.0""
+                        xmlns:xsl=""{0}""
+                        xmlns:fo=""http://www.w3.org/1999/XSL/Format"">
+        <xsl:import href=""{2}""/>
+        <xsl:template match=""id('foo')"">
+          <fo:block font-weight=""bold""><xsl:apply-templates/></fo:block>
+        </xsl:template>
+        <xsl:template match=""xsl:stylesheet"">
+          <!-- ignore -->
+        </xsl:template>
+        </xsl:stylesheet>
+    </head>
+    <body>
+        <para id=""foo"">
+        ...
+        </para>
+    </body>
+</doc>
+", subUriStrings.Prepend(XmlParser.XsltNamespace).Cast<object>().ToArray());
+            using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
+            {
+                var expected = WebTest.GetExpectedResources(webTest, subUriStrings);
+                var actual = WebTest.GetActualResources(webTest,
+                    subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString)).ToArray());
                 Assert.Equal(expected, actual);
             }
         }
