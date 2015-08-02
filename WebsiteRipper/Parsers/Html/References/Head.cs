@@ -1,10 +1,8 @@
-﻿using HtmlAgilityPack;
-
-namespace WebsiteRipper.Parsers.Html.References
+﻿namespace WebsiteRipper.Parsers.Html.References
 {
     [ReferenceAttribute("profile")]
     public sealed class Head : HtmlReference
     {
-        public Head(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Head(HtmlReferenceArgs htmlReferenceArgs) : base(htmlReferenceArgs) { }
     }
 }

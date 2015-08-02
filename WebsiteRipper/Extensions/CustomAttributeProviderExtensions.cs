@@ -9,7 +9,7 @@ namespace WebsiteRipper.Extensions
     {
         public static T GetCustomAttribute<T>(this ICustomAttributeProvider customAttributeProvider, bool inherit) where T : Attribute
         {
-            return GetCustomAttributes<T>(customAttributeProvider, inherit).SingleOrDefault();
+            return customAttributeProvider.GetCustomAttributes<T>(inherit).SingleOrDefault();
         }
 
         public static IEnumerable<T> GetCustomAttributes<T>(this ICustomAttributeProvider customAttributeProvider, bool inherit) where T : Attribute

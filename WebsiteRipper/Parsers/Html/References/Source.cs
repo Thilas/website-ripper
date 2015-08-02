@@ -1,11 +1,9 @@
-﻿using HtmlAgilityPack;
-
-namespace WebsiteRipper.Parsers.Html.References
+﻿namespace WebsiteRipper.Parsers.Html.References
 {
     [ReferenceAttribute("src")]
     //[ReferenceAttribute("srcset")] // TODO: Comma-separated list indicating a set of possible images
     public sealed class Source : HtmlReference
     {
-        public Source(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Source(HtmlReferenceArgs htmlReferenceArgs) : base(htmlReferenceArgs) { }
     }
 }

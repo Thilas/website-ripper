@@ -1,11 +1,9 @@
-﻿using HtmlAgilityPack;
-
-namespace WebsiteRipper.Parsers.Html.References
+﻿namespace WebsiteRipper.Parsers.Html.References
 {
     [ReferenceAttribute("poster")]
     [ReferenceAttribute("src")]
     public sealed class Video : HtmlReference
     {
-        public Video(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Video(HtmlReferenceArgs htmlReferenceArgs) : base(htmlReferenceArgs) { }
     }
 }

@@ -7,7 +7,7 @@ using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers.Xml
 {
-    public abstract class ProcessingInstructionReference : Reference<XmlProcessingInstruction, XmlAttribute>
+    public abstract class ProcessingInstructionReference : Reference<XmlProcessingInstruction, XmlAttribute, ProcessingInstructionReferenceArgs>
     {
         internal static IEnumerable<Reference> Create(Parser parser, XmlProcessingInstruction node)
         {
@@ -34,10 +34,10 @@ namespace WebsiteRipper.Parsers.Xml
 
         readonly XmlElement _processingInstructionElement;
 
-        protected ProcessingInstructionReference(ReferenceArgs<XmlProcessingInstruction, XmlAttribute> referenceArgs)
-            : base(referenceArgs)
+        protected ProcessingInstructionReference(ProcessingInstructionReferenceArgs processingInstructionReferenceArgs)
+            : base(processingInstructionReferenceArgs)
         {
-            _processingInstructionElement = referenceArgs.Attribute.GetOwnerElement();
+            _processingInstructionElement = processingInstructionReferenceArgs.Attribute.GetOwnerElement();
         }
 
         protected sealed override string InternalUri

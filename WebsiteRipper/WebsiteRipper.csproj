@@ -78,6 +78,7 @@
     <Compile Include="Extensions\XmlElementExtensions.cs" />
     <Compile Include="MimeType.cs" />
     <Compile Include="Core\Tools.cs" />
+    <Compile Include="Parsers\Html\HtmlReferenceArgs.cs" />
     <Compile Include="Parsers\ParserArgs.cs" />
     <Compile Include="Parsers\ReferenceArgs.cs" />
     <Compile Include="Parsers\ReferenceNodeAttribute.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="Parsers\ParserAttribute.cs" />
     <Compile Include="Parsers\Reference.cs" />
     <Compile Include="Parsers\Xml\DocumentTypeReference.cs" />
+    <Compile Include="Parsers\Xml\ProcessingInstructionReferenceArgs.cs" />
     <Compile Include="Parsers\Xml\References\XmlStyleSheet.cs" />
     <Compile Include="Parsers\Xml\XmlParser.cs" />
     <Compile Include="Parsers\Xml\ProcessingInstructionReference.cs" />

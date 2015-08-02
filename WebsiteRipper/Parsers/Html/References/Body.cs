@@ -1,10 +1,8 @@
-﻿using HtmlAgilityPack;
-
-namespace WebsiteRipper.Parsers.Html.References
+﻿namespace WebsiteRipper.Parsers.Html.References
 {
     [ReferenceAttribute("background")]
     public sealed class Body : HtmlReference
     {
-        public Body(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Body(HtmlReferenceArgs htmlReferenceArgs) : base(htmlReferenceArgs) { }
     }
 }

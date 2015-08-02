@@ -1,12 +1,10 @@
-﻿using HtmlAgilityPack;
-
-namespace WebsiteRipper.Parsers.Html.References
+﻿namespace WebsiteRipper.Parsers.Html.References
 {
     //[ReferenceAttribute("archive")] // TODO: Comma-separated archive list
     [ReferenceAttribute("code")]
     //[ReferenceAttribute("codeBase")] // TODO: Optional base uri for applet
     public sealed class Applet : HtmlReference
     {
-        public Applet(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Applet(HtmlReferenceArgs htmlReferenceArgs) : base(htmlReferenceArgs) { }
     }
 }

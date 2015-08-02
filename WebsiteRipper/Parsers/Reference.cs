@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers
@@ -58,7 +59,7 @@ namespace WebsiteRipper.Parsers
         protected abstract string InternalUri { get; set; }
     }
 
-    public abstract class Reference<TNode, TAttribute> : Reference
+    public abstract class Reference<TNode, TAttribute, TReferenceArgs> : Reference where TReferenceArgs : ReferenceArgs<TNode, TAttribute>
     {
         static string GetNodeName(Type type)
         {
@@ -69,7 +70,7 @@ namespace WebsiteRipper.Parsers
         static readonly Lazy<Dictionary<string, IEnumerable<ReferenceType>>> _referenceTypesLazy = new Lazy<Dictionary<string, IEnumerable<ReferenceType>>>(() =>
         {
             var referenceType = typeof(Reference);
-            var referenceConstructorTypes = new[] { typeof(ReferenceArgs<TNode, TAttribute>) };
+            var referenceConstructorTypes = new[] { typeof(TReferenceArgs) };
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && referenceType.IsAssignableFrom(type) && type.GetConstructor(referenceConstructorTypes) != null)
@@ -94,8 +95,22 @@ namespace WebsiteRipper.Parsers
             IEnumerable<ReferenceType> references;
             if (!_referenceTypesLazy.Value.TryGetValue(nodeNameSelector(node), out references)) return Enumerable.Empty<Reference>();
             return nodeAttributesSelector(node).Join(references, attributeNameSelector, reference => reference.AttributeName,
-                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, new ReferenceArgs<TNode, TAttribute>(parser, reference.Kind, null, node, attribute)),
+                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, CreateReferenceArgs(parser, reference.Kind, null, node, attribute)),
                 StringComparer.OrdinalIgnoreCase);
+        }
+
+        static readonly Lazy<ConstructorInfo> _referenceArgsConstructorLazy = new Lazy<ConstructorInfo>(() =>
+        {
+            var referenceArgsConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(string), typeof(TNode), typeof(TAttribute) };
+            var tReferenceArgsConstructor = typeof(TReferenceArgs).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, referenceArgsConstructorTypes, null);
+            if (tReferenceArgsConstructor == null) throw new NotSupportedException("");
+            return tReferenceArgsConstructor;
+        });
+
+        static TReferenceArgs CreateReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TNode node, TAttribute attribute)
+        {
+            // TODO: Replace by a dedicated method via interface?
+            return (TReferenceArgs)_referenceArgsConstructorLazy.Value.Invoke(new object[] { parser, kind, mimeType, node, attribute });
         }
 
         protected TNode Node { get; private set; }

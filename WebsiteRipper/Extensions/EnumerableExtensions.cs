@@ -27,7 +27,7 @@ namespace WebsiteRipper.Extensions
 
         public static IEnumerable<TResult> OuterJoin<T, TKey, TResult>(this IEnumerable<T> outer, IEnumerable<T> inner, Func<T, TKey> keySelector, Func<T, T, TResult> resultSelector, T resultDefault, IEqualityComparer<TKey> comparer)
         {
-            return OuterJoin(outer, inner, keySelector, keySelector, resultSelector, resultDefault, resultDefault, comparer);
+            return outer.OuterJoin(inner, keySelector, keySelector, resultSelector, resultDefault, resultDefault, comparer);
         }
 
         //public static IEnumerable<TResult> OuterJoin<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector)

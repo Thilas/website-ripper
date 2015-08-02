@@ -1,6 +1,4 @@
-﻿using HtmlAgilityPack;
-
-namespace WebsiteRipper.Parsers.Html.References
+﻿namespace WebsiteRipper.Parsers.Html.References
 {
     //[ReferenceAttribute("archive")] // TODO: Space-separated list of uris
     [ReferenceAttribute("classId")]
@@ -8,6 +6,6 @@ namespace WebsiteRipper.Parsers.Html.References
     [ReferenceAttribute("data")]
     public sealed class Object : HtmlReference
     {
-        public Object(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Object(HtmlReferenceArgs htmlReferenceArgs) : base(htmlReferenceArgs) { }
     }
 }

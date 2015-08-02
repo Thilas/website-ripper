@@ -4,7 +4,7 @@ using HtmlAgilityPack;
 
 namespace WebsiteRipper.Parsers.Html
 {
-    public abstract class HtmlReference : Reference<HtmlNode, HtmlAttribute>
+    public abstract class HtmlReference : Reference<HtmlNode, HtmlAttribute, HtmlReferenceArgs>
     {
         internal static IEnumerable<Reference> Create(Parser parser, HtmlNode node)
         {
@@ -17,10 +17,10 @@ namespace WebsiteRipper.Parsers.Html
 
         readonly HtmlParser _htmlParser;
 
-        protected HtmlReference(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
-            : base(referenceArgs)
+        protected HtmlReference(HtmlReferenceArgs htmlReferenceArgs)
+            : base(htmlReferenceArgs)
         {
-            _htmlParser = referenceArgs.Parser as HtmlParser;
+            _htmlParser = htmlReferenceArgs.Parser as HtmlParser;
         }
 
         protected override Uri GetBaseUri(Resource resource)
