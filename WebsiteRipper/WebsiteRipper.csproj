@@ -76,6 +76,7 @@
     <Compile Include="Extensions\XmlAttributeExtensions.cs" />
     <Compile Include="Extensions\XmlDocumentExtensions.cs" />
     <Compile Include="Extensions\XmlElementExtensions.cs" />
+    <Compile Include="Extensions\XmlNodeExtensions.cs" />
     <Compile Include="MimeType.cs" />
     <Compile Include="Core\Tools.cs" />
     <Compile Include="Parsers\Html\HtmlReferenceArgs.cs" />
