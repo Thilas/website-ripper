@@ -4,6 +4,8 @@ namespace WebsiteRipper.Extensions
 {
     static class StringExtensions
     {
+        // TODO: Add a Format extension method
+
         const string Ellipsis = "…";
 
         public static string MiddleTruncate(this string value, int totalWidth, string ellipsis = Ellipsis)

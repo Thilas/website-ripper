@@ -20,7 +20,7 @@ namespace WebsiteRipper.Parsers
 
         public int GetHashCode(ReferenceType obj)
         {
-            return new Tuple<Type, ReferenceKind, string>(obj.Type, obj.Kind, obj.AttributeName).GetHashCode();
+            return Tuple.Create(obj.Type, obj.Kind, obj.AttributeName).GetHashCode();
         }
     }
 }

@@ -7,6 +7,8 @@ namespace WebsiteRipper.Downloaders
     [Downloader("https")]
     sealed class HttpDownloader : Downloader
     {
+        public static string UserAgent = string.Format("WebsiteRipper/{0}", typeof(HttpDownloader).Assembly.GetName().Version);
+
         protected internal override DateTime LastModified
         {
             get
@@ -19,7 +21,9 @@ namespace WebsiteRipper.Downloaders
         public HttpDownloader(DownloaderArgs downloaderArgs)
             : base(downloaderArgs)
         {
-            WebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, downloaderArgs.PreferredLanguages);
+            var httpWebRequest = (HttpWebRequest)WebRequest;
+            httpWebRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, downloaderArgs.PreferredLanguages);
+            httpWebRequest.UserAgent = UserAgent;
         }
     }
 }

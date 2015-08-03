@@ -7,6 +7,7 @@ namespace WebsiteRipper.Extensions
 {
     static class CustomAttributeProviderExtensions
     {
+        //TODO: Check meaning of inherit parameter
         public static T GetCustomAttribute<T>(this ICustomAttributeProvider customAttributeProvider, bool inherit) where T : Attribute
         {
             return customAttributeProvider.GetCustomAttributes<T>(inherit).SingleOrDefault();

@@ -45,10 +45,10 @@ namespace WebsiteRipper.CommandLine
         [Option('t', "timeout", Default = DefaultExtensions.Timeout / TimeoutMultiplier, HelpText = "Time-out value in seconds for each download")]
         public int Timeout { get; set; }
 
-        [Option('b', "isBase", Default = false, HelpText = "Download resources below base uri only")]
+        [Option('b', "is-base", Default = false, HelpText = "Download resources below base uri only")]
         public bool IsBase { get; set; }
 
-        [Option('d', "maxDepth", Default = 0, HelpText = "Max download depth")]
+        [Option('d', "max-depth", Default = 0, HelpText = "Max download depth")]
         public int MaxDepth { get; set; }
 
         [Option('i', "include", HelpText = "Download resources matching this regex pattern")]

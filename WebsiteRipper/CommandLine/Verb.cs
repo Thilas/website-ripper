@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommandLine;
+using WebsiteRipper.Downloaders;
 using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.CommandLine
@@ -13,6 +14,7 @@ namespace WebsiteRipper.CommandLine
         ArgumentsError = -2
     }
 
+    // TODO: Add usage examples for each verb
     abstract class Verb
     {
         static readonly Lazy<IEnumerable<Type>> _verbsLazy = new Lazy<IEnumerable<Type>>(() =>
@@ -31,32 +33,36 @@ namespace WebsiteRipper.CommandLine
 
         internal static int Process(IEnumerable<string> args)
         {
-            var exitCode = ExitCode.Success;
+            var exitCode = Parser.Default.ParseArguments(args, _verbsLazy.Value.ToArray())
+                .Return((Verb verb) => verb.TryProcess(), _ => ExitCode.ArgumentsError);
+#if DEBUG
+            Console.WriteLine();
+            Console.WriteLine("Exit code: {0}", exitCode);
+            Console.ReadLine();
+#endif
+            return (int)exitCode;
+        }
+
+        [Option('u', "user-agent", HelpText = "Downloader user agent")]
+        public string UserAgent { set { HttpDownloader.UserAgent = value; } }
+
+        ExitCode TryProcess()
+        {
             try
             {
-                Parser.Default.ParseArguments(args, _verbsLazy.Value.ToArray())
-                    .WithParsed<Verb>(verb => verb.Process())
-                    .WithNotParsed(_ => exitCode = ExitCode.ArgumentsError);
+                Process();
+                return ExitCode.Success;
             }
             catch (VerbInvalidOperationException exception)
             {
                 Console.Error.WriteLine("Error: {0}", exception.Message);
-                exitCode = (ExitCode)exception.ExitCode;
+                return (ExitCode)exception.ExitCode;
             }
             catch (Exception exception)
             {
                 Console.Error.WriteLine("Unexpected error: {0}", exception.Message);
-                exitCode = ExitCode.UnexpectedError;
+                return ExitCode.UnexpectedError;
             }
-            finally
-            {
-#if DEBUG
-                Console.WriteLine();
-                Console.WriteLine("Exit code: {0}", exitCode);
-                Console.ReadLine();
-#endif
-            }
-            return (int)exitCode;
         }
 
         abstract protected void Process();
