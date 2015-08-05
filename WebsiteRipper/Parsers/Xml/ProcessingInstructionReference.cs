@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -11,11 +10,10 @@ namespace WebsiteRipper.Parsers.Xml
     {
         internal static IEnumerable<Reference> Create(Parser parser, XmlProcessingInstruction node)
         {
-            return Create(
+            return Create(parser, node,
                 xmlProcessingInstruction => xmlProcessingInstruction.Name,
                 GetProcessingInstructionAttributes,
-                xmlAttribute => xmlAttribute.Name,
-                parser, node);
+                xmlAttribute => xmlAttribute.Name);
         }
 
         static IEnumerable<XmlAttribute> GetProcessingInstructionAttributes(XmlProcessingInstruction xmlProcessingInstruction)
@@ -25,9 +23,9 @@ namespace WebsiteRipper.Parsers.Xml
             {
                 document.LoadXml(string.Format("<ProcessingInstruction {0}/>", xmlProcessingInstruction.Data));
             }
-            catch (Exception exception)
+            catch
             {
-                throw new NotSupportedException(string.Format("XmlParser does not support processing instruction \"{0}\".", xmlProcessingInstruction.Name), exception);
+                return Enumerable.Empty<XmlAttribute>();
             }
             return document.GetDocumentElement().Attributes.Cast<XmlAttribute>();
         }

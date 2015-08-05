@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using WebsiteRipper.Extensions;
+using System.Reflection;
 using WebsiteRipper.Parsers;
 using Xunit;
 

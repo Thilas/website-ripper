@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 
 namespace WebsiteRipper.Extensions
 {
     static class XmlNodeExtensions
     {
-        public static XmlDocument GetOwnerDocument(this XmlNode node)
+        public static IEnumerable<XmlAttribute> GetAttributes(this XmlNode node)
         {
             if (node == null) throw new ArgumentNullException("node");
-            var ownerDocument = node.OwnerDocument;
-            if (ownerDocument == null) throw new InvalidOperationException("Node has no owner document.");
-            return ownerDocument;
+            var attributes = node.Attributes;
+            if (attributes == null) throw new InvalidOperationException("Node has no attributes.");
+            return attributes.Cast<XmlAttribute>();
         }
     }
 }

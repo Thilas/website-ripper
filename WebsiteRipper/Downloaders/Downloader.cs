@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text.RegularExpressions;
-using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Downloaders
 {
@@ -19,11 +19,9 @@ namespace WebsiteRipper.Downloaders
                 .Where(type => !type.IsAbstract && downloaderType.IsAssignableFrom(type) && type.GetConstructor(downloaderConstructorTypes) != null)
                 .SelectMany(type => type.GetCustomAttributes<DownloaderAttribute>(false)
                     .Select(downloaderAttribute => new { downloaderAttribute.Scheme, Type = type }))
-                .Distinct()
+                .Distinct() // TODO: Review duplicate schemes management
                 .ToDictionary(downloader => downloader.Scheme, downloader => downloader.Type, StringComparer.OrdinalIgnoreCase);
         });
-
-        internal static Dictionary<string, Type> DownloaderTypes { get { return _downloaderTypesLazy.Value; } }
 
         internal static Downloader Create(Uri uri, int timeout, string preferredLanguages)
         {
@@ -35,7 +33,7 @@ namespace WebsiteRipper.Downloaders
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
             Type downloaderType;
-            if (DownloaderTypes.TryGetValue(scheme, out downloaderType))
+            if (_downloaderTypesLazy.Value.TryGetValue(scheme, out downloaderType))
                 return (Downloader)Activator.CreateInstance(downloaderType, new DownloaderArgs(uri, mimeType, timeout, preferredLanguages));
             throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
         }
@@ -44,7 +42,7 @@ namespace WebsiteRipper.Downloaders
         {
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
-            return DownloaderTypes.ContainsKey(scheme);
+            return _downloaderTypesLazy.Value.ContainsKey(scheme);
         }
 
         static readonly Lazy<Regex> _contentTypeRegexLazy = new Lazy<Regex>(() => new Regex(@";?\s*(?<type>[^\s/;]+)/(?<subtype>[^\s/;]+)\s*;?", RegexOptions.Compiled));

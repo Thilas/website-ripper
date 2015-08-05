@@ -7,6 +7,7 @@ namespace WebsiteRipper.Parsers.Html.References
     [ReferenceAttribute("href", Kind = ReferenceKind.Hyperlink)]
     public sealed class Link : HtmlReference
     {
+        // TODO: Finish link node support depending on rel attribute
         static readonly string[] _externalResourceRelationships = { "icon", "pingback", "prefetch", "stylesheet" };
         static readonly string[] _skipRelationships = { "dns-prefetch" };
 

@@ -1,10 +1,10 @@
 ﻿using System.Xml;
 using WebsiteRipper.Extensions;
 
-namespace WebsiteRipper.Parsers.Xml.References
+namespace WebsiteRipper.Parsers.Xml.ProcessingInstructionReferences
 {
-    [ReferenceNode("xml-stylesheet")]
-    [ReferenceAttribute("href", MimeTypeAttributeName = "type")]
+    [ReferenceNode(Name = "xml-stylesheet")]
+    [ReferenceAttribute("href")]
     public sealed class XmlStyleSheet : ProcessingInstructionReference
     {
         static ProcessingInstructionReferenceArgs FixReferenceArgs(ProcessingInstructionReferenceArgs processingInstructionReferenceArgs)

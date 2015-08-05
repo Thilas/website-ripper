@@ -8,11 +8,10 @@ namespace WebsiteRipper.Parsers.Html
     {
         internal static IEnumerable<Reference> Create(Parser parser, HtmlNode node)
         {
-            return Create(
+            return Create(parser, node,
                 htmlNode => htmlNode.Name,
                 htmlNode => htmlNode.Attributes,
-                htmlAttribute => htmlAttribute.Name,
-                parser, node);
+                htmlAttribute => htmlAttribute.Name);
         }
 
         readonly HtmlParser _htmlParser;

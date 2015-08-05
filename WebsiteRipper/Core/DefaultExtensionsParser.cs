@@ -19,6 +19,7 @@ namespace WebsiteRipper.Core
 
         protected override IEnumerable<Reference> GetReferences()
         {
+            // TODO: Parse xref elements
             var namespaceManager = new XmlNamespaceManager(Document.NameTable);
             const string assignmentPrefix = "assignment";
             namespaceManager.AddNamespace(assignmentPrefix, Document.GetDocumentElement().NamespaceURI);

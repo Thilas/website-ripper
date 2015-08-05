@@ -5,13 +5,12 @@ namespace WebsiteRipper.Parsers
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     sealed class ReferenceNodeAttribute : Attribute
     {
-        readonly string _name;
-        public string Name { get { return _name; } }
+        public bool Any { get; set; }
 
-        public ReferenceNodeAttribute(string name)
-        {
-            if (name == null) throw new ArgumentNullException("name");
-            _name = name;
-        }
+        public string Name { get; set; }
+
+        public string Namespace { get; set; }
+
+        public bool QualifiedAttributes { get; set; }
     }
 }

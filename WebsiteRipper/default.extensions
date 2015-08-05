@@ -1,4 +1,4 @@
-# Last modified: 2015-08-01T18:26:58.3230890Z
+# Last modified: 2015-08-05T02:50:32.1090898Z
 #
 # MIME type (lowercased)			Extensions
 # ============================================	==========
@@ -1275,14 +1275,14 @@ application/xcon-conference-info-diff+xml	xml
 application/xenc+xml				xml xenc
 application/xhtml+xml				xhtml xht
 # application/xhtml-voice+xml
-application/xml					xml xsl
+application/xml					xml xsd xsl xslt
 application/xml-dtd				dtd mod
 application/xml-external-parsed-entity		xml ent
 application/xml-patch+xml			xml
 # application/xmpp+xml
 application/xop+xml				xop
 application/xproc+xml				xpl
-application/xslt+xml				xslt
+application/xslt+xml				xsl xslt
 application/xspf+xml				xspf
 application/xv+xml				mxml xhvml xvml xvm
 application/yang					yang
@@ -1663,9 +1663,9 @@ text/x-sfv					sfv
 text/x-uuencode					uu
 text/x-vcalendar					vcs
 text/x-vcard					vcf
-text/xml						xml
+text/xml						xml xsd xsl xslt
 text/xml-external-parsed-entity			xml ent
-text/xsl						xslt xsl
+text/xsl						xsl xslt
 # video/1d-interleaved-parityfec
 video/3gpp					3gp 3gpp
 # video/3gpp-tt

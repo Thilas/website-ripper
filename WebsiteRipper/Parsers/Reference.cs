@@ -58,51 +58,83 @@ namespace WebsiteRipper.Parsers
         protected abstract string InternalUri { get; set; }
     }
 
+    // TODO: Rename node by element
     public abstract class Reference<TNode, TAttribute, TReferenceArgs> : Reference where TReferenceArgs : ReferenceArgs<TNode, TAttribute>
     {
-        static string GetNodeName(Type type)
+        static IEnumerable<ReferenceType> _anyReferences;
+        static readonly Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType>>> _referencesLazy = new Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType>>>(() =>
         {
-            var referenceNode = type.GetCustomAttribute<ReferenceNodeAttribute>(false);
-            return referenceNode != null && !string.IsNullOrEmpty(referenceNode.Name) ? referenceNode.Name : type.Name;
-        }
-
-        static readonly Lazy<Dictionary<string, IEnumerable<ReferenceType>>> _referenceTypesLazy = new Lazy<Dictionary<string, IEnumerable<ReferenceType>>>(() =>
-        {
+            _anyReferences = new List<ReferenceType>();
             var referenceType = typeof(Reference);
             var referenceConstructorTypes = new[] { typeof(TReferenceArgs) };
-            return AppDomain.CurrentDomain.GetAssemblies()
+            var references = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => !type.IsAbstract && referenceType.IsAssignableFrom(type) && type.GetConstructor(referenceConstructorTypes) != null)
                 .SelectMany(type => type.GetCustomAttributes<ReferenceAttributeAttribute>(false)
-                    .Select(attribute => new { Type = type, NodeName = GetNodeName(type), Attribute = attribute }))
+                    .Select(referenceAttribute =>
+                    {
+                        var referenceNode = type.GetCustomAttribute<ReferenceNodeAttribute>(false);
+                        var @namespace = referenceNode != null ? referenceNode.Namespace : null;
+                        var qualifiedAttributes = referenceNode != null && referenceNode.QualifiedAttributes;
+                        var reference = new ReferenceType(referenceAttribute, qualifiedAttributes ? @namespace : null, type);
+                        if (referenceNode != null && referenceNode.Any)
+                        {
+                            ((List<ReferenceType>)_anyReferences).Add(reference);
+                            return null;
+                        }
+                        var nodeName = referenceNode != null && !string.IsNullOrEmpty(referenceNode.Name) ? referenceNode.Name : type.Name;
+                        return new { Key = new ReferenceKey(nodeName, @namespace), Reference = reference };
+                    }).Where(pair => pair != null))
                 .GroupBy(
-                    reference => reference.NodeName,
-                    reference => new ReferenceType(reference.Type, reference.Attribute),
-                    StringComparer.OrdinalIgnoreCase)
+                    pair => pair.Key,
+                    pair => pair.Reference)
                 .ToDictionary(
                     grouping => grouping.Key,
-                    grouping => grouping.Distinct(ReferenceTypeComparer.Comparer).ToList().AsEnumerable(),
-                    StringComparer.OrdinalIgnoreCase);
+                    grouping => grouping.Distinct().ToList().AsEnumerable()); // TODO: Review duplicate references management
+            var anyReferences = _anyReferences.Distinct().ToList(); // TODO: Review duplicate any references management
+            _anyReferences = anyReferences.Count > 0 ? anyReferences : null;
+            return references;
         });
 
-        internal static IEnumerable<Reference> Create(
+        internal static IEnumerable<Reference> Create(Parser parser, TNode node,
             Func<TNode, string> nodeNameSelector,
             Func<TNode, IEnumerable<TAttribute>> nodeAttributesSelector,
-            Func<TAttribute, string> attributeNameSelector,
-            Parser parser, TNode node)
+            Func<TAttribute, string> attributeNameSelector)
         {
+            return Create(parser, node, nodeNameSelector, null, nodeAttributesSelector, attributeNameSelector, null);
+        }
+
+        internal static IEnumerable<Reference> Create(Parser parser, TNode node,
+            Func<TNode, string> nodeNameSelector,
+            Func<TNode, string> nodeNamespaceSelector,
+            Func<TNode, IEnumerable<TAttribute>> nodeAttributesSelector,
+            Func<TAttribute, string> attributeNameSelector,
+            Func<TAttribute, string> attributeNamespaceSelector)
+        {
+            var nodeKey = new ReferenceKey(nodeNameSelector(node), nodeNamespaceSelector != null ? nodeNamespaceSelector(node) : null);
             IEnumerable<ReferenceType> references;
-            if (!_referenceTypesLazy.Value.TryGetValue(nodeNameSelector(node), out references)) return Enumerable.Empty<Reference>();
-            return nodeAttributesSelector(node).Join(references, attributeNameSelector, reference => reference.AttributeName,
-                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, CreateReferenceArgs(parser, reference.Kind, null, node, attribute)),
-                StringComparer.OrdinalIgnoreCase);
+            if (_referencesLazy.Value.TryGetValue(nodeKey, out references))
+            {
+                if (_anyReferences != null) references = _anyReferences.Concat(references);
+            }
+            else
+            {
+                if (_anyReferences == null) return Enumerable.Empty<Reference>();
+                references = _anyReferences;
+            }
+            return nodeAttributesSelector(node).Join(references,
+                attribute => new ReferenceKey(attributeNameSelector(attribute), attributeNamespaceSelector != null ? attributeNamespaceSelector(attribute) : null),
+                reference => reference.AttributeKey,
+                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, CreateReferenceArgs(parser, reference.Kind, null, node, attribute)));
         }
 
         static readonly Lazy<ConstructorInfo> _referenceArgsConstructorLazy = new Lazy<ConstructorInfo>(() =>
         {
+            // TODO: Get types array dynamically by reflection
             var referenceArgsConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(string), typeof(TNode), typeof(TAttribute) };
-            var tReferenceArgsConstructor = typeof(TReferenceArgs).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, referenceArgsConstructorTypes, null);
-            if (tReferenceArgsConstructor == null) throw new NotSupportedException("");
+            var tReferenceArgsConstructor = typeof(TReferenceArgs).GetConstructor(referenceArgsConstructorTypes);
+            if (tReferenceArgsConstructor == null)
+                throw new NotSupportedException(string.Format("Reference does not support \"{0}\".", typeof(TReferenceArgs).Name));
             return tReferenceArgsConstructor;
         });
 

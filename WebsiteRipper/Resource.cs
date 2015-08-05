@@ -9,7 +9,7 @@ using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper
 {
-    public sealed class Resource
+    public sealed class Resource : IEquatable<Resource>
     {
         const int MaxPathLength = 260 - 1; // 1 is for the null terminating character
 
@@ -69,9 +69,9 @@ namespace WebsiteRipper
             NewUri = GetNewUri(uri);
         }
 
-        public override bool Equals(object obj) { return Equals(obj as Resource); }
+        public override bool Equals(object obj) { return obj is Resource && Equals((Resource)obj); }
 
-        public bool Equals(Resource resource) { return resource != null && OriginalUri.Equals(resource.OriginalUri); }
+        public bool Equals(Resource other) { return other != null && OriginalUri.Equals(other.OriginalUri); }
 
         public override int GetHashCode() { return OriginalUri.GetHashCode(); }
 

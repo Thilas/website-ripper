@@ -13,7 +13,7 @@ namespace WebsiteRipper.Core
     {
         public async static Task<DefaultExtensions> GetIanaDefaultExtensions(Uri mediaTypesUri)
         {
-            // Parse mime types from IANA web site
+            // Parse mime types from iana web site
             var defaultExtensionsParserType = typeof(DefaultExtensionsParser);
             foreach (var parserType in Parser.ParserTypes.ToList())
             {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using WebsiteRipper.Extensions;
+using System.Reflection;
 
 namespace WebsiteRipper.Parsers
 {
@@ -17,7 +17,7 @@ namespace WebsiteRipper.Parsers
                 .Where(type => !type.IsAbstract && parserType.IsAssignableFrom(type) && type.GetConstructor(parserConstructorTypes) != null)
                 .SelectMany(type => type.GetCustomAttributes<ParserAttribute>(false)
                     .Select(parserAttribute => new { parserAttribute.MimeType, Type = type }))
-                .Distinct()
+                .Distinct() // TODO: Review duplicate mime types management
                 .ToDictionary(parser => parser.MimeType, parser => parser.Type, StringComparer.OrdinalIgnoreCase);
         });
 

@@ -37,15 +37,20 @@ namespace WebsiteRipper
         static readonly Lazy<DefaultExtensions> _allLazy = new Lazy<DefaultExtensions>(() => Load(_defaultExtensionsPath));
         public static DefaultExtensions All { get { return _all ?? _allLazy.Value; } }
 
-        public static void Update()
+        public static void Update(bool skipIanaMimeTypes)
         {
+            if (_ianaLazy.IsValueCreated) throw new InvalidOperationException("Iana mime type file already read.");
+            _skipIanaMimeTypes = skipIanaMimeTypes;
             var hardCodedDefaultExtensions = new[]
             {
-                new MimeType("application", "x-javascript").SetExtensions(new[] { ".js" }),
-                new MimeType("text", "xsl").SetExtensions(new[] { ".xslt", ".xsl" })
+                new MimeType("application", "xml").SetExtensions(new[] { ".xml", ".xsd", ".xsl", ".xslt" }),
+                new MimeType("text", "xml").SetExtensions(new[] { ".xml", ".xsd", ".xsl", ".xslt" }),
+                new MimeType("application", "xslt+xml").SetExtensions(new[] { ".xsl", ".xslt" }),
+                new MimeType("text", "xsl").SetExtensions(new[] { ".xsl", ".xslt" }),
+                new MimeType("application", "x-javascript").SetExtensions(new[] { ".js" })
             };
-            var defaultExtensions = Iana.OuterJoin(Apache, mimeType => mimeType.ToString(), MimeTypeResultSelector, null, StringComparer.OrdinalIgnoreCase)
-                .OuterJoin(hardCodedDefaultExtensions, mimeType => mimeType.ToString(), MimeTypeResultSelector, null, StringComparer.OrdinalIgnoreCase);
+            var defaultExtensions = Iana.OuterJoin(hardCodedDefaultExtensions, mimeType => mimeType.ToString(), MimeTypeResultSelector, null, StringComparer.OrdinalIgnoreCase)
+                .OuterJoin(Apache, mimeType => mimeType.ToString(), MimeTypeResultSelector, null, StringComparer.OrdinalIgnoreCase);
             _all = new DefaultExtensions(defaultExtensions).Save(_defaultExtensionsPath);
         }
 
@@ -58,31 +63,30 @@ namespace WebsiteRipper
             return outerMimeType.SetExtensions(outerMimeType.Extensions.Union(innerMimeType.Extensions, StringComparer.OrdinalIgnoreCase));
         }
 
-        static DefaultExtensions GetDefaultExtensions(string file, string uri, Func<Uri, DateTime?, DefaultExtensions> factory)
+        static DefaultExtensions GetDefaultExtensions(string file, string uri, Func<Uri, DateTime?, DefaultExtensions> factory, bool createOnly = false)
         {
-            return GetDefaultExtensions(file, new Uri(uri), factory);
+            return GetDefaultExtensions(file, new Uri(uri), factory, createOnly);
         }
 
-        static DefaultExtensions GetDefaultExtensions(string file, Uri uri, Func<Uri, DateTime?, DefaultExtensions> factory)
+        static DefaultExtensions GetDefaultExtensions(string file, Uri uri, Func<Uri, DateTime?, DefaultExtensions> factory, bool createOnly = false)
         {
             var path = Path.Combine(_rootPath, file);
             DateTime? lastModified = null;
             if (File.Exists(path))
             {
                 var defaultExtensions = Load(path);
+                if (createOnly) return defaultExtensions;
                 using (var download = Downloader.Create(uri, Timeout, Tools.GetPreferredLanguages(Language)))
                 {
                     download.SendRequest();
                     if (download.LastModified <= defaultExtensions.LastModified) return defaultExtensions;
-#if DEBUG
-                    //  Debug test to catch all exceptions but HTTP status 404
-                    { } // Add a breakpoint here
-#endif
                     lastModified = download.LastModified;
                 }
             }
             return factory(uri, lastModified).Save(path);
         }
+
+        static bool _skipIanaMimeTypes = false;
 
         static readonly Lazy<DefaultExtensions> _ianaLazy = new Lazy<DefaultExtensions>(() =>
         {
@@ -99,7 +103,7 @@ namespace WebsiteRipper
                 {
                     _all = allBackup;
                 }
-            });
+            }, _skipIanaMimeTypes);
         });
         internal static DefaultExtensions Iana { get { return _ianaLazy.Value; } }
 
@@ -202,14 +206,14 @@ namespace WebsiteRipper
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public MimeType this[string mimeTypeName]
-        {
-            get
-            {
-                if (mimeTypeName == null) throw new ArgumentNullException("mimeTypeName");
-                return _defaultExtensions[mimeTypeName];
-            }
-        }
+        //public MimeType this[string mimeTypeName]
+        //{
+        //    get
+        //    {
+        //        if (mimeTypeName == null) throw new ArgumentNullException("mimeTypeName");
+        //        return _defaultExtensions[mimeTypeName];
+        //    }
+        //}
 
         public bool TryGetDefaultExtension(string mimeTypeName, out string defaultExtension)
         {

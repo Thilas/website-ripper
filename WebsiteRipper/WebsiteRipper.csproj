@@ -69,7 +69,6 @@
     <Compile Include="Downloaders\DownloaderAttribute.cs" />
     <Compile Include="Downloaders\HttpDownloader.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
-    <Compile Include="Extensions\CustomAttributeProviderExtensions.cs" />
     <Compile Include="DefaultExtensions.cs" />
     <Compile Include="Core\DefaultExtensionsRipper.cs" />
     <Compile Include="DownloadProgressChangedEventArgs.cs" />
@@ -82,6 +81,7 @@
     <Compile Include="Parsers\Html\HtmlReferenceArgs.cs" />
     <Compile Include="Parsers\ParserArgs.cs" />
     <Compile Include="Parsers\ReferenceArgs.cs" />
+    <Compile Include="Parsers\ReferenceKey.cs" />
     <Compile Include="Parsers\ReferenceNodeAttribute.cs" />
     <Compile Include="Parsers\Html\DuplicateBasesException.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
@@ -91,7 +91,6 @@
     <Compile Include="Core\DefaultExtensionsParser.cs" />
     <Compile Include="Core\DefaultExtensionsReference.cs" />
     <Compile Include="Parsers\ReferenceType.cs" />
-    <Compile Include="Parsers\ReferenceTypeComparer.cs" />
     <Compile Include="Parsers\ReferenceAttributeAttribute.cs" />
     <Compile Include="Parsers\Html\References\A.cs" />
     <Compile Include="Parsers\Html\HtmlReference.cs" />
@@ -121,10 +120,21 @@
     <Compile Include="Parsers\Reference.cs" />
     <Compile Include="Parsers\Xml\DocumentTypeReference.cs" />
     <Compile Include="Parsers\Xml\ProcessingInstructionReferenceArgs.cs" />
-    <Compile Include="Parsers\Xml\References\XmlStyleSheet.cs" />
+    <Compile Include="Parsers\Xml\ProcessingInstructionReferences\XmlStyleSheet.cs" />
+    <Compile Include="Parsers\Xml\XsdReferences\AppInfo.cs" />
+    <Compile Include="Parsers\Xml\XsdReferences\Documentation.cs" />
+    <Compile Include="Parsers\Xml\XsdReferences\Import.cs" />
+    <Compile Include="Parsers\Xml\XsdReferences\Include.cs" />
     <Compile Include="Parsers\Xml\XmlParser.cs" />
     <Compile Include="Parsers\Xml\ProcessingInstructionReference.cs" />
     <Compile Include="Parsers\Xml\XmlReference.cs" />
+    <Compile Include="Parsers\Xml\XmlReferenceArgs.cs" />
+    <Compile Include="Parsers\Xml\XsdReferences\Overide.cs" />
+    <Compile Include="Parsers\Xml\XsdReferences\Redefine.cs" />
+    <Compile Include="Parsers\Xml\XsiReferences\Any.cs" />
+    <Compile Include="Parsers\Xml\XsltReferences\Import.cs" />
+    <Compile Include="Parsers\Xml\XsltReferences\ImportSchema.cs" />
+    <Compile Include="Parsers\Xml\XsltReferences\Include.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
