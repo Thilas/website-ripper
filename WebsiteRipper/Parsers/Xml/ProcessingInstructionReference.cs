@@ -8,9 +8,9 @@ namespace WebsiteRipper.Parsers.Xml
 {
     public abstract class ProcessingInstructionReference : Reference<XmlProcessingInstruction, XmlAttribute, ProcessingInstructionReferenceArgs>
     {
-        internal static IEnumerable<Reference> Create(Parser parser, XmlProcessingInstruction node)
+        internal static IEnumerable<Reference> Create(Parser parser, XmlProcessingInstruction processingInstruction)
         {
-            return Create(parser, node,
+            return Create(parser, processingInstruction,
                 xmlProcessingInstruction => xmlProcessingInstruction.Name,
                 GetProcessingInstructionAttributes,
                 xmlAttribute => xmlAttribute.Name);
@@ -44,7 +44,7 @@ namespace WebsiteRipper.Parsers.Xml
             set
             {
                 Attribute.Value = value;
-                Node.Data = GetProcessingInstructionData();
+                Element.Data = GetProcessingInstructionData();
             }
         }
 

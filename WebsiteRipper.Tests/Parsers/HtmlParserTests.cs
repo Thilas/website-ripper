@@ -9,16 +9,16 @@ namespace WebsiteRipper.Tests.Parsers
     public sealed class HtmlParserTests
     {
         const string EmptyHtml = "";
-        const string HtmlFormat = "<html{0}><head{1}><title>Title</title>{2}{3}</head><body{4}>Body{5}</body></html>";
+        const string HtmlFormat = "<html {0}><head {1}><title>Title</title>{2}{3}</head><body {4}>Body{5}</body></html>";
         const string BaseFormat = "<base href={0}>";
 
-        static string GetHtml(string htmlAttributes = null, string headAttributes = null, string baseElements = null, string headElements = null,
-            string bodyAttributes = null, string bodyElements = null)
+        static string GetHtml(string htmlAttributes = null, string headAttributes = null, string baseNodes = null, string headNodes = null,
+            string bodyAttributes = null, string bodyNodes = null)
         {
-            return string.Format(HtmlFormat, htmlAttributes, headAttributes, baseElements, headElements, bodyAttributes, bodyElements);
+            return string.Format(HtmlFormat, htmlAttributes, headAttributes, baseNodes, headNodes, bodyAttributes, bodyNodes);
         }
 
-        static string GetBaseElement(string baseUriStringWithoutScheme) { return string.Format(BaseFormat, WebTest.GetUri(baseUriStringWithoutScheme)); }
+        static string GetBaseNode(string baseUriStringWithoutScheme) { return string.Format(BaseFormat, WebTest.GetUri(baseUriStringWithoutScheme)); }
 
         [Theory]
         [InlineData(null)]
@@ -71,7 +71,7 @@ namespace WebsiteRipper.Tests.Parsers
 
         [Theory]
         [InlineData(null, null)]
-        [InlineData(null, "<element attribute=value>Text</element>")]
+        [InlineData(null, "<node attribute=value>Text</node>")]
         [InlineData("<link rel=dns-prefetch href=value>Text</link>", null)]
         // Not yet supported
         [InlineData(null, "<applet archive=value>Text</applet>")]
@@ -79,9 +79,9 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData(null, "<object archive=value>Text</object>")]
         [InlineData(null, "<object codebase=value>Text</object>")]
         [InlineData(null, "<source srcset=value>Text</source>")]
-        public void Rip_BasicHtmlWithNoReferences_ReturnsSingleResource(string headElements, string bodyElements)
+        public void Rip_BasicHtmlWithNoReferences_ReturnsSingleResource(string headNodes, string bodyNodes)
         {
-            var html = GetHtml(headElements: headElements, bodyElements: bodyElements);
+            var html = GetHtml(headNodes: headNodes, bodyNodes: bodyNodes);
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest);
@@ -124,13 +124,16 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData("", "", "", "", "<video poster={0}>Text</video>")]
         [InlineData("", "", "", "", "<video src={0}>Text</video>")]
         public void Rip_BasicHtmlWithReference_ReturnsExpectedResources(string htmlAttributesFormat,
-            string headAttributesFormat, string headElementsFormat,
-            string bodyAttributesFormat, string bodyElementsFormat)
+            string headAttributesFormat, string headNodesFormat,
+            string bodyAttributesFormat, string bodyNodesFormat)
         {
             const string subUriString = "uri";
-            var html = GetHtml(string.Format(htmlAttributesFormat, subUriString), string.Format(headAttributesFormat, subUriString),
-                null, string.Format(headElementsFormat, subUriString),
-                string.Format(bodyAttributesFormat, subUriString), string.Format(bodyElementsFormat, subUriString));
+            var html = GetHtml(
+                htmlAttributes: string.Format(htmlAttributesFormat, subUriString),
+                headAttributes: string.Format(headAttributesFormat, subUriString),
+                headNodes: string.Format(headNodesFormat, subUriString),
+                bodyAttributes: string.Format(bodyAttributesFormat, subUriString),
+                bodyNodes: string.Format(bodyNodesFormat, subUriString));
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
@@ -139,11 +142,20 @@ namespace WebsiteRipper.Tests.Parsers
             }
         }
 
-        [Fact]
-        public void Rip_BasicHtmlWithEscapedReference_ReturnsExpectedResources()
+        [Theory]
+        [InlineData("", "", "", "", "<a href={0}>Text</a>")]
+        public void Rip_BasicHtmlWithEscapedReference_ReturnsExpectedResources(string htmlAttributesFormat,
+            string headAttributesFormat, string headNodesFormat,
+            string bodyAttributesFormat, string bodyNodesFormat)
         {
+            const string encodedSubUriString = "uri&lt;&amp;&quot;&gt;";
             const string subUriString = "uri<&\">";
-            var html = GetHtml(bodyElements: "<a href=uri&lt;&amp;&quot;&gt;>Text</a>");
+            var html = GetHtml(
+                htmlAttributes: string.Format(htmlAttributesFormat, encodedSubUriString),
+                headAttributes: string.Format(headAttributesFormat, encodedSubUriString),
+                headNodes: string.Format(headNodesFormat, encodedSubUriString),
+                bodyAttributes: string.Format(bodyAttributesFormat, encodedSubUriString),
+                bodyNodes: string.Format(bodyNodesFormat, encodedSubUriString));
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
@@ -179,7 +191,7 @@ namespace WebsiteRipper.Tests.Parsers
         Applet: <applet archive=value code={8} codebase=value>Text</applet><br>
         Area: <map><area href={9}>Text</area></map><br>
         Audio: <audio src={10}>Text</audio><br>
-        Element: <element attribute=value>Text</element>
+        Node: <node attribute=value>Text</node>
         Embed: <embed src={11}>Text</embed><br>
         Frame: <frameset><frame longdesc={12} src={13}>Text</frame></frameset><br>
         Iframe: <iframe longdesc={14} src={15}>Text</iframe><br>
@@ -208,10 +220,10 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData("<base target=value>", null)]
         [InlineData("<base href=invalidAbsoluteUri>", null)]
         [InlineData("<base href={0}>", "baseUri")]
-        public void Rip_BasicHtmlWithBase_ReturnsExpectedBaseUri(string baseElementFormat, string baseUriStringWithoutScheme)
+        public void Rip_BasicHtmlWithBase_ReturnsExpectedBaseUri(string baseNodeFormat, string baseUriStringWithoutScheme)
         {
             var baseUri = baseUriStringWithoutScheme != null ? WebTest.GetUri(baseUriStringWithoutScheme) : null;
-            var html = GetHtml(baseElements: string.Format(baseElementFormat, baseUri));
+            var html = GetHtml(baseNodes: string.Format(baseNodeFormat, baseUri));
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = baseUri;
@@ -223,7 +235,9 @@ namespace WebsiteRipper.Tests.Parsers
         [Fact]
         public void Rip_BasicHtmlWithDuplicateBases_ReturnsSingleResource()
         {
-            var html = GetHtml(baseElements: string.Format("{0}{1}", GetBaseElement("base1"), GetBaseElement("base2")), bodyElements: "<a href=value>Text</a>");
+            var html = GetHtml(
+                baseNodes: string.Format("{0}{1}", GetBaseNode("base1"), GetBaseNode("base2")),
+                bodyNodes: "<a href=value>Text</a>");
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest);
@@ -265,14 +279,18 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData("", "", "", "", "<video poster={0}>Text</video>")]
         [InlineData("", "", "", "", "<video src={0}>Text</video>")]
         public void Rip_BasicHtmlWithBaseSensitiveReference_ReturnsRebasedResources(string htmlAttributesFormat,
-            string headAttributesFormat, string headElementsFormat,
-            string bodyAttributesFormat, string bodyElementsFormat)
+            string headAttributesFormat, string headNodesFormat,
+            string bodyAttributesFormat, string bodyNodesFormat)
         {
             const string subUriString = "uri";
             const string baseUriStringWithoutScheme = "baseUri";
-            var html = GetHtml(string.Format(htmlAttributesFormat, subUriString), string.Format(headAttributesFormat, subUriString),
-                GetBaseElement(baseUriStringWithoutScheme), string.Format(headElementsFormat, subUriString),
-                string.Format(bodyAttributesFormat, subUriString), string.Format(bodyElementsFormat, subUriString));
+            var html = GetHtml(
+                htmlAttributes: string.Format(htmlAttributesFormat, subUriString),
+                headAttributes: string.Format(headAttributesFormat, subUriString),
+                baseNodes: GetBaseNode(baseUriStringWithoutScheme),
+                headNodes: string.Format(headNodesFormat, subUriString),
+                bodyAttributes: string.Format(bodyAttributesFormat, subUriString),
+                bodyNodes: string.Format(bodyNodesFormat, subUriString));
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var subUri = new Uri(WebTest.GetUri(baseUriStringWithoutScheme), subUriString);
@@ -285,13 +303,16 @@ namespace WebsiteRipper.Tests.Parsers
         [Theory]
         [InlineData(" manifest={0}", "", "", "", "")]
         public void Rip_BasicHtmlWithBaseInsensitiveReference_ReturnsNotRebasedResources(string htmlAttributesFormat,
-            string headAttributesFormat, string headElementsFormat,
-            string bodyAttributesFormat, string bodyElementsFormat)
+            string headAttributesFormat, string headNodesFormat,
+            string bodyAttributesFormat, string bodyNodesFormat)
         {
             const string subUriString = "uri";
-            var html = GetHtml(string.Format(htmlAttributesFormat, subUriString), string.Format(headAttributesFormat, subUriString),
-                null, string.Format(headElementsFormat, subUriString),
-                string.Format(bodyAttributesFormat, subUriString), string.Format(bodyElementsFormat, subUriString));
+            var html = GetHtml(
+                htmlAttributes: string.Format(htmlAttributesFormat, subUriString),
+                headAttributes: string.Format(headAttributesFormat, subUriString),
+                headNodes: string.Format(headNodesFormat, subUriString),
+                bodyAttributes: string.Format(bodyAttributesFormat, subUriString),
+                bodyNodes: string.Format(bodyNodesFormat, subUriString));
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);

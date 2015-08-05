@@ -11,11 +11,11 @@ namespace WebsiteRipper.Tests.Parsers
         static readonly string _encodingName = WebTest.Encoding.WebName;
 
         const string EmptyXml = "<root/>";
-        static readonly string _xmlFormat = string.Format("<?xml version=\"1.0\" encoding=\"{0}\"?>{{0}}<root><element attribute=\"value\">text</element></root>", _encodingName);
+        static readonly string _xmlFormat = string.Format("<?xml version=\"1.0\" encoding=\"{0}\"?>{{0}}<{{1}} {{2}}>{{3}}</{{1}}>", _encodingName);
 
-        static string GetXml(string processingInstructions = null)
+        static string GetXml(string processingInstructions = null, string rootElement = "root", string rootAttributes = null, string rootElements = null)
         {
-            return string.Format(_xmlFormat, processingInstructions);
+            return string.Format(_xmlFormat, processingInstructions, rootElement, rootAttributes, rootElements);
         }
 
         [Theory]
@@ -80,11 +80,18 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData("<?processingInstruction data?>")]
-        public void Rip_BasicXmlWithNoReferences_ReturnsSingleResource(string processingInstructions)
+        [InlineData(null, null, null)]
+        [InlineData("<?processingInstruction data?>", null, null)]
+        [InlineData(null, "attribute=\"value\"", null)]
+        [InlineData(null, null, "text")]
+        [InlineData(null, null, "<element attribute=\"value\"/>")]
+        [InlineData(null, null, "<element attribute=\"value\">text</element>")]
+        public void Rip_BasicXmlWithNoReferences_ReturnsSingleResource(string processingInstructions, string rootAttributes, string rootElements)
         {
-            var xml = GetXml(processingInstructions);
+            var xml = GetXml(
+                processingInstructions: processingInstructions,
+                rootAttributes: rootAttributes,
+                rootElements: rootElements);
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest);
@@ -94,12 +101,29 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData("<!DOCTYPE root SYSTEM \"{0}\">")]
-        [InlineData("<?xml-stylesheet href=\"{0}\"?>")]
-        public void Rip_BasicXmlWithReference_ReturnsExpectedResources(string processingInstructionsFormat)
+        [InlineData("<!DOCTYPE root SYSTEM \"{0}\">", null, "", "", null)]
+        [InlineData("<?xml-stylesheet href=\"{0}\"?>", null, "", "", null)]
+        [InlineData("", null, "xmlns:xsi=\"{{0}}\" xsi:schemaLocation=\"{0}\"", "", XmlParser.XsiNamespace)]
+        [InlineData("", null, "xmlns:xsi=\"{{0}}\" xsi:noNamespaceSchemaLocation=\"{0}\"", "", XmlParser.XsiNamespace)]
+        [InlineData("", "schema", "xmlns=\"{{0}}\"", "<include schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
+        [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:include schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
+        [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:redefine schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
+        [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:override schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
+        [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:import schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
+        [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:appinfo source=\"{0}\"/>", XmlParser.XsdNamespace)]
+        [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:documentation source=\"{0}\"/>", XmlParser.XsdNamespace)]
+        [InlineData("", "xsl:stylesheet", "xmlns:xsl=\"{{0}}\"", "<xsl:import href=\"{0}\"/>", XmlParser.XsltNamespace)]
+        [InlineData("", "xsl:stylesheet", "xmlns:xsl=\"{{0}}\"", "<xsl:import-schema schema-location=\"{0}\"/>", XmlParser.XsltNamespace)]
+        [InlineData("", "xsl:stylesheet", "xmlns:xsl=\"{{0}}\"", "<xsl:include href=\"{0}\"/>", XmlParser.XsltNamespace)]
+        public void Rip_BasicXmlWithReference_ReturnsExpectedResources(string processingInstructionsFormat,
+            string rootElement, string rootAttributesFormat, string rootElementsFormat, string @namespace)
         {
             const string subUriString = "uri";
-            var xml = GetXml(string.Format(processingInstructionsFormat, subUriString));
+            var xml = string.Format(GetXml(
+                processingInstructions: string.Format(processingInstructionsFormat, subUriString),
+                rootElement: rootElement ?? "root",
+                rootAttributes: string.Format(rootAttributesFormat, subUriString),
+                rootElements: string.Format(rootElementsFormat, subUriString)), @namespace);
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
@@ -109,11 +133,32 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData("<?xml-stylesheet href=\"uri&lt;&apos;&quot;&gt;\"?>")]
-        public void Rip_BasicXmlWithEscapedReference_ReturnsExpectedResources(string processingInstructions)
+        [InlineData("<!DOCTYPE root SYSTEM \"{0}\">", "uri<'>")]
+        [InlineData("<!DOCTYPE root SYSTEM '{0}'>", "uri<\">")]
+        public void Rip_BasicXmlWithEscapedReferenceInDocType_ReturnsExpectedResources(string processingInstructionsFormat, string subUriString)
         {
+            var xml = GetXml(processingInstructions: string.Format(processingInstructionsFormat, subUriString));
+            using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
+            {
+                var expected = WebTest.GetExpectedResources(webTest, subUriString);
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Theory]
+        [InlineData("<?xml-stylesheet href=\"{0}\"?>", null, "", "", null)]
+        [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:include schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
+        public void Rip_BasicXmlWithEscapedReference_ReturnsExpectedResources(string processingInstructionsFormat,
+            string rootElement, string rootAttributesFormat, string rootElementsFormat, string @namespace)
+        {
+            const string encodedSubUriString = "uri&lt;&apos;&quot;&gt;";
             const string subUriString = "uri<'\">";
-            var xml = GetXml(processingInstructions);
+            var xml = string.Format(GetXml(
+                processingInstructions: string.Format(processingInstructionsFormat, encodedSubUriString),
+                rootElement: rootElement ?? "root",
+                rootAttributes: string.Format(rootAttributesFormat, encodedSubUriString),
+                rootElements: string.Format(rootElementsFormat, encodedSubUriString)), @namespace);
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
@@ -129,29 +174,26 @@ namespace WebsiteRipper.Tests.Parsers
             var subUriStrings = new[]
             {
                 "doctypeUri", "xmlStyleSheetUri", "xsiSchemaLocationUri", "xsiNoNamespaceSchemaLocationUri",
-                "xsdIncludeSchemaLocationUri", "xsdRedefineSchemaLocationUri", "xsdOverrideSchemaLocationUri",
-                "xsdImportSchemaLocationUri", "xsdAppInfoSourceUri", "xsdDocumentationSourceUri",
-                "includeSchemaLocationUri", "xsltImportHrefUri", "xsltImportSchemaSchemaLocationUri",
+                "schemaIncludeSchemaLocationUri", "xsdIncludeSchemaLocationUri", "xsdRedefineSchemaLocationUri",
+                "xsdOverrideSchemaLocationUri", "xsdImportSchemaLocationUri", "xsdAppInfoSourceUri",
+                "xsdDocumentationSourceUri", "xsltImportHrefUri", "xsltImportSchemaSchemaLocationUri",
                 "xsltIncludeHrefUri"
             };
             var xml = string.Format(@"<?xml version=""1.0"" encoding=""{0}""?>
 <!DOCTYPE root SYSTEM ""{4}"">
 <?xml-stylesheet href=""{5}""?>
-<root xmlns=""ns1Uri"" xmlns:prefix1=""ns2Uri"" xmlns:xsi=""{2}"" xsi:schemaLocation=""{6}"" xsi:noNamespaceSchemaLocation=""{7}"">
-    <element attribute=""value"" xmlns=""ns3Uri"" xmlns:prefix2=""ns4Uri"" xmlns:prefix3=""ns5Uri"" xmlns:prefix4=""ns6Uri"" xmlns:prefix5=""ns7Uri"">text</element>
-    <element attribute=""value"" xmlns=""ns3Uri"" xmlns:prefix2=""ns4Uri"" xmlns:prefix3=""ns8Uri"" xmlns:prefix6=""ns6Uri"" xmlns:prefix7=""ns9Uri"">text</element>
-    <element attribute=""value"" xmlns=""ns10Uri"">text</element>
-    <xsd:stylesheet xmlns:xsd=""{1}"">
-        <xsd:include schemaLocation=""{8}""/>
-        <xsd:redefine schemaLocation=""{9}""/>
-        <xsd:override schemaLocation=""{10}""/>
-        <xsd:import schemaLocation=""{11}""/>
-        <xsd:appinfo source=""{12}""/>
-        <xsd:documentation source=""{13}""/>
-    </xsd:stylesheet>
-    <stylesheet xmlns=""{1}"">
-        <include schemaLocation=""{14}""/>
-    </stylesheet>
+<root xmlns=""nsUri"" xmlns:prefix=""prefixNsUri"" xmlns:xsi=""{2}"" xsi:schemaLocation=""{6}"" xsi:noNamespaceSchemaLocation=""{7}"">
+    <schema xmlns=""{1}"">
+        <include schemaLocation=""{8}""/>
+    </schema>
+    <xsd:schema xmlns:xsd=""{1}"">
+        <xsd:include schemaLocation=""{9}""/>
+        <xsd:redefine schemaLocation=""{10}""/>
+        <xsd:override schemaLocation=""{11}""/>
+        <xsd:import schemaLocation=""{12}""/>
+        <xsd:appinfo source=""{13}""/>
+        <xsd:documentation source=""{14}""/>
+    </xsd:schema>
     <xsl:stylesheet xmlns:xsl=""{3}"" version=""1.0"">
         <xsl:import href=""{15}""/>
         <xsl:import-schema schema-location=""{16}""/>

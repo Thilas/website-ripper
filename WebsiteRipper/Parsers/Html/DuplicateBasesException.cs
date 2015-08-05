@@ -6,6 +6,6 @@ namespace WebsiteRipper.Parsers.Html
     {
         internal DuplicateBasesException(Exception innerException) : base(null, innerException) { }
 
-        public override string Message { get { return "Duplicate base html element."; } }
+        public override string Message { get { return "Duplicate base html node."; } }
     }
 }

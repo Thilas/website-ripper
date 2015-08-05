@@ -1,6 +1,6 @@
 ﻿namespace WebsiteRipper.Parsers.Xml.XsltReferences
 {
-    [ReferenceNode(Namespace = XmlParser.XsltNamespace)]
+    [ReferenceElement(Namespace = XmlParser.XsltNamespace)]
     [ReferenceAttribute("href")]
     public sealed class Include : XmlReference
     {

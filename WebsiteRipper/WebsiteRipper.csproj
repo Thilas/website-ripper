@@ -82,7 +82,7 @@
     <Compile Include="Parsers\ParserArgs.cs" />
     <Compile Include="Parsers\ReferenceArgs.cs" />
     <Compile Include="Parsers\ReferenceKey.cs" />
-    <Compile Include="Parsers\ReferenceNodeAttribute.cs" />
+    <Compile Include="Parsers\ReferenceElementAttribute.cs" />
     <Compile Include="Parsers\Html\DuplicateBasesException.cs" />
     <Compile Include="Extensions\StreamExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />

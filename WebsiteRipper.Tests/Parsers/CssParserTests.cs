@@ -88,11 +88,13 @@ namespace WebsiteRipper.Tests.Parsers
             }
         }
 
-        [Fact]
-        public void Rip_BasicCssWithEscapedReference_ReturnsExpectedResources()
+        [Theory]
+        [InlineData("@import '{0}'")]
+        public void Rip_BasicCssWithEscapedReference_ReturnsExpectedResources(string cssFormat)
         {
+            const string encodedSubUriString = "uri\\''";
             const string subUriString = "uri'";
-            const string css = "@import 'uri\\''";
+            var css = string.Format(cssFormat, encodedSubUriString);
             using (var webTest = new WebTestInfo(CssParser.MimeType, css))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);

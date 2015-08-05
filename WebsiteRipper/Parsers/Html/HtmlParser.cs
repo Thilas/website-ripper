@@ -42,8 +42,8 @@ namespace WebsiteRipper.Parsers.Html
         /// <returns></returns>
         /// <exception cref="DuplicateBasesException"></exception>
         /// <remarks>
-        /// Gets the unique (if it exists) base element with at least an href or a target attribute,
-        /// remove the href attribute (or the whole element if no href) and returns its href value (or null if no href).
+        /// Gets the unique (if it exists) base node with at least an href or a target attribute,
+        /// remove the href attribute (or the whole node if no href) and returns its href value (or null if no href).
         /// </remarks>
         Uri GetBaseUri()
         {

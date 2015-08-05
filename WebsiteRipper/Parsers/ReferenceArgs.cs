@@ -17,17 +17,17 @@ namespace WebsiteRipper.Parsers
         }
     }
 
-    public class ReferenceArgs<TNode, TAttribute> : ReferenceArgs
+    public abstract class ReferenceArgs<TElement, TAttribute> : ReferenceArgs
     {
-        public TNode Node { get; private set; }
+        public TElement Element { get; private set; }
         public TAttribute Attribute { get; private set; }
 
-        internal ReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TNode node, TAttribute attribute)
+        protected ReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TElement element, TAttribute attribute)
             : base(parser, kind, mimeType)
         {
-            if (node == null) throw new ArgumentNullException("node");
+            if (element == null) throw new ArgumentNullException("element");
             if (attribute == null) throw new ArgumentNullException("attribute");
-            Node = node;
+            Element = element;
             Attribute = attribute;
         }
     }

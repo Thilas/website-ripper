@@ -4,14 +4,14 @@ using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers.Xml
 {
-    public abstract class XmlReference : Reference<XmlNode, XmlAttribute, XmlReferenceArgs>
+    public abstract class XmlReference : Reference<XmlElement, XmlAttribute, XmlReferenceArgs>
     {
-        internal static IEnumerable<Reference> Create(Parser parser, XmlNode node)
+        internal static IEnumerable<Reference> Create(Parser parser, XmlElement element)
         {
-            return Create(parser, node,
-                xmlNode => xmlNode.LocalName,
-                xmlNode => xmlNode.NamespaceURI,
-                xmlNode => xmlNode.GetAttributes(),
+            return Create(parser, element,
+                xmlElement => xmlElement.LocalName,
+                xmlElement => xmlElement.NamespaceURI,
+                xmlElement => xmlElement.GetAttributes(),
                 xmlAttribute => xmlAttribute.LocalName,
                 xmlAttribute => xmlAttribute.NamespaceURI);
         }

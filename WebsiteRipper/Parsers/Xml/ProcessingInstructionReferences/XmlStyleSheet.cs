@@ -3,7 +3,7 @@ using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers.Xml.ProcessingInstructionReferences
 {
-    [ReferenceNode(Name = "xml-stylesheet")]
+    [ReferenceElement(Name = "xml-stylesheet")]
     [ReferenceAttribute("href")]
     public sealed class XmlStyleSheet : ProcessingInstructionReference
     {
@@ -11,7 +11,7 @@ namespace WebsiteRipper.Parsers.Xml.ProcessingInstructionReferences
         {
             return new ProcessingInstructionReferenceArgs(processingInstructionReferenceArgs.Parser,
                 processingInstructionReferenceArgs.Kind, GetMimeType(processingInstructionReferenceArgs.Attribute),
-                processingInstructionReferenceArgs.Node, processingInstructionReferenceArgs.Attribute);
+                processingInstructionReferenceArgs.Element, processingInstructionReferenceArgs.Attribute);
         }
 
         // TODO: Make this more generic

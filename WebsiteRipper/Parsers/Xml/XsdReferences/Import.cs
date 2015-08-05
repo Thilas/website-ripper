@@ -1,6 +1,6 @@
 ﻿namespace WebsiteRipper.Parsers.Xml.XsdReferences
 {
-    [ReferenceNode(Namespace = XmlParser.XsdNamespace)]
+    [ReferenceElement(Namespace = XmlParser.XsdNamespace)]
     [ReferenceAttribute("schemaLocation")]
     public sealed class Import : XmlReference
     {

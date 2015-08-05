@@ -58,8 +58,7 @@ namespace WebsiteRipper.Parsers
         protected abstract string InternalUri { get; set; }
     }
 
-    // TODO: Rename node by element
-    public abstract class Reference<TNode, TAttribute, TReferenceArgs> : Reference where TReferenceArgs : ReferenceArgs<TNode, TAttribute>
+    public abstract class Reference<TElement, TAttribute, TReferenceArgs> : Reference where TReferenceArgs : ReferenceArgs<TElement, TAttribute>
     {
         static IEnumerable<ReferenceType> _anyReferences;
         static readonly Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType>>> _referencesLazy = new Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType>>>(() =>
@@ -73,17 +72,17 @@ namespace WebsiteRipper.Parsers
                 .SelectMany(type => type.GetCustomAttributes<ReferenceAttributeAttribute>(false)
                     .Select(referenceAttribute =>
                     {
-                        var referenceNode = type.GetCustomAttribute<ReferenceNodeAttribute>(false);
-                        var @namespace = referenceNode != null ? referenceNode.Namespace : null;
-                        var qualifiedAttributes = referenceNode != null && referenceNode.QualifiedAttributes;
+                        var referenceElement = type.GetCustomAttribute<ReferenceElementAttribute>(false);
+                        var @namespace = referenceElement != null ? referenceElement.Namespace : null;
+                        var qualifiedAttributes = referenceElement != null && referenceElement.QualifiedAttributes;
                         var reference = new ReferenceType(referenceAttribute, qualifiedAttributes ? @namespace : null, type);
-                        if (referenceNode != null && referenceNode.Any)
+                        if (referenceElement != null && referenceElement.Any)
                         {
                             ((List<ReferenceType>)_anyReferences).Add(reference);
                             return null;
                         }
-                        var nodeName = referenceNode != null && !string.IsNullOrEmpty(referenceNode.Name) ? referenceNode.Name : type.Name;
-                        return new { Key = new ReferenceKey(nodeName, @namespace), Reference = reference };
+                        var elementName = referenceElement != null && !string.IsNullOrEmpty(referenceElement.Name) ? referenceElement.Name : type.Name;
+                        return new { Key = new ReferenceKey(elementName, @namespace), Reference = reference };
                     }).Where(pair => pair != null))
                 .GroupBy(
                     pair => pair.Key,
@@ -96,24 +95,24 @@ namespace WebsiteRipper.Parsers
             return references;
         });
 
-        internal static IEnumerable<Reference> Create(Parser parser, TNode node,
-            Func<TNode, string> nodeNameSelector,
-            Func<TNode, IEnumerable<TAttribute>> nodeAttributesSelector,
+        protected static IEnumerable<Reference> Create(Parser parser, TElement element,
+            Func<TElement, string> elementNameSelector,
+            Func<TElement, IEnumerable<TAttribute>> elementAttributesSelector,
             Func<TAttribute, string> attributeNameSelector)
         {
-            return Create(parser, node, nodeNameSelector, null, nodeAttributesSelector, attributeNameSelector, null);
+            return Create(parser, element, elementNameSelector, null, elementAttributesSelector, attributeNameSelector, null);
         }
 
-        internal static IEnumerable<Reference> Create(Parser parser, TNode node,
-            Func<TNode, string> nodeNameSelector,
-            Func<TNode, string> nodeNamespaceSelector,
-            Func<TNode, IEnumerable<TAttribute>> nodeAttributesSelector,
+        protected static IEnumerable<Reference> Create(Parser parser, TElement element,
+            Func<TElement, string> elementNameSelector,
+            Func<TElement, string> elementNamespaceSelector,
+            Func<TElement, IEnumerable<TAttribute>> elementAttributesSelector,
             Func<TAttribute, string> attributeNameSelector,
             Func<TAttribute, string> attributeNamespaceSelector)
         {
-            var nodeKey = new ReferenceKey(nodeNameSelector(node), nodeNamespaceSelector != null ? nodeNamespaceSelector(node) : null);
+            var elementKey = new ReferenceKey(elementNameSelector(element), elementNamespaceSelector != null ? elementNamespaceSelector(element) : null);
             IEnumerable<ReferenceType> references;
-            if (_referencesLazy.Value.TryGetValue(nodeKey, out references))
+            if (_referencesLazy.Value.TryGetValue(elementKey, out references))
             {
                 if (_anyReferences != null) references = _anyReferences.Concat(references);
             }
@@ -122,35 +121,35 @@ namespace WebsiteRipper.Parsers
                 if (_anyReferences == null) return Enumerable.Empty<Reference>();
                 references = _anyReferences;
             }
-            return nodeAttributesSelector(node).Join(references,
+            return elementAttributesSelector(element).Join(references,
                 attribute => new ReferenceKey(attributeNameSelector(attribute), attributeNamespaceSelector != null ? attributeNamespaceSelector(attribute) : null),
                 reference => reference.AttributeKey,
-                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, CreateReferenceArgs(parser, reference.Kind, null, node, attribute)));
+                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, CreateReferenceArgs(parser, reference.Kind, null, element, attribute)));
         }
 
         static readonly Lazy<ConstructorInfo> _referenceArgsConstructorLazy = new Lazy<ConstructorInfo>(() =>
         {
             // TODO: Get types array dynamically by reflection
-            var referenceArgsConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(string), typeof(TNode), typeof(TAttribute) };
+            var referenceArgsConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(string), typeof(TElement), typeof(TAttribute) };
             var tReferenceArgsConstructor = typeof(TReferenceArgs).GetConstructor(referenceArgsConstructorTypes);
             if (tReferenceArgsConstructor == null)
                 throw new NotSupportedException(string.Format("Reference does not support \"{0}\".", typeof(TReferenceArgs).Name));
             return tReferenceArgsConstructor;
         });
 
-        static TReferenceArgs CreateReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TNode node, TAttribute attribute)
+        static TReferenceArgs CreateReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TElement element, TAttribute attribute)
         {
             // TODO: Replace by a dedicated method via interface?
-            return (TReferenceArgs)_referenceArgsConstructorLazy.Value.Invoke(new object[] { parser, kind, mimeType, node, attribute });
+            return (TReferenceArgs)_referenceArgsConstructorLazy.Value.Invoke(new object[] { parser, kind, mimeType, element, attribute });
         }
 
-        protected TNode Node { get; private set; }
+        protected TElement Element { get; private set; }
         protected TAttribute Attribute { get; private set; }
 
-        protected Reference(ReferenceArgs<TNode, TAttribute> referenceArgs)
+        protected Reference(ReferenceArgs<TElement, TAttribute> referenceArgs)
             : base(referenceArgs)
         {
-            Node = referenceArgs.Node;
+            Element = referenceArgs.Element;
             Attribute = referenceArgs.Attribute;
         }
     }
