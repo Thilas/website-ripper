@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers
 {
@@ -45,44 +46,53 @@ namespace WebsiteRipper.Parsers
 
         public string Uri
         {
-            get { return InternalUri; }
+            get { return UriInternal; }
             internal set
             {
-                var oldValue = InternalUri;
+                var oldValue = UriInternal;
                 if (string.Equals(value, oldValue, StringComparison.OrdinalIgnoreCase)) return;
-                InternalUri = value;
-                if (!string.Equals(InternalUri, oldValue, StringComparison.OrdinalIgnoreCase)) _parser.AnyChange = true;
+                UriInternal = value;
+                if (!string.Equals(UriInternal, oldValue, StringComparison.OrdinalIgnoreCase)) _parser.AnyChange = true;
             }
         }
 
-        protected abstract string InternalUri { get; set; }
+        protected abstract string UriInternal { get; set; }
     }
 
-    public abstract class Reference<TElement, TAttribute, TReferenceArgs> : Reference where TReferenceArgs : ReferenceArgs<TElement, TAttribute>
+    public abstract class Reference<TElement, TAttribute> : Reference
     {
-        static IEnumerable<ReferenceType> _anyReferences;
-        static readonly Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType>>> _referencesLazy = new Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType>>>(() =>
+        sealed class FakeReference : Reference<TElement, TAttribute>
         {
-            _anyReferences = new List<ReferenceType>();
-            var referenceType = typeof(Reference);
-            var referenceConstructorTypes = new[] { typeof(TReferenceArgs) };
+            public FakeReference(ReferenceArgs<TElement, TAttribute> referenceArgs) : base(referenceArgs) { }
+            protected override string UriInternal { get; set; }
+        }
+
+        static IEnumerable<ReferenceType<TElement, TAttribute>> _anyReferences;
+        static readonly Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType<TElement, TAttribute>>>> _referencesLazy = new Lazy<Dictionary<ReferenceKey, IEnumerable<ReferenceType<TElement, TAttribute>>>>(() =>
+        {
+            _anyReferences = new List<ReferenceType<TElement, TAttribute>>();
             var references = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => !type.IsAbstract && referenceType.IsAssignableFrom(type) && type.GetConstructor(referenceConstructorTypes) != null)
-                .SelectMany(type => type.GetCustomAttributes<ReferenceAttributeAttribute>(false)
+                .Select(type => new
+                {
+                    Type = type,
+                    Constructor = type.GetConstructorOrDefault<Func<ReferenceArgs<TElement, TAttribute>, Reference<TElement, TAttribute>>>(referenceArgs => new FakeReference(referenceArgs))
+                })
+                .Where(reference => reference.Constructor != null)
+                .SelectMany(reference => reference.Type.GetCustomAttributes<ReferenceAttributeAttribute>(false)
                     .Select(referenceAttribute =>
                     {
-                        var referenceElement = type.GetCustomAttribute<ReferenceElementAttribute>(false);
+                        var referenceElement = reference.Type.GetCustomAttribute<ReferenceElementAttribute>(false);
                         var @namespace = referenceElement != null ? referenceElement.Namespace : null;
                         var qualifiedAttributes = referenceElement != null && referenceElement.QualifiedAttributes;
-                        var reference = new ReferenceType(referenceAttribute, qualifiedAttributes ? @namespace : null, type);
+                        var referenceType = new ReferenceType<TElement, TAttribute>(referenceAttribute, qualifiedAttributes ? @namespace : null, reference.Constructor);
                         if (referenceElement != null && referenceElement.Any)
                         {
-                            ((List<ReferenceType>)_anyReferences).Add(reference);
+                            ((List<ReferenceType<TElement, TAttribute>>)_anyReferences).Add(referenceType);
                             return null;
                         }
-                        var elementName = referenceElement != null && !string.IsNullOrEmpty(referenceElement.Name) ? referenceElement.Name : type.Name;
-                        return new { Key = new ReferenceKey(elementName, @namespace), Reference = reference };
+                        var elementName = referenceElement != null && !string.IsNullOrEmpty(referenceElement.Name) ? referenceElement.Name : reference.Type.Name;
+                        return new { Key = new ReferenceKey(elementName, @namespace), Reference = referenceType };
                     }).Where(pair => pair != null))
                 .GroupBy(
                     pair => pair.Key,
@@ -111,7 +121,7 @@ namespace WebsiteRipper.Parsers
             Func<TAttribute, string> attributeNamespaceSelector)
         {
             var elementKey = new ReferenceKey(elementNameSelector(element), elementNamespaceSelector != null ? elementNamespaceSelector(element) : null);
-            IEnumerable<ReferenceType> references;
+            IEnumerable<ReferenceType<TElement, TAttribute>> references;
             if (_referencesLazy.Value.TryGetValue(elementKey, out references))
             {
                 if (_anyReferences != null) references = _anyReferences.Concat(references);
@@ -124,23 +134,7 @@ namespace WebsiteRipper.Parsers
             return elementAttributesSelector(element).Join(references,
                 attribute => new ReferenceKey(attributeNameSelector(attribute), attributeNamespaceSelector != null ? attributeNamespaceSelector(attribute) : null),
                 reference => reference.AttributeKey,
-                (attribute, reference) => (Reference)Activator.CreateInstance(reference.Type, CreateReferenceArgs(parser, reference.Kind, null, element, attribute)));
-        }
-
-        static readonly Lazy<ConstructorInfo> _referenceArgsConstructorLazy = new Lazy<ConstructorInfo>(() =>
-        {
-            // TODO: Get types array dynamically by reflection
-            var referenceArgsConstructorTypes = new[] { typeof(Parser), typeof(ReferenceKind), typeof(string), typeof(TElement), typeof(TAttribute) };
-            var tReferenceArgsConstructor = typeof(TReferenceArgs).GetConstructor(referenceArgsConstructorTypes);
-            if (tReferenceArgsConstructor == null)
-                throw new NotSupportedException(string.Format("Reference does not support \"{0}\".", typeof(TReferenceArgs).Name));
-            return tReferenceArgsConstructor;
-        });
-
-        static TReferenceArgs CreateReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TElement element, TAttribute attribute)
-        {
-            // TODO: Replace by a dedicated method via interface?
-            return (TReferenceArgs)_referenceArgsConstructorLazy.Value.Invoke(new object[] { parser, kind, mimeType, element, attribute });
+                (attribute, reference) => reference.Constructor(new ReferenceArgs<TElement, TAttribute>(parser, reference.Kind, null, element, attribute)));
         }
 
         protected TElement Element { get; private set; }
@@ -149,6 +143,7 @@ namespace WebsiteRipper.Parsers
         protected Reference(ReferenceArgs<TElement, TAttribute> referenceArgs)
             : base(referenceArgs)
         {
+            if (referenceArgs == null) throw new ArgumentNullException("referenceArgs");
             Element = referenceArgs.Element;
             Attribute = referenceArgs.Attribute;
         }

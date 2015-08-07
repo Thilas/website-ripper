@@ -2,22 +2,23 @@
 
 namespace WebsiteRipper.Parsers
 {
-    sealed class ReferenceType : IEquatable<ReferenceType>
+    sealed class ReferenceType<TElement, TAttribute> : IEquatable<ReferenceType<TElement, TAttribute>>
     {
         public ReferenceKey AttributeKey { get; private set; }
         public ReferenceKind Kind { get; private set; }
-        public Type Type { get; private set; }
+        public Func<ReferenceArgs<TElement, TAttribute>, Reference<TElement, TAttribute>> Constructor { get; private set; }
 
-        public ReferenceType(ReferenceAttributeAttribute referenceAttribute, string @namespace, Type type)
+        public ReferenceType(ReferenceAttributeAttribute referenceAttribute, string @namespace,
+            Func<ReferenceArgs<TElement, TAttribute>, Reference<TElement, TAttribute>> constructor)
         {
             AttributeKey = new ReferenceKey(referenceAttribute.Name, @namespace);
             Kind = referenceAttribute.Kind;
-            Type = type;
+            Constructor = constructor;
         }
 
-        public override bool Equals(object obj) { return obj is ReferenceType && Equals((ReferenceType)obj); }
+        public override bool Equals(object obj) { return obj is ReferenceType<TElement, TAttribute> && Equals((ReferenceType<TElement, TAttribute>)obj); }
 
-        public bool Equals(ReferenceType other) { return other != null && AttributeKey.Equals(other.AttributeKey); }
+        public bool Equals(ReferenceType<TElement, TAttribute> other) { return other != null && AttributeKey.Equals(other.AttributeKey); }
 
         public override int GetHashCode() { return AttributeKey.GetHashCode(); }
 

@@ -62,23 +62,27 @@
     <Compile Include="CommandLine\Verb.cs" />
     <Compile Include="CommandLine\ProgressConsole.cs" />
     <Compile Include="CommandLine\RipVerb.cs" />
-    <Compile Include="CommandLine\UpdateVerb.cs" />
+    <Compile Include="CommandLine\UpdateDefaultExtensionsVerb.cs" />
     <Compile Include="CommandLine\VerbInvalidOperationException.cs" />
     <Compile Include="Downloaders\Downloader.cs" />
     <Compile Include="Downloaders\DownloaderArgs.cs" />
     <Compile Include="Downloaders\DownloaderAttribute.cs" />
     <Compile Include="Downloaders\HttpDownloader.cs" />
+    <Compile Include="Extensions\CultureInfoExtensions.cs" />
+    <Compile Include="Extensions\DirectoryInfoExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="DefaultExtensions.cs" />
-    <Compile Include="Core\DefaultExtensionsRipper.cs" />
+    <Compile Include="DefaultExtensionsRipper.cs" />
     <Compile Include="DownloadProgressChangedEventArgs.cs" />
+    <Compile Include="Extensions\TypeExtensions.cs" />
+    <Compile Include="Helpers\MethodHelper.cs" />
+    <Compile Include="Helpers\ConstructorHelper.cs" />
     <Compile Include="Extensions\XmlAttributeExtensions.cs" />
     <Compile Include="Extensions\XmlDocumentExtensions.cs" />
     <Compile Include="Extensions\XmlElementExtensions.cs" />
     <Compile Include="Extensions\XmlNodeExtensions.cs" />
     <Compile Include="MimeType.cs" />
-    <Compile Include="Core\Tools.cs" />
-    <Compile Include="Parsers\Html\HtmlReferenceArgs.cs" />
+    <Compile Include="Helpers\Helper.cs" />
     <Compile Include="Parsers\ParserArgs.cs" />
     <Compile Include="Parsers\ReferenceArgs.cs" />
     <Compile Include="Parsers\ReferenceKey.cs" />
@@ -88,8 +92,8 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Parsers\Css\ImportRuleReference.cs" />
     <Compile Include="Parsers\Css\PrimitiveTermReference.cs" />
-    <Compile Include="Core\DefaultExtensionsParser.cs" />
-    <Compile Include="Core\DefaultExtensionsReference.cs" />
+    <Compile Include="Parsers\DefaultExtensionsParser.cs" />
+    <Compile Include="Parsers\DefaultExtensionsReference.cs" />
     <Compile Include="Parsers\ReferenceType.cs" />
     <Compile Include="Parsers\ReferenceAttributeAttribute.cs" />
     <Compile Include="Parsers\Html\References\A.cs" />
@@ -119,7 +123,6 @@
     <Compile Include="Parsers\ParserAttribute.cs" />
     <Compile Include="Parsers\Reference.cs" />
     <Compile Include="Parsers\Xml\DocumentTypeReference.cs" />
-    <Compile Include="Parsers\Xml\ProcessingInstructionReferenceArgs.cs" />
     <Compile Include="Parsers\Xml\ProcessingInstructionReferences\XmlStyleSheet.cs" />
     <Compile Include="Parsers\Xml\XsdReferences\AppInfo.cs" />
     <Compile Include="Parsers\Xml\XsdReferences\Documentation.cs" />
@@ -128,7 +131,6 @@
     <Compile Include="Parsers\Xml\XmlParser.cs" />
     <Compile Include="Parsers\Xml\ProcessingInstructionReference.cs" />
     <Compile Include="Parsers\Xml\XmlReference.cs" />
-    <Compile Include="Parsers\Xml\XmlReferenceArgs.cs" />
     <Compile Include="Parsers\Xml\XsdReferences\Overide.cs" />
     <Compile Include="Parsers\Xml\XsdReferences\Redefine.cs" />
     <Compile Include="Parsers\Xml\XsiReferences\Any.cs" />
@@ -144,6 +146,7 @@
     </Compile>
     <Compile Include="Resource.cs" />
     <Compile Include="ResourceUnavailableException.cs" />
+    <Compile Include="RipMode.cs" />
     <Compile Include="Ripper.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -7,19 +7,13 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using WebsiteRipper.Core;
 using WebsiteRipper.Downloaders;
+using WebsiteRipper.Extensions;
 using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper
 {
-    public enum RipMode
-    {
-        Create
-        // TODO: Not working yet
-        //Update
-    }
-
+    // TODO: Write code documentation
     public class Ripper
     {
         readonly Dictionary<Uri, Resource> _uris = new Dictionary<Uri, Resource>();
@@ -36,7 +30,7 @@ namespace WebsiteRipper
         {
             get
             {
-                return _preferredLanguages ?? (_preferredLanguages = Tools.GetPreferredLanguages(Languages));
+                return _preferredLanguages ?? (_preferredLanguages = Languages.GetPreferredLanguages());
             }
         }
 
@@ -105,28 +99,72 @@ namespace WebsiteRipper
 
         public void Rip(RipMode ripMode)
         {
-            RipAsync(ripMode).Wait(CancellationToken);
+            if (_cancellationTokenSource != null) throw new InvalidOperationException("Ripping has already started.");
+            using (_cancellationTokenSource = new CancellationTokenSource())
+            {
+                RipAsyncInternal(ripMode).Wait(CancellationToken);
+            }
         }
 
         public async Task RipAsync(RipMode ripMode)
         {
             if (_cancellationTokenSource != null) throw new InvalidOperationException("Ripping has already started.");
+            using (_cancellationTokenSource = new CancellationTokenSource())
+            {
+                await RipAsyncInternal(ripMode);
+            }
+        }
+
+        async Task RipAsyncInternal(RipMode ripMode)
+        {
+            switch (ripMode)
+            {
+                case RipMode.Create:
+                case RipMode.CreateNew:
+                case RipMode.Update:
+                case RipMode.UpdateOrCreate:
+                case RipMode.Truncate:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("ripMode");
+            }
             try
             {
-                using (_cancellationTokenSource = new CancellationTokenSource())
+                _uris.Add(Resource.OriginalUri, Resource);
+                _resources.Add(Resource, Resource.OriginalUri);
+                var directory = new DirectoryInfo(RootPath);
+                if (directory.Exists)
                 {
-                    _uris.Add(Resource.OriginalUri, Resource);
-                    _resources.Add(Resource, Resource.OriginalUri);
-                    // TODO: Handle not empty directory
-                    if (ripMode == RipMode.Create && Directory.Exists(RootPath)) Directory.Delete(RootPath, true);
-                    await Resource.RipAsync(ripMode, 0);
+                    switch (ripMode)
+                    {
+                        case RipMode.Create:
+                            throw new IOException("Root path already exists.");
+                        case RipMode.CreateNew:
+                        case RipMode.Truncate:
+                            directory.Clear();
+                            break;
+                    }
                 }
+                else
+                {
+                    switch (ripMode)
+                    {
+                        case RipMode.Update:
+                        case RipMode.Truncate:
+                            throw new DirectoryNotFoundException("Root path does not exists.");
+                    }
+                    directory.Create();
+                }
+                await Resource.RipAsync(ripMode, 0);
             }
             finally
             {
-                foreach (var resource in _resources.Keys) resource.Dispose();
-                _resources.Clear();
-                _uris.Clear();
+                if (_resources != null)
+                {
+                    foreach (var resource in _resources.Keys) resource.Dispose();
+                    _resources.Clear();
+                }
+                if (_uris != null) _uris.Clear();
             }
         }
 
@@ -164,7 +202,7 @@ namespace WebsiteRipper
             return subResource;
         }
 
-        Resource GetResource(Uri uri, bool hyperlink, string mimeType)
+        protected virtual Resource GetResource(Uri uri, bool hyperlink, string mimeType)
         {
             Resource resource;
             if (_uris.TryGetValue(uri, out resource)) return resource;

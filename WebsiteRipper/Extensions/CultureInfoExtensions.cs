@@ -3,16 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace WebsiteRipper.Core
+namespace WebsiteRipper.Extensions
 {
-    static class Tools
+    static class CultureInfoExtensions
     {
-        public static int CombineHashCodes(int hashCode1, int hashCode2)
-        {
-            return (hashCode1 << 5) + hashCode1 ^ hashCode2;
-        }
-
-        static IEnumerable<string> GetAllLanguages(CultureInfo language)
+        static IEnumerable<string> GetAllLanguages(this CultureInfo language)
         {
             while (!string.IsNullOrEmpty(language.Name))
             {
@@ -21,17 +16,17 @@ namespace WebsiteRipper.Core
             }
         }
 
-        public static string GetPreferredLanguages(CultureInfo language)
+        public static string GetPreferredLanguages(this CultureInfo language)
         {
-            return GetPreferredLanguages(GetAllLanguages(language));
+            return language.GetAllLanguages().GetPreferredLanguages();
         }
 
-        public static string GetPreferredLanguages(IEnumerable<CultureInfo> languages)
+        public static string GetPreferredLanguages(this IEnumerable<CultureInfo> languages)
         {
-            return GetPreferredLanguages(languages.SelectMany(GetAllLanguages));
+            return languages.SelectMany(GetAllLanguages).GetPreferredLanguages();
         }
 
-        static string GetPreferredLanguages(IEnumerable<string> languages)
+        static string GetPreferredLanguages(this IEnumerable<string> languages)
         {
             const string preferredLanguagesFormat = "{0};q={1}";
             var allLanguages = languages.ToList();

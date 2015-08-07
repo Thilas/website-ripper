@@ -7,11 +7,10 @@ namespace WebsiteRipper.Parsers.Xml.ProcessingInstructionReferences
     [ReferenceAttribute("href")]
     public sealed class XmlStyleSheet : ProcessingInstructionReference
     {
-        static ProcessingInstructionReferenceArgs FixReferenceArgs(ProcessingInstructionReferenceArgs processingInstructionReferenceArgs)
+        static ReferenceArgs<XmlProcessingInstruction, XmlAttribute> FixReferenceArgs(ReferenceArgs<XmlProcessingInstruction, XmlAttribute> referenceArgs)
         {
-            return new ProcessingInstructionReferenceArgs(processingInstructionReferenceArgs.Parser,
-                processingInstructionReferenceArgs.Kind, GetMimeType(processingInstructionReferenceArgs.Attribute),
-                processingInstructionReferenceArgs.Element, processingInstructionReferenceArgs.Attribute);
+            return new ReferenceArgs<XmlProcessingInstruction, XmlAttribute>(referenceArgs.Parser, referenceArgs.Kind,
+                GetMimeType(referenceArgs.Attribute), referenceArgs.Element, referenceArgs.Attribute);
         }
 
         // TODO: Make this more generic
@@ -21,7 +20,6 @@ namespace WebsiteRipper.Parsers.Xml.ProcessingInstructionReferences
             return typeAttribute != null ? typeAttribute.Value : null;
         }
 
-        public XmlStyleSheet(ProcessingInstructionReferenceArgs processingInstructionReferenceArgs)
-            : base(FixReferenceArgs(processingInstructionReferenceArgs)) { }
+        public XmlStyleSheet(ReferenceArgs<XmlProcessingInstruction, XmlAttribute> referenceArgs) : base(FixReferenceArgs(referenceArgs)) { }
     }
 }

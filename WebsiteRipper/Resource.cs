@@ -27,18 +27,24 @@ namespace WebsiteRipper
 
         internal static IEnumerable<Resource> Create(Ripper ripper, params Uri[] uris)
         {
-            return uris.Select(uri => new Resource(ripper, false) { OriginalUri = uri });
+            return uris.Select(uri => new Resource(ripper, null, uri, false));
         }
 
-        Resource(Ripper ripper, bool hyperlink)
+        internal Resource(Ripper ripper, Parser parser, Uri uri, bool hyperlink)
         {
             if (ripper == null) throw new ArgumentNullException("ripper");
             _ripper = ripper;
+            Parser = parser;
+            if (uri != null)
+            {
+                OriginalUri = uri;
+                if (parser != null) NewUri = GetNewUri(uri);
+            }
             _hyperlink = hyperlink;
         }
 
         internal Resource(Ripper ripper, Uri uri, bool hyperlink = true, string mimeType = null)
-            : this(ripper, hyperlink)
+            : this(ripper, null, null, hyperlink)
         {
             if (uri == null) throw new ArgumentNullException("uri");
             _downloader = Downloader.Create(uri, mimeType, ripper.Timeout, ripper.PreferredLanguages);
@@ -49,7 +55,7 @@ namespace WebsiteRipper
             }
             catch (Exception exception)
             {
-#if DEBUG
+#if (DEBUG)
                 var webException = exception as System.Net.WebException;
                 //  Debug test to catch all exceptions but HTTP status 404
                 if (webException == null || webException.Response == null || ((System.Net.HttpWebResponse)webException.Response).StatusCode != System.Net.HttpStatusCode.NotFound)
@@ -139,14 +145,26 @@ namespace WebsiteRipper
             return subResources.SelectMany(subResource => subResource.ToList()).Prepend(this);
         }
 
-        async Task<bool> DownloadAsync(RipMode ripMode)
+        async Task DownloadAsync(RipMode ripMode)
         {
-            if (_downloader == null) return false;
+            if (_downloader == null) return;
             try
             {
                 var path = NewUri.LocalPath;
-                if (ripMode != RipMode.Create && File.Exists(path) && File.GetLastWriteTime(path) >= _downloader.LastModified) return false;
-                var parentPath = Path.GetDirectoryName(path);
+                var file = new FileInfo(path);
+                if (file.Exists)
+                {
+                    switch (ripMode)
+                    {
+                        case RipMode.Update:
+                        case RipMode.UpdateOrCreate:
+                            if (file.LastWriteTime >= LastModified) return;
+                            break;
+                        default:
+                            throw new IOException(string.Format("File '{0}' already exists.", file));
+                    }
+                }
+                var parentPath = file.DirectoryName;
                 if (parentPath != null) Directory.CreateDirectory(parentPath);
                 using (var responseStream = _downloader.GetResponseStream())
                 {
@@ -173,7 +191,6 @@ namespace WebsiteRipper
                         throw;
                     }
                 }
-                return true;
             }
             finally
             {

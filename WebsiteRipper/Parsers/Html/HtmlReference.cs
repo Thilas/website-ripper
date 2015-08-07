@@ -4,7 +4,7 @@ using HtmlAgilityPack;
 
 namespace WebsiteRipper.Parsers.Html
 {
-    public abstract class HtmlReference : Reference<HtmlNode, HtmlAttribute, HtmlReferenceArgs>
+    public abstract class HtmlReference : Reference<HtmlNode, HtmlAttribute>
     {
         internal static IEnumerable<Reference> Create(Parser parser, HtmlNode node)
         {
@@ -16,10 +16,10 @@ namespace WebsiteRipper.Parsers.Html
 
         readonly HtmlParser _htmlParser;
 
-        protected HtmlReference(HtmlReferenceArgs htmlReferenceArgs)
-            : base(htmlReferenceArgs)
+        protected HtmlReference(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
+            : base(referenceArgs)
         {
-            _htmlParser = htmlReferenceArgs.Parser as HtmlParser;
+            _htmlParser = referenceArgs.Parser as HtmlParser;
         }
 
         protected override Uri GetBaseUri(Resource resource)
@@ -27,7 +27,7 @@ namespace WebsiteRipper.Parsers.Html
             return _htmlParser == null || _htmlParser.BaseUri == null ? resource.OriginalUri : _htmlParser.BaseUri;
         }
 
-        protected sealed override string InternalUri
+        protected sealed override string UriInternal
         {
             get { return HtmlEntity.DeEntitize(Attribute.Value); }
             set { Attribute.Value = HtmlEntity.Entitize(value); }

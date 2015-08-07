@@ -35,7 +35,7 @@ namespace WebsiteRipper.CommandLine
         {
             var exitCode = Parser.Default.ParseArguments(args, _verbsLazy.Value.ToArray())
                 .Return((Verb verb) => verb.TryProcess(), _ => ExitCode.ArgumentsError);
-#if DEBUG
+#if (DEBUG)
             Console.WriteLine();
             Console.WriteLine("Exit code: {0}", exitCode);
             Console.ReadLine();

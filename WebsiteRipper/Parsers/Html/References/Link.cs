@@ -11,11 +11,11 @@ namespace WebsiteRipper.Parsers.Html.References
         static readonly string[] _externalResourceRelationships = { "icon", "pingback", "prefetch", "stylesheet" };
         static readonly string[] _skipRelationships = { "dns-prefetch" };
 
-        static HtmlReferenceArgs FixReferenceArgs(HtmlReferenceArgs htmlReferenceArgs)
+        static ReferenceArgs<HtmlNode, HtmlAttribute> FixReferenceArgs(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
         {
-            return new HtmlReferenceArgs(htmlReferenceArgs.Parser,
-                GetKind(htmlReferenceArgs.Kind, htmlReferenceArgs.Node), htmlReferenceArgs.MimeType, htmlReferenceArgs.Node,
-                htmlReferenceArgs.Attribute);
+            return new ReferenceArgs<HtmlNode, HtmlAttribute>(referenceArgs.Parser,
+                GetKind(referenceArgs.Kind, referenceArgs.Element), referenceArgs.MimeType, referenceArgs.Element,
+                referenceArgs.Attribute);
         }
 
         // TODO: Make this more generic
@@ -32,6 +32,6 @@ namespace WebsiteRipper.Parsers.Html.References
             return defaultKind;
         }
 
-        public Link(HtmlReferenceArgs htmlReferenceArgs) : base(FixReferenceArgs(htmlReferenceArgs)) { }
+        public Link(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(FixReferenceArgs(referenceArgs)) { }
     }
 }

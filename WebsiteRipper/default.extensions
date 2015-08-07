@@ -1,4 +1,4 @@
-# Last modified: 2015-08-05T02:50:32.1090898Z
+# Last modified: 2015-08-07T22:29:09.4937451Z
 #
 # MIME type (lowercased)			Extensions
 # ============================================	==========
@@ -7,6 +7,16 @@
 # application/3gpp-ims+xml
 application/a2l					a2l
 # application/activemessage
+# application/alto-costmap+json
+# application/alto-costmapfilter+json
+# application/alto-directory+json
+# application/alto-endpointcost+json
+# application/alto-endpointcostparams+json
+# application/alto-endpointprop+json
+# application/alto-endpointpropparams+json
+# application/alto-error+json
+# application/alto-networkmap+json
+# application/alto-networkmapfilter+json
 application/aml					aml
 application/andrew-inset				ez
 # application/applefile
@@ -79,10 +89,11 @@ application/epub+zip				epub
 # application/eshop
 # application/example
 application/exi					exi
-# application/fastinfoset
+application/fastinfoset				finf
 # application/fastsoap
 application/fdt+xml				fdt
 application/fits					fits
+application/font-sfnt				ttf otf
 application/font-tdpfr				pfr
 application/font-woff				woff
 # application/framework-attributes+xml
@@ -126,6 +137,7 @@ application/jsonml+json				jsonml
 # application/jwt
 # application/kpml-request+xml
 # application/kpml-response+xml
+application/ld+json				jsonld
 application/link-format				wlnk
 application/load-control+xml			xml
 application/lost+xml				lostxml
@@ -185,7 +197,7 @@ application/mxf					mxf
 # application/nlsml+xml
 # application/nss
 application/ocsp-request				orq
-# application/ocsp-response
+application/ocsp-response			ors
 application/octet-stream				bin dms lrf mar so dist distz pkg bpk dump elc deploy
 application/oda					oda
 application/odx					odx
@@ -221,7 +233,7 @@ application/provenance+xml			provx
 # application/prs.alvestrand.titrax-sheet
 application/prs.cww				cw cww
 application/prs.hpub+zip				hpub
-# application/prs.nprend
+application/prs.nprend				rnd rct
 # application/prs.plucker
 application/prs.rdf-xml-crypt			rdf-crypt
 application/prs.xsf+xml				xsf xml
@@ -269,7 +281,7 @@ application/set-registration-initiation		setreg
 # application/sgml-open-catalog
 application/shf+xml				shf
 application/sieve				siv sieve
-# application/simple-filter+xml
+application/simple-filter+xml			cl xml
 # application/simple-message-summary
 # application/simplesymbolcontainer
 # application/slate
@@ -307,6 +319,7 @@ application/ttml+xml				ttml
 # application/tve-trigger
 # application/ulpfec
 application/urc-grpsheet+xml			gsheet
+application/urc-ressheet+xml			rsheet
 application/urc-targetdesc+xml			td
 application/urc-uisocketdesc+xml			uis
 # application/vcard+json
@@ -418,6 +431,7 @@ application/vnd.dece.ttml+xml			uvt uvvt
 application/vnd.dece.unspecified			uvx uvvx
 application/vnd.dece.zip				uvz uvvz
 application/vnd.denovo.fcselayout-link		fe_launch
+# application/vnd.desmume.movie
 # application/vnd.dir-bi.plate-dl-nosuffix
 # application/vnd.dm.delegation+xml
 application/vnd.dna				dna
@@ -571,7 +585,7 @@ application/vnd.hydrostatix.sof-data		sfd-hdstx
 application/vnd.hyperdrive+json			json
 application/vnd.hzn-3d-crossword			x3d
 # application/vnd.ibm.afplinedata
-# application/vnd.ibm.electronic-media
+application/vnd.ibm.electronic-media		emm
 application/vnd.ibm.minipay			mpy
 application/vnd.ibm.modcap			list3820 listafp afp pseg3820
 application/vnd.ibm.rights-management		irm
@@ -889,7 +903,7 @@ application/vnd.openxmlformats-officedocument.spreadsheetml.querytable+xml	xml
 application/vnd.openxmlformats-officedocument.spreadsheetml.revisionheaders+xml	xml
 application/vnd.openxmlformats-officedocument.spreadsheetml.revisionlog+xml	xml
 application/vnd.openxmlformats-officedocument.spreadsheetml.sharedstrings+xml	xml
-application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	xlsx
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	xltx xlsx
 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml	xml
 application/vnd.openxmlformats-officedocument.spreadsheetml.sheetmetadata+xml	xml
 application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml	xml
@@ -919,10 +933,10 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml
 application/vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml	xml
 application/vnd.openxmlformats-package.core-properties+xml	xml
 application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml	xml
-# application/vnd.openxmlformats-package.relationships+xml
+application/vnd.openxmlformats-package.relationships+xml	xml
 application/vnd.oracle.resource+json		json
 # application/vnd.orange.indata
-# application/vnd.osa.netdeploy
+application/vnd.osa.netdeploy			ndc
 application/vnd.osgeo.mapguide.package		mgp
 application/vnd.osgi.bundle			jar
 application/vnd.osgi.dp				dp
@@ -1067,7 +1081,7 @@ application/vnd.ufdl				ufdl ufd frm
 application/vnd.uiq.theme			utz
 application/vnd.umajin				umj
 application/vnd.unity				unityweb
-application/vnd.uoml+xml				uoml
+application/vnd.uoml+xml				uoml uo
 # application/vnd.uplanet.alert
 # application/vnd.uplanet.alert-wbxml
 # application/vnd.uplanet.bearer-choice
@@ -1081,6 +1095,7 @@ application/vnd.uoml+xml				uoml
 # application/vnd.uplanet.listcmd
 # application/vnd.uplanet.listcmd-wbxml
 # application/vnd.uplanet.signal
+application/vnd.uri-map				urim urimap
 application/vnd.valve.source.material		vmt
 application/vnd.vcx				vcx
 application/vnd.vd-study				sxi mxi study-inter model-inter
@@ -1089,7 +1104,7 @@ application/vnd.vectorworks			mcd vwx
 application/vnd.vidsoft.vidconference		vsc
 application/vnd.visio				vsd vst vsw vss
 application/vnd.visionary			vis
-# application/vnd.vividence.scriptfile
+application/vnd.vividence.scriptfile		vsc
 application/vnd.vsf				vsf
 application/vnd.wap.sic				sic wbxml
 application/vnd.wap.slc				slc wbxml
@@ -1292,7 +1307,7 @@ application/zip					zip
 # audio/1d-interleaved-parityfec
 audio/32kadpcm					726
 audio/3gpp					3gp 3gpp
-# audio/3gpp2
+audio/3gpp2					3g2 3gpp2
 # audio/ac3
 audio/adpcm					adp
 # audio/amr
@@ -1325,11 +1340,15 @@ audio/dls					dls
 # audio/evrcb
 # audio/evrcb0
 # audio/evrcb1
+# audio/evrcnw
+# audio/evrcnw0
+# audio/evrcnw1
 # audio/evrcwb
 # audio/evrcwb0
 # audio/evrcwb1
 # audio/example
 # audio/fwdred
+# audio/g711-0
 # audio/g719
 # audio/g722
 # audio/g7221
@@ -1492,6 +1511,7 @@ image/vnd.fujixerox.edmics-rlc			rlc
 image/vnd.globalgraphics.pgb			pgb
 image/vnd.microsoft.icon				ico
 # image/vnd.mix
+image/vnd.mozilla.apng				apng png
 image/vnd.ms-modi				mdi
 image/vnd.ms-photo				wdp
 image/vnd.net-fpx				npx
@@ -1534,7 +1554,7 @@ message/global-delivery-status			u8dsn
 message/global-disposition-notification		u8mdn
 message/global-headers				u8hdr
 # message/http
-# message/imdn+xml
+message/imdn+xml					cl xml
 # message/news
 # message/partial
 message/rfc822					eml mime
@@ -1551,7 +1571,7 @@ model/vnd.collada+xml				dae
 model/vnd.dwf					dwf
 model/vnd.flatland.3dml				3dml 3dm
 model/vnd.gdl					gdl gsm win dor lmp rsm msm ism
-# model/vnd.gs-gdl
+model/vnd.gs-gdl					gdl gsm win dor lmp rsm msm ism
 # model/vnd.gs.gdl
 model/vnd.gtw					gtw
 model/vnd.moml+xml				xml moml
@@ -1605,6 +1625,7 @@ text/n3						n3
 # text/parameters
 # text/parityfec
 text/plain					txt text conf def list log in
+text/provenance-notation				provn
 text/prs.fallenstein.rst				txt rst
 text/prs.lines.tag				dsc
 # text/raptorfec
@@ -1629,6 +1650,7 @@ text/vnd.curl					curl
 text/vnd.curl.dcurl				dcurl
 text/vnd.curl.mcurl				mcurl
 text/vnd.curl.scurl				scurl
+# text/vnd.debian.copyright
 text/vnd.dmclientscript				dms
 text/vnd.dvb.subtitle				sub
 text/vnd.esmertec.theme-descriptor		jtd
@@ -1644,7 +1666,7 @@ text/vnd.iptc.nitf				xml
 text/vnd.ms-mediapackage				mpf
 text/vnd.net2phone.commcenter.command		ccc
 # text/vnd.radisys.msml-basic-layout
-# text/vnd.si.uricatalogue
+text/vnd.si.uricatalogue				uric
 text/vnd.sun.j2me.app-descriptor			jad
 text/vnd.trolltech.linguist			ts
 text/vnd.wap.si					si xml
@@ -1669,7 +1691,7 @@ text/xsl						xsl xslt
 # video/1d-interleaved-parityfec
 video/3gpp					3gp 3gpp
 # video/3gpp-tt
-video/3gpp2					3g2
+video/3gpp2					3g2 3gpp2
 # video/bmpeg
 # video/bt656
 # video/celb

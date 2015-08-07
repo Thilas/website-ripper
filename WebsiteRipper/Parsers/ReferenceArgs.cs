@@ -17,12 +17,12 @@ namespace WebsiteRipper.Parsers
         }
     }
 
-    public abstract class ReferenceArgs<TElement, TAttribute> : ReferenceArgs
+    public sealed class ReferenceArgs<TElement, TAttribute> : ReferenceArgs
     {
         public TElement Element { get; private set; }
         public TAttribute Attribute { get; private set; }
 
-        protected ReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TElement element, TAttribute attribute)
+        public ReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TElement element, TAttribute attribute)
             : base(parser, kind, mimeType)
         {
             if (element == null) throw new ArgumentNullException("element");

@@ -5,22 +5,25 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Downloaders
 {
+    using DownloaderConstructor = Func<DownloaderArgs, Downloader>;
+
     public abstract class Downloader : IDisposable
     {
-        static readonly Lazy<Dictionary<string, Type>> _downloaderTypesLazy = new Lazy<Dictionary<string, Type>>(() =>
+        static readonly Lazy<Dictionary<string, DownloaderConstructor>> _downloadersLazy = new Lazy<Dictionary<string, DownloaderConstructor>>(() =>
         {
-            var downloaderType = typeof(Downloader);
-            var downloaderConstructorTypes = new[] { typeof(DownloaderArgs) };
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => !type.IsAbstract && downloaderType.IsAssignableFrom(type) && type.GetConstructor(downloaderConstructorTypes) != null)
-                .SelectMany(type => type.GetCustomAttributes<DownloaderAttribute>(false)
-                    .Select(downloaderAttribute => new { downloaderAttribute.Scheme, Type = type }))
+                .Select(type => new { Type = type, Constructor = type.GetConstructorOrDefault<DownloaderConstructor>(downloaderArgs => new HttpDownloader(downloaderArgs)) })
+                .Where(downloader => downloader.Constructor != null)
+                .SelectMany(downloader => downloader.Type.GetCustomAttributes<DownloaderAttribute>(false)
+                    .Select(downloaderAttribute => new { downloaderAttribute.Scheme, downloader.Constructor }))
                 .Distinct() // TODO: Review duplicate schemes management
-                .ToDictionary(downloader => downloader.Scheme, downloader => downloader.Type, StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(downloader => downloader.Scheme, downloader => downloader.Constructor,
+                    StringComparer.OrdinalIgnoreCase);
         });
 
         internal static Downloader Create(Uri uri, int timeout, string preferredLanguages)
@@ -32,17 +35,17 @@ namespace WebsiteRipper.Downloaders
         {
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
-            Type downloaderType;
-            if (_downloaderTypesLazy.Value.TryGetValue(scheme, out downloaderType))
-                return (Downloader)Activator.CreateInstance(downloaderType, new DownloaderArgs(uri, mimeType, timeout, preferredLanguages));
-            throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
+            DownloaderConstructor downloaderConstructor;
+            if (!_downloadersLazy.Value.TryGetValue(scheme, out downloaderConstructor))
+                throw new NotSupportedException(string.Format("Downloader does not support scheme \"{0}\".", scheme));
+            return downloaderConstructor(new DownloaderArgs(uri, mimeType, timeout, preferredLanguages));
         }
 
         internal static bool Supports(Uri uri)
         {
             if (uri == null) throw new ArgumentNullException("uri");
             var scheme = uri.Scheme;
-            return _downloaderTypesLazy.Value.ContainsKey(scheme);
+            return _downloadersLazy.Value.ContainsKey(scheme);
         }
 
         static readonly Lazy<Regex> _contentTypeRegexLazy = new Lazy<Regex>(() => new Regex(@";?\s*(?<type>[^\s/;]+)/(?<subtype>[^\s/;]+)\s*;?", RegexOptions.Compiled));
@@ -66,6 +69,7 @@ namespace WebsiteRipper.Downloaders
 
         protected Downloader(DownloaderArgs downloaderArgs)
         {
+            if (downloaderArgs == null) throw new ArgumentNullException("downloaderArgs");
             _mimeType = downloaderArgs.MimeType;
             WebRequest = WebRequest.Create(downloaderArgs.Uri);
             WebRequest.Timeout = downloaderArgs.Timeout;

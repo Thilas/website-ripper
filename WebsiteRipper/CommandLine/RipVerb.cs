@@ -35,10 +35,11 @@ namespace WebsiteRipper.CommandLine
             }
         }
 
-        [Option(Default = false, HelpText = "Overwrite existing resource(s)")]
-        public bool Overwrite { get; set; }
+        [Option(Default = false, HelpText = "Update existing resource(s)")]
+        public bool Update { get; set; }
 
-        RipMode RipMode { get { return Overwrite ? RipMode.Create : RipMode.Create; } }
+        // TODO: Add verbs for each RipMode
+        RipMode RipMode { get { return Update ? RipMode.UpdateOrCreate : RipMode.CreateNew; } }
 
         const int TimeoutMultiplier = 1000;
 

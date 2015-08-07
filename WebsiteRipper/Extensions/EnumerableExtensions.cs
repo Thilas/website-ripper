@@ -6,12 +6,12 @@ namespace WebsiteRipper.Extensions
 {
     static class EnumerableExtensions
     {
-        //public static IEnumerable<T> Append<T>(this IEnumerable<T> enumerable, T value)
-        //{
-        //    if (enumerable == null) throw new ArgumentNullException("enumerable");
-        //    foreach (var item in enumerable) yield return item;
-        //    yield return value;
-        //}
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> enumerable, T value)
+        {
+            if (enumerable == null) throw new ArgumentNullException("enumerable");
+            foreach (var item in enumerable) yield return item;
+            yield return value;
+        }
 
         public static IEnumerable<T> Prepend<T>(this IEnumerable<T> enumerable, T value)
         {

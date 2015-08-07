@@ -4,7 +4,7 @@ using WebsiteRipper.Extensions;
 
 namespace WebsiteRipper.Parsers.Xml
 {
-    public abstract class XmlReference : Reference<XmlElement, XmlAttribute, XmlReferenceArgs>
+    public abstract class XmlReference : Reference<XmlElement, XmlAttribute>
     {
         internal static IEnumerable<Reference> Create(Parser parser, XmlElement element)
         {
@@ -16,9 +16,9 @@ namespace WebsiteRipper.Parsers.Xml
                 xmlAttribute => xmlAttribute.NamespaceURI);
         }
 
-        protected XmlReference(XmlReferenceArgs xmlReferenceArgs) : base(xmlReferenceArgs) { }
+        protected XmlReference(ReferenceArgs<XmlElement, XmlAttribute> referenceArgs) : base(referenceArgs) { }
 
-        protected sealed override string InternalUri
+        protected sealed override string UriInternal
         {
             get { return Attribute.Value; }
             set { Attribute.Value = value; }

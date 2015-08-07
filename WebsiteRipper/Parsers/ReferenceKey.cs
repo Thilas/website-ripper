@@ -1,5 +1,5 @@
 ﻿using System;
-using WebsiteRipper.Core;
+using WebsiteRipper.Helpers;
 
 namespace WebsiteRipper.Parsers
 {
@@ -13,7 +13,7 @@ namespace WebsiteRipper.Parsers
             if (name == null) throw new ArgumentNullException("name");
             Name = name;
             Namespace = !string.IsNullOrEmpty(@namespace) ? @namespace : null;
-            _hashCodeLazy = new Lazy<int>(() => Tools.CombineHashCodes(
+            _hashCodeLazy = new Lazy<int>(() => Helper.CombineHashCodes(
                 StringComparer.OrdinalIgnoreCase.GetHashCode(Name),
                 Namespace != null ? StringComparer.OrdinalIgnoreCase.GetHashCode(Namespace) : 0));
         }

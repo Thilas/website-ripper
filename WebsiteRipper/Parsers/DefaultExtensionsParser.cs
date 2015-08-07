@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using WebsiteRipper.Extensions;
-using WebsiteRipper.Parsers;
 using WebsiteRipper.Parsers.Xml;
 
-namespace WebsiteRipper.Core
+namespace WebsiteRipper.Parsers
 {
     sealed class DefaultExtensionsParser : XmlParser
     {

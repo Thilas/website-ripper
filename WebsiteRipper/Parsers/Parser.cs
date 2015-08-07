@@ -3,25 +3,30 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using WebsiteRipper.Extensions;
+using WebsiteRipper.Parsers.Html;
 
 namespace WebsiteRipper.Parsers
 {
+    using ParserConstructor = Func<ParserArgs, Parser>;
+
     public abstract class Parser
     {
-        static readonly Lazy<Dictionary<string, Type>> _parserTypesLazy = new Lazy<Dictionary<string, Type>>(() =>
+        static readonly Lazy<Dictionary<string, ParserConstructor>> _parserTypesLazy = new Lazy<Dictionary<string, ParserConstructor>>(() =>
         {
-            var parserType = typeof(Parser);
-            var parserConstructorTypes = new[] { typeof(ParserArgs) };
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => !type.IsAbstract && parserType.IsAssignableFrom(type) && type.GetConstructor(parserConstructorTypes) != null)
-                .SelectMany(type => type.GetCustomAttributes<ParserAttribute>(false)
-                    .Select(parserAttribute => new { parserAttribute.MimeType, Type = type }))
+                .Select(type => new { Type = type, Constructor = type.GetConstructorOrDefault<ParserConstructor>(parserArgs => new HtmlParser(parserArgs)) })
+                .Where(parser => parser.Constructor != null)
+                .SelectMany(parser => parser.Type.GetCustomAttributes<ParserAttribute>(false)
+                    .Select(parserAttribute => new { parserAttribute.MimeType, parser.Constructor }))
                 .Distinct() // TODO: Review duplicate mime types management
-                .ToDictionary(parser => parser.MimeType, parser => parser.Type, StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(parser => parser.MimeType, parser => parser.Constructor, StringComparer.OrdinalIgnoreCase);
         });
 
-        internal static Dictionary<string, Type> ParserTypes { get { return _parserTypesLazy.Value; } }
+        internal static Dictionary<string, ParserConstructor> ParserTypes { get { return _parserTypesLazy.Value; } }
+
+        internal static ParserConstructor GetConstructor(ParserConstructor parserConstructor) { return parserConstructor; }
 
         internal static Parser CreateDefault(string mimeType, Uri uri = null)
         {
@@ -30,9 +35,9 @@ namespace WebsiteRipper.Parsers
 
         internal static Parser Create(string mimeType)
         {
-            Type parserType;
-            if (mimeType != null && ParserTypes.TryGetValue(mimeType, out parserType))
-                return (Parser)Activator.CreateInstance(parserType, new ParserArgs(mimeType));
+            ParserConstructor parserConstructor;
+            if (mimeType != null && ParserTypes.TryGetValue(mimeType, out parserConstructor))
+                return parserConstructor(new ParserArgs(mimeType));
             return CreateDefault(mimeType);
         }
 
@@ -42,6 +47,7 @@ namespace WebsiteRipper.Parsers
 
         protected Parser(ParserArgs parserArgs)
         {
+            if (parserArgs == null) throw new ArgumentNullException("parserArgs");
             ActualMimeType = parserArgs.MimeType;
             AnyChange = false;
         }

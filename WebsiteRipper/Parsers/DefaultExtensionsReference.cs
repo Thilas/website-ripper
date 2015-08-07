@@ -1,6 +1,4 @@
-﻿using WebsiteRipper.Parsers;
-
-namespace WebsiteRipper.Core
+﻿namespace WebsiteRipper.Parsers
 {
     sealed class DefaultExtensionsReference : Reference
     {
@@ -14,7 +12,7 @@ namespace WebsiteRipper.Core
             _file = file;
         }
 
-        protected override string InternalUri
+        protected override string UriInternal
         {
             get { return _file; }
             set { }

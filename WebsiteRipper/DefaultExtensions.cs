@@ -8,7 +8,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using WebsiteRipper.Core;
 using WebsiteRipper.Downloaders;
 using WebsiteRipper.Extensions;
 using WebsiteRipper.Properties;
@@ -76,7 +75,7 @@ namespace WebsiteRipper
             {
                 var defaultExtensions = Load(path);
                 if (createOnly) return defaultExtensions;
-                using (var download = Downloader.Create(uri, Timeout, Tools.GetPreferredLanguages(Language)))
+                using (var download = Downloader.Create(uri, Timeout, Language.GetPreferredLanguages()))
                 {
                     download.SendRequest();
                     if (download.LastModified <= defaultExtensions.LastModified) return defaultExtensions;
@@ -97,7 +96,7 @@ namespace WebsiteRipper
                 _all = Empty;
                 try
                 {
-                    return DefaultExtensionsRipper.GetIanaDefaultExtensions(uri).Result;
+                    return DefaultExtensionsRipper.GetIanaDefaultExtensions(uri);
                 }
                 finally
                 {
