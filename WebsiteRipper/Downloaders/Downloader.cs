@@ -21,7 +21,7 @@ namespace WebsiteRipper.Downloaders
                 .Where(downloader => downloader.Constructor != null)
                 .SelectMany(downloader => downloader.Type.GetCustomAttributes<DownloaderAttribute>(false)
                     .Select(downloaderAttribute => new { downloaderAttribute.Scheme, downloader.Constructor }))
-                .Distinct() // TODO: Review duplicate schemes management
+                .Distinct() // TODO Review duplicate schemes management
                 .ToDictionary(downloader => downloader.Scheme, downloader => downloader.Constructor,
                     StringComparer.OrdinalIgnoreCase);
         });
@@ -53,7 +53,7 @@ namespace WebsiteRipper.Downloaders
         static string GetMimeType(string contentType)
         {
             var match = _contentTypeRegexLazy.Value.Match(contentType);
-            if (!match.Success) return contentType; // TODO: Improve parsing
+            if (!match.Success) throw new InvalidOperationException("Content-Type is invalid.");
             return string.Format("{0}/{1}", match.Groups["type"].Value, match.Groups["subtype"].Value);
         }
 

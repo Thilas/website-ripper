@@ -20,7 +20,7 @@ namespace WebsiteRipper.Parsers
                 .Where(parser => parser.Constructor != null)
                 .SelectMany(parser => parser.Type.GetCustomAttributes<ParserAttribute>(false)
                     .Select(parserAttribute => new { parserAttribute.MimeType, parser.Constructor }))
-                .Distinct() // TODO: Review duplicate mime types management
+                .Distinct() // TODO Review duplicate mime types management
                 .ToDictionary(parser => parser.MimeType, parser => parser.Constructor, StringComparer.OrdinalIgnoreCase);
         });
 
@@ -83,7 +83,7 @@ namespace WebsiteRipper.Parsers
             if (!_loaded)
             {
                 try { Load(resource.NewUri.LocalPath); }
-                catch { _failed = true; } // TODO: Log a warning
+                catch { _failed = true; } // TODO Log a warning
                 _loaded = true;
             }
             if (_failed) yield break;

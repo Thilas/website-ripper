@@ -18,7 +18,7 @@ namespace WebsiteRipper.Parsers
 
         protected override IEnumerable<Reference> GetReferences()
         {
-            // TODO: Parse xref elements
+            // TODO Parse xref elements for iana mime types
             var namespaceManager = new XmlNamespaceManager(Document.NameTable);
             const string assignmentPrefix = "assignment";
             namespaceManager.AddNamespace(assignmentPrefix, Document.GetDocumentElement().NamespaceURI);

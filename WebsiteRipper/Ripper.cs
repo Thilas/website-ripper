@@ -13,7 +13,7 @@ using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper
 {
-    // TODO: Write code documentation
+    // TODO Write code documentation
     public class Ripper
     {
         readonly Dictionary<Uri, Resource> _uris = new Dictionary<Uri, Resource>();
@@ -51,7 +51,7 @@ namespace WebsiteRipper
             }
         }
 
-        // TODO: Add ExcludePattern capability
+        // TODO Add ExcludePattern capability
 
         CancellationTokenSource _cancellationTokenSource;
         internal CancellationToken CancellationToken { get { return _cancellationTokenSource != null ? _cancellationTokenSource.Token : CancellationToken.None; } }

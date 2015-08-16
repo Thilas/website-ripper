@@ -7,10 +7,11 @@ namespace WebsiteRipper.Parsers.Html.References
     [ReferenceAttribute("href", Kind = ReferenceKind.Hyperlink)]
     public sealed class Link : HtmlReference
     {
-        // TODO: Finish link node support depending on rel attribute
+        // TODO Finish link node support depending on rel attribute
         static readonly string[] _externalResourceRelationships = { "icon", "pingback", "prefetch", "stylesheet" };
         static readonly string[] _skipRelationships = { "dns-prefetch" };
 
+        // TODO Manage a generic FixReferenceArgs method
         static ReferenceArgs<HtmlNode, HtmlAttribute> FixReferenceArgs(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
         {
             return new ReferenceArgs<HtmlNode, HtmlAttribute>(referenceArgs.Parser,
@@ -18,7 +19,6 @@ namespace WebsiteRipper.Parsers.Html.References
                 referenceArgs.Attribute);
         }
 
-        // TODO: Make this more generic
         static ReferenceKind GetKind(ReferenceKind defaultKind, HtmlNode node)
         {
             const char listSeparatorChar = ' ';

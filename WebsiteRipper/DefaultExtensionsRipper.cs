@@ -38,7 +38,7 @@ namespace WebsiteRipper
 #else
                 ripper.Rip(RipMode.Update);
 #endif
-                // TODO: Read files asynchronously while ripping them
+                // TODO Read files asynchronously while ripping them
                 lock (_templates)
                 {
                     return new DefaultExtensions(_templates.Select(ParseTemplate).Where(mimeType => mimeType != null), ripper.Resource.LastModified);

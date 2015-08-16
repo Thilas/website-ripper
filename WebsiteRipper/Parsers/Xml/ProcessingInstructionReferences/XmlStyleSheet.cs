@@ -7,13 +7,13 @@ namespace WebsiteRipper.Parsers.Xml.ProcessingInstructionReferences
     [ReferenceAttribute("href")]
     public sealed class XmlStyleSheet : ProcessingInstructionReference
     {
+        // TODO Manage a generic FixReferenceArgs method
         static ReferenceArgs<XmlProcessingInstruction, XmlAttribute> FixReferenceArgs(ReferenceArgs<XmlProcessingInstruction, XmlAttribute> referenceArgs)
         {
             return new ReferenceArgs<XmlProcessingInstruction, XmlAttribute>(referenceArgs.Parser, referenceArgs.Kind,
                 GetMimeType(referenceArgs.Attribute), referenceArgs.Element, referenceArgs.Attribute);
         }
 
-        // TODO: Make this more generic
         static string GetMimeType(XmlAttribute attribute)
         {
             var typeAttribute = attribute.GetOwnerElement().Attributes["type"];

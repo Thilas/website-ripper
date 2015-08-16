@@ -99,8 +99,8 @@ namespace WebsiteRipper.Parsers
                     pair => pair.Reference)
                 .ToDictionary(
                     grouping => grouping.Key,
-                    grouping => grouping.Distinct().ToList().AsEnumerable()); // TODO: Review duplicate references management
-            var anyReferences = _anyReferences.Distinct().ToList(); // TODO: Review duplicate any references management
+                    grouping => grouping.Distinct().ToList().AsEnumerable()); // TODO Review duplicate references management
+            var anyReferences = _anyReferences.Distinct().ToList(); // TODO Review duplicate any references management
             _anyReferences = anyReferences.Count > 0 ? anyReferences : null;
             return references;
         });

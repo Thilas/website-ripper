@@ -38,7 +38,7 @@ namespace WebsiteRipper.CommandLine
         [Option(Default = false, HelpText = "Update existing resource(s)")]
         public bool Update { get; set; }
 
-        // TODO: Add verbs for each RipMode
+        // TODO Add verbs for each RipMode
         RipMode RipMode { get { return Update ? RipMode.UpdateOrCreate : RipMode.CreateNew; } }
 
         const int TimeoutMultiplier = 1000;

@@ -14,7 +14,7 @@ namespace WebsiteRipper.CommandLine
         ArgumentsError = -2
     }
 
-    // TODO: Add usage examples for each verb
+    // TODO Add usage examples for each verb
     abstract class Verb
     {
         static readonly Lazy<IEnumerable<Type>> _verbsLazy = new Lazy<IEnumerable<Type>>(() =>
