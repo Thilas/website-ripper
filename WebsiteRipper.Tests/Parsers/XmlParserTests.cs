@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using WebsiteRipper.Extensions;
 using WebsiteRipper.Parsers.Xml;
 using WebsiteRipper.Tests.Fixtures;
@@ -164,6 +165,19 @@ namespace WebsiteRipper.Tests.Parsers
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
                 var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
                 Assert.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void Rip_BasicXmlStyleSheetWithType_ReturnsResourcesWithExpectedMimeType()
+        {
+            const string mimeType = "type/subtype";
+            const string subUriString = "uri";
+            var xml = GetXml(processingInstructions: string.Format("<?xml-stylesheet type=\"{0}\" href=\"{1}\"?>", mimeType, subUriString));
+            using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
+            {
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
+                Assert.Single(actual, resource => string.Equals(resource.Parser.ActualMimeType, mimeType, StringComparison.OrdinalIgnoreCase));
             }
         }
 

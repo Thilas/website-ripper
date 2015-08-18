@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using WebsiteRipper.Extensions;
 using WebsiteRipper.Parsers;
 
 namespace WebsiteRipper
@@ -128,10 +129,7 @@ namespace WebsiteRipper
             var subResource = base.GetSubResource(depth, resource, reference);
             var defaultExtensionsReference = reference as DefaultExtensionsReference;
             if (subResource == null || defaultExtensionsReference == null) return subResource;
-            lock (_templates)
-            {
-                if (!_templates.ContainsKey(subResource.NewUri.LocalPath)) _templates.Add(subResource.NewUri.LocalPath, defaultExtensionsReference.MimeType);
-            }
+            _templates.TryAdd(subResource.NewUri.LocalPath, defaultExtensionsReference.MimeType);
             return subResource;
         }
 

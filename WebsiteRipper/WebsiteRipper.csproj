@@ -69,6 +69,7 @@
     <Compile Include="Downloaders\DownloaderAttribute.cs" />
     <Compile Include="Downloaders\HttpDownloader.cs" />
     <Compile Include="Extensions\CultureInfoExtensions.cs" />
+    <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\DirectoryInfoExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="DefaultExtensions.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Helpers\Helper.cs" />
     <Compile Include="Parsers\ParserArgs.cs" />
     <Compile Include="Parsers\ReferenceArgs.cs" />
+    <Compile Include="Parsers\ReferenceArgsCreator.cs" />
     <Compile Include="Parsers\ReferenceKey.cs" />
     <Compile Include="Parsers\ReferenceElementAttribute.cs" />
     <Compile Include="Parsers\Html\DuplicateBasesException.cs" />

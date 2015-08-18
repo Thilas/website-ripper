@@ -19,6 +19,7 @@ namespace WebsiteRipper.Parsers
 
         protected Reference(ReferenceArgs referenceArgs)
         {
+            if (referenceArgs == null) throw new ArgumentNullException("referenceArgs");
             _parser = referenceArgs.Parser;
             Kind = referenceArgs.Kind;
             MimeType = referenceArgs.MimeType;
@@ -134,7 +135,7 @@ namespace WebsiteRipper.Parsers
             return elementAttributesSelector(element).Join(references,
                 attribute => new ReferenceKey(attributeNameSelector(attribute), attributeNamespaceSelector != null ? attributeNamespaceSelector(attribute) : null),
                 reference => reference.AttributeKey,
-                (attribute, reference) => reference.Constructor(new ReferenceArgs<TElement, TAttribute>(parser, reference.Kind, null, element, attribute)));
+                (attribute, reference) => reference.Constructor(reference.ArgsCreator.Create(parser, reference.Kind, element, attribute)));
         }
 
         protected TElement Element { get; private set; }
@@ -143,7 +144,6 @@ namespace WebsiteRipper.Parsers
         protected Reference(ReferenceArgs<TElement, TAttribute> referenceArgs)
             : base(referenceArgs)
         {
-            if (referenceArgs == null) throw new ArgumentNullException("referenceArgs");
             Element = referenceArgs.Element;
             Attribute = referenceArgs.Attribute;
         }

@@ -10,11 +10,14 @@ namespace WebsiteRipper.Parsers
 
         public ReferenceKind Kind { get; set; }
 
+        public Type ArgsCreatorType { get; set; }
+
         public ReferenceAttributeAttribute(string name)
         {
             if (name == null) throw new ArgumentNullException("name");
             _name = name;
             Kind = ReferenceKind.ExternalResource;
+            ArgsCreatorType = null;
         }
     }
 }

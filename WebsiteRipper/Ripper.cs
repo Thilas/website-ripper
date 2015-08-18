@@ -204,11 +204,9 @@ namespace WebsiteRipper
 
         protected virtual Resource GetResource(Uri uri, bool hyperlink, string mimeType)
         {
-            Resource resource;
-            if (_uris.TryGetValue(uri, out resource)) return resource;
-            lock (_uris)
+            return _uris.GetOrAdd(uri, _ =>
             {
-                if (_uris.TryGetValue(uri, out resource)) return resource;
+                Resource resource;
                 try
                 {
                     resource = new Resource(this, uri, hyperlink, mimeType);
@@ -222,9 +220,8 @@ namespace WebsiteRipper
                     resource = _uris[sameUri];
                 else
                     _resources.Add(resource, uri);
-                _uris.Add(uri, resource);
-            }
-            return resource;
+                return resource;
+            });
         }
     }
 }
