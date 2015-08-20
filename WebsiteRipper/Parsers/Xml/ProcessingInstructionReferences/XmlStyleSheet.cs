@@ -15,9 +15,10 @@ namespace WebsiteRipper.Parsers.Xml.ProcessingInstructionReferences
                 return typeAttribute != null ? typeAttribute.Value : null;
             }
 
-            public override ReferenceArgs<XmlProcessingInstruction, XmlAttribute> Create(Parser parser, ReferenceKind kind, XmlProcessingInstruction element, XmlAttribute attribute)
+            public override ReferenceArgs<XmlProcessingInstruction, XmlAttribute> Create(Parser parser, ReferenceKind kind,
+                XmlProcessingInstruction element, XmlAttribute attribute, ReferenceValueParser valueParser)
             {
-                return new ReferenceArgs<XmlProcessingInstruction, XmlAttribute>(parser, kind, GetMimeType(attribute), element, attribute);
+                return new ReferenceArgs<XmlProcessingInstruction, XmlAttribute>(parser, kind, GetMimeType(attribute), element, attribute, valueParser);
             }
         }
 

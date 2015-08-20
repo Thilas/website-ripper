@@ -27,7 +27,7 @@ namespace WebsiteRipper.Parsers.Html
             return _htmlParser == null || _htmlParser.BaseUri == null ? resource.OriginalUri : _htmlParser.BaseUri;
         }
 
-        protected sealed override string UriInternal
+        protected sealed override string ValueInternal
         {
             get { return HtmlEntity.DeEntitize(Attribute.Value); }
             set { Attribute.Value = HtmlEntity.Entitize(value); }

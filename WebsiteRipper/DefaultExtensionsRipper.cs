@@ -124,13 +124,14 @@ namespace WebsiteRipper
             Timeout = DefaultExtensions.Timeout;
         }
 
-        internal override Resource GetSubResource(int depth, Resource resource, Reference reference)
+        internal override IEnumerable<Resource> GetSubResources(int depth, Resource resource, Reference reference)
         {
-            var subResource = base.GetSubResource(depth, resource, reference);
+            var subResources = base.GetSubResources(depth, resource, reference).ToList();
             var defaultExtensionsReference = reference as DefaultExtensionsReference;
-            if (subResource == null || defaultExtensionsReference == null) return subResource;
-            _templates.TryAdd(subResource.NewUri.LocalPath, defaultExtensionsReference.MimeType);
-            return subResource;
+            if (!subResources.Any() || defaultExtensionsReference == null) return subResources;
+            foreach (var subResource in subResources)
+                _templates.TryAdd(subResource.NewUri.LocalPath, defaultExtensionsReference.MimeType);
+            return subResources;
         }
 
         protected override Resource GetResource(Uri uri, bool hyperlink, string mimeType)

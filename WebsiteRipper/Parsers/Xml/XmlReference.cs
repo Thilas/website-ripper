@@ -18,7 +18,7 @@ namespace WebsiteRipper.Parsers.Xml
 
         protected XmlReference(ReferenceArgs<XmlElement, XmlAttribute> referenceArgs) : base(referenceArgs) { }
 
-        protected sealed override string UriInternal
+        protected sealed override string ValueInternal
         {
             get { return Attribute.Value; }
             set { Attribute.Value = value; }

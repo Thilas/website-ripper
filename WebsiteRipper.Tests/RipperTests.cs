@@ -5,5 +5,6 @@ namespace WebsiteRipper.Tests
     {
         // TODO Test recursive resources
         // TODO Test duplicate resources
+        // TODO Test all kind of relative uris
     }
 }

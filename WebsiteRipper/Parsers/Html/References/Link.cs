@@ -26,9 +26,9 @@ namespace WebsiteRipper.Parsers.Html.References
                 return defaultKind;
             }
 
-            public override ReferenceArgs<HtmlNode, HtmlAttribute> Create(Parser parser, ReferenceKind kind, HtmlNode element, HtmlAttribute attribute)
+            public override ReferenceArgs<HtmlNode, HtmlAttribute> Create(Parser parser, ReferenceKind kind, HtmlNode element, HtmlAttribute attribute, ReferenceValueParser valueParser)
             {
-                return new ReferenceArgs<HtmlNode, HtmlAttribute>(parser, GetKind(element, kind), null, element, attribute);
+                return new ReferenceArgs<HtmlNode, HtmlAttribute>(parser, GetKind(element, kind), null, element, attribute, valueParser);
             }
         }
 

@@ -8,6 +8,7 @@ namespace WebsiteRipper.Parsers
         public ReferenceKind Kind { get; private set; }
         public Func<ReferenceArgs<TElement, TAttribute>, Reference<TElement, TAttribute>> Constructor { get; private set; }
         public ReferenceArgsCreator<TElement, TAttribute> ArgsCreator { get; private set; }
+        public ReferenceValueParser ValueParser { get; private set; }
 
         public ReferenceType(ReferenceAttributeAttribute referenceAttribute, string @namespace,
             Func<ReferenceArgs<TElement, TAttribute>, Reference<TElement, TAttribute>> constructor)
@@ -16,6 +17,7 @@ namespace WebsiteRipper.Parsers
             Kind = referenceAttribute.Kind;
             Constructor = constructor;
             ArgsCreator = ReferenceArgsCreator<TElement, TAttribute>.Create(referenceAttribute.ArgsCreatorType);
+            ValueParser = ReferenceValueParser.Create(referenceAttribute.ParserType);
         }
 
         public override bool Equals(object obj) { return obj is ReferenceType<TElement, TAttribute> && Equals((ReferenceType<TElement, TAttribute>)obj); }

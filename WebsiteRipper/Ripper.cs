@@ -181,25 +181,27 @@ namespace WebsiteRipper
             if (DownloadProgressChanged != null) DownloadProgressChanged(this, e);
         }
 
-        internal virtual Resource GetSubResource(int depth, Resource resource, Reference reference)
+        internal virtual IEnumerable<Resource> GetSubResources(int depth, Resource resource, Reference reference)
         {
             if (resource == null) throw new ArgumentNullException("resource");
             if (reference == null) throw new ArgumentNullException("reference");
-            if (reference.Uri.StartsWith("#")) return null;
-            var subUri = reference.GetAbsoluteUri(resource);
-            if (subUri == null) return null;
-            var isInScope = Downloader.Supports(subUri) && (
-                reference.Kind == ReferenceKind.ExternalResource ||
-                (MaxDepth <= 0 || depth <= MaxDepth) && (
-                    !IsBase && _includeRegexLazy == null ||
-                    IsBase && Resource.OriginalUri.IsBaseOf(subUri) ||
-                    _includeRegexLazy != null && _includeRegexLazy.Value.IsMatch(subUri.ToString())
-                )
-            );
-            var subResource = isInScope ? GetResource(subUri, reference.Kind == ReferenceKind.Hyperlink, reference.MimeType) : null;
-            var relativeUri = isInScope ? resource.NewUri.MakeRelativeUri(new Uri(subResource.NewUri, subUri.Fragment)) : subUri;
-            reference.Uri = Uri.UnescapeDataString(relativeUri.OriginalString);
-            return subResource;
+            foreach (var pair in reference.GetUris(resource))
+            {
+                if (pair.RelativeUri.StartsWith("#")) continue;
+                if (pair.Uri == null) continue;
+                var isInScope = Downloader.Supports(pair.Uri) && (
+                    reference.Kind == ReferenceKind.ExternalResource ||
+                    (MaxDepth <= 0 || depth <= MaxDepth) && (
+                        !IsBase && _includeRegexLazy == null ||
+                        IsBase && Resource.OriginalUri.IsBaseOf(pair.Uri) ||
+                        _includeRegexLazy != null && _includeRegexLazy.Value.IsMatch(pair.Uri.ToString())
+                    )
+                );
+                var subResource = isInScope ? GetResource(pair.Uri, reference.Kind == ReferenceKind.Hyperlink, reference.MimeType) : null;
+                var relativeUri = isInScope ? resource.NewUri.MakeRelativeUri(new Uri(subResource.NewUri, pair.Uri.Fragment)) : pair.Uri;
+                reference.Value = Uri.UnescapeDataString(relativeUri.OriginalString);
+                yield return subResource;
+            }
         }
 
         protected virtual Resource GetResource(Uri uri, bool hyperlink, string mimeType)

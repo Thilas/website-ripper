@@ -14,9 +14,9 @@ namespace WebsiteRipper.Tests.Parsers
         const string EmptyXml = "<root/>";
         static readonly string _xmlFormat = string.Format("<?xml version=\"1.0\" encoding=\"{0}\"?>{{0}}<{{1}} {{2}}>{{3}}</{{1}}>", _encodingName);
 
-        static string GetXml(string processingInstructions = null, string rootElement = "root", string rootAttributes = null, string rootElements = null)
+        static string GetXml(string processingInstructions = null, string rootElement = null, string rootAttributes = null, string rootElements = null)
         {
-            return string.Format(_xmlFormat, processingInstructions, rootElement, rootAttributes, rootElements);
+            return string.Format(_xmlFormat, processingInstructions, rootElement ?? "root", rootAttributes, rootElements);
         }
 
         [Theory]
@@ -104,7 +104,6 @@ namespace WebsiteRipper.Tests.Parsers
         [Theory]
         [InlineData("<!DOCTYPE root SYSTEM \"{0}\">", null, "", "", null)]
         [InlineData("<?xml-stylesheet href=\"{0}\"?>", null, "", "", null)]
-        [InlineData("", null, "xmlns:xsi=\"{{0}}\" xsi:schemaLocation=\"{0}\"", "", XmlParser.XsiNamespace)]
         [InlineData("", null, "xmlns:xsi=\"{{0}}\" xsi:noNamespaceSchemaLocation=\"{0}\"", "", XmlParser.XsiNamespace)]
         [InlineData("", "schema", "xmlns=\"{{0}}\"", "<include schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
         [InlineData("", "xsd:schema", "xmlns:xsd=\"{{0}}\"", "<xsd:include schemaLocation=\"{0}\"/>", XmlParser.XsdNamespace)]
@@ -122,13 +121,31 @@ namespace WebsiteRipper.Tests.Parsers
             const string subUriString = "uri";
             var xml = string.Format(GetXml(
                 processingInstructions: string.Format(processingInstructionsFormat, subUriString),
-                rootElement: rootElement ?? "root",
+                rootElement: rootElement,
                 rootAttributes: string.Format(rootAttributesFormat, subUriString),
                 rootElements: string.Format(rootElementsFormat, subUriString)), @namespace);
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
                 var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Theory]
+        [InlineData("value", new string[] { })]
+        [InlineData("nsUri {0}", new[] { "uri" })]
+        [InlineData("nsUri {0} value", new[] { "uri" })]
+        [InlineData("nsUri1 {0} nsUri2 {1} nsUri3 {2}", new[] { "uri1", "uri2", "uri3" })]
+        [InlineData("nsUri1 {0} nsUri2 {1} nsUri3 {2} value", new[] { "uri1", "uri2", "uri3" })]
+        public void Rip_BasicXmlWithXsiSchemaLocation_ReturnsExpectedResources(string schemaLocationFormat, string[] subUriStrings)
+        {
+            var xml = GetXml(rootAttributes: string.Format("xmlns:xsi=\"{0}\" xsi:schemaLocation=\"{1}\"", XmlParser.XsiNamespace,
+                string.Format(schemaLocationFormat, subUriStrings.Cast<object>().ToArray())));
+            using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
+            {
+                var expected = WebTest.GetExpectedResources(webTest, subUriStrings);
+                var actual = WebTest.GetActualResources(webTest, subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString)).ToArray());
                 Assert.Equal(expected, actual);
             }
         }
@@ -187,31 +204,31 @@ namespace WebsiteRipper.Tests.Parsers
             var args = new[] { _encodingName, XmlParser.XsdNamespace, XmlParser.XsiNamespace, XmlParser.XsltNamespace };
             var subUriStrings = new[]
             {
-                "doctypeUri", "xmlStyleSheetUri", "xsiSchemaLocationUri", "xsiNoNamespaceSchemaLocationUri",
-                "schemaIncludeSchemaLocationUri", "xsdIncludeSchemaLocationUri", "xsdRedefineSchemaLocationUri",
-                "xsdOverrideSchemaLocationUri", "xsdImportSchemaLocationUri", "xsdAppInfoSourceUri",
-                "xsdDocumentationSourceUri", "xsltImportHrefUri", "xsltImportSchemaSchemaLocationUri",
-                "xsltIncludeHrefUri"
+                "doctypeUri", "xmlStyleSheetUri", "xsiSchemaLocationUri1", "xsiSchemaLocationUri2",
+                "xsiNoNamespaceSchemaLocationUri", "schemaIncludeSchemaLocationUri", "xsdIncludeSchemaLocationUri",
+                "xsdRedefineSchemaLocationUri", "xsdOverrideSchemaLocationUri", "xsdImportSchemaLocationUri",
+                "xsdAppInfoSourceUri", "xsdDocumentationSourceUri", "xsltImportHrefUri",
+                "xsltImportSchemaSchemaLocationUri", "xsltIncludeHrefUri"
             };
             var xml = string.Format(@"<?xml version=""1.0"" encoding=""{0}""?>
 <!DOCTYPE root SYSTEM ""{4}"">
 <?xml-stylesheet href=""{5}""?>
-<root xmlns=""nsUri"" xmlns:prefix=""prefixNsUri"" xmlns:xsi=""{2}"" xsi:schemaLocation=""{6}"" xsi:noNamespaceSchemaLocation=""{7}"">
+<root xmlns=""nsUri"" xmlns:prefix=""prefixNsUri"" xmlns:xsi=""{2}"" xsi:schemaLocation=""ns1 {6} ns2 {7}"" xsi:noNamespaceSchemaLocation=""{8}"">
     <schema xmlns=""{1}"">
-        <include schemaLocation=""{8}""/>
+        <include schemaLocation=""{9}""/>
     </schema>
     <xsd:schema xmlns:xsd=""{1}"">
-        <xsd:include schemaLocation=""{9}""/>
-        <xsd:redefine schemaLocation=""{10}""/>
-        <xsd:override schemaLocation=""{11}""/>
-        <xsd:import schemaLocation=""{12}""/>
-        <xsd:appinfo source=""{13}""/>
-        <xsd:documentation source=""{14}""/>
+        <xsd:include schemaLocation=""{10}""/>
+        <xsd:redefine schemaLocation=""{11}""/>
+        <xsd:override schemaLocation=""{12}""/>
+        <xsd:import schemaLocation=""{13}""/>
+        <xsd:appinfo source=""{14}""/>
+        <xsd:documentation source=""{15}""/>
     </xsd:schema>
     <xsl:stylesheet xmlns:xsl=""{3}"" version=""1.0"">
-        <xsl:import href=""{15}""/>
-        <xsl:import-schema schema-location=""{16}""/>
-        <xsl:include href=""{17}""/>
+        <xsl:import href=""{16}""/>
+        <xsl:import-schema schema-location=""{17}""/>
+        <xsl:include href=""{18}""/>
     </xsl:stylesheet>
 </root>
 ", args.Concat(subUriStrings).Cast<object>().ToArray());

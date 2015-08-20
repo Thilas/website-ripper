@@ -38,7 +38,7 @@ namespace WebsiteRipper.Parsers.Xml
             _processingInstructionElement = referenceArgs.Attribute.GetOwnerElement();
         }
 
-        protected sealed override string UriInternal
+        protected sealed override string ValueInternal
         {
             get { return Attribute.Value; }
             set

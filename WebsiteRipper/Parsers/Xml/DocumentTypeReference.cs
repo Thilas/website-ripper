@@ -14,7 +14,7 @@ namespace WebsiteRipper.Parsers.Xml
             _documentType = document.DocumentType;
         }
 
-        protected override string UriInternal
+        protected override string ValueInternal
         {
             get { return _documentType.SystemId; }
             set

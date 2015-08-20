@@ -87,8 +87,8 @@ namespace WebsiteRipper.Parsers
                 _loaded = true;
             }
             if (_failed) yield break;
-            foreach (var subResource in GetReferences().Where(reference => reference.Kind != ReferenceKind.Skip && !string.IsNullOrEmpty(reference.Uri))
-                .Select(reference => ripper.GetSubResource(depth, resource, reference)))
+            foreach (var subResource in GetReferences().Where(reference => reference.Kind != ReferenceKind.Skip)
+                .SelectMany(reference => ripper.GetSubResources(depth, resource, reference)))
             {
                 if (subResource != null) yield return subResource;
                 ripper.CancellationToken.ThrowIfCancellationRequested();

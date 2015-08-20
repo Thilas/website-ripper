@@ -27,17 +27,22 @@ namespace WebsiteRipper.Parsers
 
         public override string ToString()
         {
-            return string.Format("{0} ({1}): {2}", GetType().Name, Kind, Uri);
+            return string.Format("{0} ({1}): {2}", GetType().Name, Kind, Value);
         }
 
         public ReferenceKind Kind { get; private set; }
 
         public string MimeType { get; private set; }
 
-        public Uri GetAbsoluteUri(Resource resource)
+        public virtual IEnumerable<RelativeUriUriPair> GetUris(Resource resource)
+        {
+            yield return GetUri(resource, Value);
+        }
+
+        protected RelativeUriUriPair GetUri(Resource resource, string relativeUri)
         {
             Uri subUri;
-            return System.Uri.TryCreate(GetBaseUri(resource), Uri, out subUri) ? subUri : null;
+            return new RelativeUriUriPair(relativeUri, Uri.TryCreate(GetBaseUri(resource), relativeUri, out subUri) ? subUri : null);
         }
 
         protected virtual Uri GetBaseUri(Resource resource)
@@ -45,27 +50,27 @@ namespace WebsiteRipper.Parsers
             return resource.OriginalUri;
         }
 
-        public string Uri
+        public string Value
         {
-            get { return UriInternal; }
+            get { return ValueInternal; }
             internal set
             {
-                var oldValue = UriInternal;
+                var oldValue = ValueInternal;
                 if (string.Equals(value, oldValue, StringComparison.OrdinalIgnoreCase)) return;
-                UriInternal = value;
-                if (!string.Equals(UriInternal, oldValue, StringComparison.OrdinalIgnoreCase)) _parser.AnyChange = true;
+                ValueInternal = value;
+                if (!string.Equals(ValueInternal, oldValue, StringComparison.OrdinalIgnoreCase)) _parser.AnyChange = true;
             }
         }
 
-        protected abstract string UriInternal { get; set; }
+        protected abstract string ValueInternal { get; set; }
     }
 
     public abstract class Reference<TElement, TAttribute> : Reference
     {
         sealed class FakeReference : Reference<TElement, TAttribute>
         {
-            public FakeReference(ReferenceArgs<TElement, TAttribute> referenceArgs) : base(referenceArgs) { }
-            protected override string UriInternal { get; set; }
+            public FakeReference(ReferenceArgs<TElement, TAttribute> referenceArgs) : base(referenceArgs) { throw new NotImplementedException(); }
+            protected override string ValueInternal { get; set; }
         }
 
         static IEnumerable<ReferenceType<TElement, TAttribute>> _anyReferences;
@@ -135,17 +140,26 @@ namespace WebsiteRipper.Parsers
             return elementAttributesSelector(element).Join(references,
                 attribute => new ReferenceKey(attributeNameSelector(attribute), attributeNamespaceSelector != null ? attributeNamespaceSelector(attribute) : null),
                 reference => reference.AttributeKey,
-                (attribute, reference) => reference.Constructor(reference.ArgsCreator.Create(parser, reference.Kind, element, attribute)));
+                (attribute, reference) => reference.Constructor(reference.ArgsCreator.Create(parser, reference.Kind, element, attribute, reference.ValueParser)));
         }
 
         protected TElement Element { get; private set; }
         protected TAttribute Attribute { get; private set; }
+        readonly ReferenceValueParser _valueParser;
 
         protected Reference(ReferenceArgs<TElement, TAttribute> referenceArgs)
             : base(referenceArgs)
         {
             Element = referenceArgs.Element;
             Attribute = referenceArgs.Attribute;
+            _valueParser = referenceArgs.ValueParser;
+        }
+
+        public sealed override IEnumerable<RelativeUriUriPair> GetUris(Resource resource)
+        {
+            return _valueParser == null
+                ? base.GetUris(resource)
+                : _valueParser.GetUriStrings(Value).Select(relativeUri => GetUri(resource, relativeUri));
         }
     }
 }

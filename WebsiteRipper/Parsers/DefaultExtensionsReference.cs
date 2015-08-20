@@ -12,7 +12,7 @@
             _file = file;
         }
 
-        protected override string UriInternal
+        protected override string ValueInternal
         {
             get { return _file; }
             set { }

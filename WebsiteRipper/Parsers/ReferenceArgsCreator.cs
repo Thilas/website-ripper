@@ -23,9 +23,9 @@ namespace WebsiteRipper.Parsers
             });
         }
 
-        public virtual ReferenceArgs<TElement, TAttribute> Create(Parser parser, ReferenceKind kind, TElement element, TAttribute attribute)
+        public virtual ReferenceArgs<TElement, TAttribute> Create(Parser parser, ReferenceKind kind, TElement element, TAttribute attribute, ReferenceValueParser valueParser)
         {
-            return new ReferenceArgs<TElement, TAttribute>(parser, kind, null, element, attribute);
+            return new ReferenceArgs<TElement, TAttribute>(parser, kind, null, element, attribute, valueParser);
         }
     }
 }

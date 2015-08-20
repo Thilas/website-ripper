@@ -21,14 +21,17 @@ namespace WebsiteRipper.Parsers
     {
         public TElement Element { get; private set; }
         public TAttribute Attribute { get; private set; }
+        public ReferenceValueParser ValueParser { get; private set; }
 
-        public ReferenceArgs(Parser parser, ReferenceKind kind, string mimeType, TElement element, TAttribute attribute)
+        public ReferenceArgs(Parser parser, ReferenceKind kind, string mimeType,
+            TElement element, TAttribute attribute, ReferenceValueParser valueParser)
             : base(parser, kind, mimeType)
         {
             if (element == null) throw new ArgumentNullException("element");
             if (attribute == null) throw new ArgumentNullException("attribute");
             Element = element;
             Attribute = attribute;
+            ValueParser = valueParser;
         }
     }
 }
