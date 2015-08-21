@@ -74,11 +74,8 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData(null, "<node attribute=value>Text</node>")]
         [InlineData("<link rel=dns-prefetch href=value>Text</link>", null)]
         // Not yet supported
-        [InlineData(null, "<applet archive=value>Text</applet>")]
         [InlineData(null, "<applet codebase=value>Text</applet>")]
-        [InlineData(null, "<object archive=value>Text</object>")]
         [InlineData(null, "<object codebase=value>Text</object>")]
-        [InlineData(null, "<source srcset=value>Text</source>")]
         public void Rip_BasicHtmlWithNoReferences_ReturnsSingleResource(string headNodes, string bodyNodes)
         {
             var html = GetHtml(headNodes: headNodes, bodyNodes: bodyNodes);
@@ -92,9 +89,7 @@ namespace WebsiteRipper.Tests.Parsers
 
         [Theory]
         [InlineData("", "", "", "", "<a href={0}>Text</a>")]
-        //[InlineData("", "", "", "", "<applet archive={0}>Text</applet>")]
         [InlineData("", "", "", "", "<applet code={0}>Text</applet>")]
-        //[InlineData("", "", "", "", "<applet codebase={0}>Text</applet>")]
         [InlineData("", "", "", "", "<area href={0}>Text</area>")]
         [InlineData("", "", "", "", "<audio src={0}>Text</audio>")]
         [InlineData("", "", "", " background={0}", "")]
@@ -113,13 +108,10 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData("", "", "<link rel=prefetch href={0}>Text</link>", "", "")]
         [InlineData("", "", "<link rel=stylesheet href={0}>Text</link>", "", "")]
         [InlineData("", "", "", "", "<menuitem icon={0}>Text</menuitem>")]
-        //[InlineData("", "", "", "", "<object archive={0}>Text</object>")]
         [InlineData("", "", "", "", "<object classid={0}>Text</object>")]
-        //[InlineData("", "", "", "", "<object codebase={0}>Text</object>")]
         [InlineData("", "", "", "", "<object data={0}>Text</object>")]
         [InlineData("", "", "", "", "<script src={0}>Text</script>")]
         [InlineData("", "", "", "", "<source src={0}>Text</source>")]
-        //[InlineData("", "", "", "", "<source srcset={0}>Text</source>")]
         [InlineData("", "", "", "", "<track src={0}>Text</track>")]
         [InlineData("", "", "", "", "<video poster={0}>Text</video>")]
         [InlineData("", "", "", "", "<video src={0}>Text</video>")]
@@ -137,7 +129,25 @@ namespace WebsiteRipper.Tests.Parsers
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, EmptyHtml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Theory]
+        [InlineData("<applet archive={0}>Text</applet>", new[] { "uri" })]
+        [InlineData("<applet archive={0},{1},{2}>Text</applet>", new[] { "uri1", "uri2", "uri3" })]
+        [InlineData("<object archive={0}>Text</applet>", new[] { "uri" })]
+        [InlineData("<object archive=\"{0} {1} {2}\">Text</applet>", new[] { "uri1", "uri2", "uri3" })]
+        [InlineData("<source srcset={0}>Text</applet>", new[] { "uri" })]
+        [InlineData("<source srcset={0},{1},{2}>Text</applet>", new[] { "uri1", "uri2", "uri3" })]
+        public void Rip_BasicHtmlWithMultipleReferences_ReturnsExpectedResources(string bodyNodesFormat, string[] subUriStrings)
+        {
+            var html = GetHtml(bodyNodes: string.Format(bodyNodesFormat, subUriStrings.Cast<object>().ToArray()));
+            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            {
+                var expected = WebTest.GetExpectedResources(webTest, subUriStrings);
+                var actual = WebTest.GetActualResources(webTest, subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString)).ToArray());
                 Assert.Equal(expected, actual);
             }
         }
@@ -159,7 +169,7 @@ namespace WebsiteRipper.Tests.Parsers
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, EmptyHtml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
                 Assert.Equal(expected, actual);
             }
         }
@@ -170,10 +180,11 @@ namespace WebsiteRipper.Tests.Parsers
             var subUriStrings = new[]
             {
                 "htmlManifestUri", "headProfileUri", "linkIconHrefUri", "linkPingBackHrefUri", "linkPrefetchHrefUri",
-                "linkStyleSheetHrefUri", "bodyBackgroundUri", "aHrefUri", "appletCodeUri", "areaHrefUri", "audioSrcUri",
-                "embedSrcUri", "frameLongDescUri", "frameSrcUri", "iframeLongDescUri", "iframeSrcUri", "imgLongDescUri",
-                "imgSrcUri", "inputSrcUri", "menuItemIconUri", "objectClassIdUri", "objectDataUri", "scriptSrcUri",
-                "sourceSrcUri", "trackSrcUri", "videoPosterUri", "videoSrcUri"
+                "linkStyleSheetHrefUri", "bodyBackgroundUri", "aHrefUri", "appletArchiveUri1", "appletArchiveUri2",
+                "appletCodeUri", "areaHrefUri", "audioSrcUri", "embedSrcUri", "frameLongDescUri", "frameSrcUri",
+                "iframeLongDescUri", "iframeSrcUri", "imgLongDescUri", "imgSrcUri", "inputSrcUri", "menuItemIconUri",
+                "objectClassIdUri", "objectArchiveUri1", "objectArchiveUri2", "objectDataUri", "scriptSrcUri",
+                "sourceSrcUri", "sourceSrcSetUri1", "sourceSrcSetUri2", "trackSrcUri", "videoPosterUri", "videoSrcUri"
             };
             var html = string.Format(@"<!-- comment -->
 <html manifest={0}>
@@ -188,21 +199,21 @@ namespace WebsiteRipper.Tests.Parsers
     <body background={6}>
         Body<br>
         A: <a href={7}>Text</a><br>
-        Applet: <applet archive=value code={8} codebase=value>Text</applet><br>
-        Area: <map><area href={9}>Text</area></map><br>
-        Audio: <audio src={10}>Text</audio><br>
+        Applet: <applet archive=""{8},{9}"" code={10} codebase=value>Text</applet><br>
+        Area: <map><area href={11}>Text</area></map><br>
+        Audio: <audio src={12}>Text</audio><br>
         Node: <node attribute=value>Text</node>
-        Embed: <embed src={11}>Text</embed><br>
-        Frame: <frameset><frame longdesc={12} src={13}>Text</frame></frameset><br>
-        Iframe: <iframe longdesc={14} src={15}>Text</iframe><br>
-        Img: <img longdesc={16} src={17}>Text</img><br>
-        Input: <input src={18}>Text</input><br>
-        MenuItem: <menu><menuitem icon={19}>Text</menuitem></menu><br>
-        Object: <object archive=value classid={20} codebase=value data={21}>Text</object><br>
-        Script: <script src={22}>Text</script><br>
-        Source: <audio><source src={23} srcsetSourceSrcSet=value>Text</source></audio><br>
-        Track: <video><track src={24}>Text</track></video><br>
-        Video: <video poster={25} src={26}>Text</video><br>
+        Embed: <embed src={13}>Text</embed><br>
+        Frame: <frameset><frame longdesc={14} src={15}>Text</frame></frameset><br>
+        Iframe: <iframe longdesc={16} src={17}>Text</iframe><br>
+        Img: <img longdesc={18} src={19}>Text</img><br>
+        Input: <input src={20}>Text</input><br>
+        MenuItem: <menu><menuitem icon={21}>Text</menuitem></menu><br>
+        Object: <object archive=""{22} {23}"" classid={24} codebase=value data={25}>Text</object><br>
+        Script: <script src={26}>Text</script><br>
+        Source: <audio><source src={27} srcset=""{28},{29}"">Text</source></audio><br>
+        Track: <video><track src={30}>Text</track></video><br>
+        Video: <video poster={31} src={32}>Text</video><br>
     </body>
 </html>
 ", subUriStrings.Cast<object>().ToArray());
@@ -210,7 +221,7 @@ namespace WebsiteRipper.Tests.Parsers
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriStrings);
                 var actual = WebTest.GetActualResources(webTest,
-                    subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, EmptyHtml)).ToArray());
+                    subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString)).ToArray());
                 Assert.Equal(expected, actual);
             }
         }
@@ -295,7 +306,7 @@ namespace WebsiteRipper.Tests.Parsers
             {
                 var subUri = new Uri(WebTest.GetUri(baseUriStringWithoutScheme), subUriString);
                 var expected = WebTest.GetExpectedResources(webTest, subUri);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUri, HtmlParser.MimeType, EmptyHtml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUri));
                 Assert.Equal(expected, actual);
             }
         }
@@ -316,7 +327,7 @@ namespace WebsiteRipper.Tests.Parsers
             using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, HtmlParser.MimeType, EmptyHtml));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
                 Assert.Equal(expected, actual);
             }
         }

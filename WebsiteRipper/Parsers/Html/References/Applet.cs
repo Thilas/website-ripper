@@ -1,12 +1,24 @@
-﻿using HtmlAgilityPack;
+﻿using System.Collections.Generic;
+using HtmlAgilityPack;
+using WebsiteRipper.Helpers;
 
 namespace WebsiteRipper.Parsers.Html.References
 {
-    //[ReferenceAttribute("archive")] // TODO: Comma-separated archive list
+    [ReferenceAttribute("archive", ParserType = typeof(ArchiveParser))]
     [ReferenceAttribute("code")]
-    //[ReferenceAttribute("codeBase")] // TODO: Optional base uri for applet
+    // TODO Optional base uri for applet
+    //[ReferenceAttribute("codeBase")]
     public sealed class Applet : HtmlReference
     {
+        sealed class ArchiveParser : ReferenceValueParser
+        {
+            public override IEnumerable<string> GetUriStrings(string value)
+            {
+                // "archive" attribute contains comma-separated uris.
+                return Helper.SplitCommaSeparatedTokens(value);
+            }
+        }
+
         public Applet(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
     }
 }

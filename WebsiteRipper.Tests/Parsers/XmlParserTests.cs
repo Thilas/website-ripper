@@ -133,15 +133,14 @@ namespace WebsiteRipper.Tests.Parsers
         }
 
         [Theory]
-        [InlineData("value", new string[] { })]
-        [InlineData("nsUri {0}", new[] { "uri" })]
-        [InlineData("nsUri {0} value", new[] { "uri" })]
-        [InlineData("nsUri1 {0} nsUri2 {1} nsUri3 {2}", new[] { "uri1", "uri2", "uri3" })]
-        [InlineData("nsUri1 {0} nsUri2 {1} nsUri3 {2} value", new[] { "uri1", "uri2", "uri3" })]
-        public void Rip_BasicXmlWithXsiSchemaLocation_ReturnsExpectedResources(string schemaLocationFormat, string[] subUriStrings)
+        [InlineData("xmlns:xsi=\"{{0}}\" xsi:schemaLocation=\"value\"", XmlParser.XsiNamespace, new string[] { })]
+        [InlineData("xmlns:xsi=\"{{0}}\" xsi:schemaLocation=\"nsUri {0}\"", XmlParser.XsiNamespace, new[] { "uri" })]
+        [InlineData("xmlns:xsi=\"{{0}}\" xsi:schemaLocation=\"nsUri {0} value\"", XmlParser.XsiNamespace, new[] { "uri" })]
+        [InlineData("xmlns:xsi=\"{{0}}\" xsi:schemaLocation=\"nsUri1 {0} nsUri2 {1} nsUri3 {2}\"", XmlParser.XsiNamespace, new[] { "uri1", "uri2", "uri3" })]
+        [InlineData("xmlns:xsi=\"{{0}}\" xsi:schemaLocation=\"nsUri1 {0} nsUri2 {1} nsUri3 {2} value\"", XmlParser.XsiNamespace, new[] { "uri1", "uri2", "uri3" })]
+        public void Rip_BasicXmlWithMultipleReferences_ReturnsExpectedResources(string rootAttributesFormat, string @namespace, string[] subUriStrings)
         {
-            var xml = GetXml(rootAttributes: string.Format("xmlns:xsi=\"{0}\" xsi:schemaLocation=\"{1}\"", XmlParser.XsiNamespace,
-                string.Format(schemaLocationFormat, subUriStrings.Cast<object>().ToArray())));
+            var xml = string.Format(GetXml(rootAttributes: string.Format(rootAttributesFormat, subUriStrings.Cast<object>().ToArray())), @namespace);
             using (var webTest = new WebTestInfo(XmlParser.MimeType, xml))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriStrings);

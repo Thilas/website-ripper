@@ -14,6 +14,7 @@ using WebsiteRipper.Parsers;
 namespace WebsiteRipper
 {
     // TODO Write code documentation
+    // TODO Use IoC wherever possible
     public class Ripper
     {
         readonly Dictionary<Uri, Resource> _uris = new Dictionary<Uri, Resource>();

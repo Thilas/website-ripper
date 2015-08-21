@@ -83,7 +83,7 @@ namespace WebsiteRipper.Tests.Parsers
             using (var webTest = new WebTestInfo(CssParser.MimeType, css))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, CssParser.MimeType, EmptyCss));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
                 Assert.Equal(expected, actual);
             }
         }
@@ -98,7 +98,7 @@ namespace WebsiteRipper.Tests.Parsers
             using (var webTest = new WebTestInfo(CssParser.MimeType, css))
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
-                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString, CssParser.MimeType, EmptyCss));
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
                 Assert.Equal(expected, actual);
             }
         }
@@ -126,7 +126,7 @@ selector3 {{
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriStrings);
                 var actual = WebTest.GetActualResources(webTest,
-                    subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString, CssParser.MimeType, EmptyCss)).ToArray());
+                    subUriStrings.Select(subUriString => new WebTestInfo(webTest, subUriString)).ToArray());
                 Assert.Equal(expected, actual);
             }
         }

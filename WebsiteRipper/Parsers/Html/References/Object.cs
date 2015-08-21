@@ -1,13 +1,25 @@
-﻿using HtmlAgilityPack;
+﻿using System.Collections.Generic;
+using HtmlAgilityPack;
+using WebsiteRipper.Helpers;
 
 namespace WebsiteRipper.Parsers.Html.References
 {
-    //[ReferenceAttribute("archive")] // TODO: Space-separated list of uris
+    [ReferenceAttribute("archive", ParserType = typeof(ArchiveParser))]
     [ReferenceAttribute("classId")]
-    //[ReferenceAttribute("codeBase")] // TODO: Base uri for archive, classId & data
+    // TODO Base uri for archive, classId & data
+    //[ReferenceAttribute("codeBase")]
     [ReferenceAttribute("data")]
     public sealed class Object : HtmlReference
     {
+        sealed class ArchiveParser : ReferenceValueParser
+        {
+            public override IEnumerable<string> GetUriStrings(string value)
+            {
+                // "archive" attribute contains space-separated uris.
+                return Helper.SplitSpaceSeparatedTokens(value);
+            }
+        }
+
         public Object(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
     }
 }

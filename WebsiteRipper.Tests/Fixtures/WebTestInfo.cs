@@ -37,11 +37,11 @@ namespace WebsiteRipper.Tests.Fixtures
 
         public WebTestInfo(string name, string mimeType, string content) : this(null, WebTest.GetUri(name), mimeType, content) { }
 
-        public WebTestInfo(WebTestInfo webTest, string relativeUri) : this(webTest, new Uri(webTest.Uri, relativeUri), DefaultParser.MimeType, null) { }
+        public WebTestInfo(WebTestInfo webTest, string relativeUri) : this(webTest, new Uri(webTest.Uri, relativeUri)) { }
 
         public WebTestInfo(WebTestInfo webTest, string relativeUri, string mimeType, string content) : this(webTest, new Uri(webTest.Uri, relativeUri), mimeType, content) { }
 
-        public WebTestInfo(WebTestInfo webTest, Uri uri, string mimeType, string content)
+        public WebTestInfo(WebTestInfo webTest, Uri uri, string mimeType = DefaultParser.MimeType, string content = null)
         {
             _rootPath = webTest == null ? Path.GetTempFileName() : null;
             if (_rootPath != null) File.Delete(_rootPath);

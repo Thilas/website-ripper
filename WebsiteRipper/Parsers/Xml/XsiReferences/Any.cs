@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using WebsiteRipper.Helpers;
 
 namespace WebsiteRipper.Parsers.Xml.XsiReferences
 {
@@ -13,9 +14,8 @@ namespace WebsiteRipper.Parsers.Xml.XsiReferences
         {
             public override IEnumerable<string> GetUriStrings(string value)
             {
-                // "schemaLocation" attribute contains space-separated pairs of "namespaceUri schemaUri".
-                // Only "schemaUri" values are kept here.
-                return value.Split(' ').Where((_, i) => i % 2 == 1);
+                // "schemaLocation" attribute contains space-separated pairs of "namespaceUri schemaUri", only "schemaUri" values are kept here.
+                return Helper.SplitSpaceSeparatedTokens(value).Where((_, i) => i % 2 == 1);
             }
         }
 

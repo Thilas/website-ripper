@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using HtmlAgilityPack;
+using WebsiteRipper.Helpers;
 
 namespace WebsiteRipper.Parsers.Html.References
 {
@@ -15,10 +16,9 @@ namespace WebsiteRipper.Parsers.Html.References
         {
             static ReferenceKind GetKind(HtmlNode element, ReferenceKind defaultKind)
             {
-                const char listSeparatorChar = ' ';
                 var relationshipAttribute = element.Attributes["rel"];
                 if (relationshipAttribute == null || string.IsNullOrEmpty(relationshipAttribute.Value)) return defaultKind;
-                var relationships = relationshipAttribute.Value.Split(listSeparatorChar);
+                var relationships = Helper.SplitSpaceSeparatedTokens(relationshipAttribute.Value);
                 if (relationships.Any(relationship => _externalResourceRelationships.Any(type => string.Equals(relationship, type, StringComparison.OrdinalIgnoreCase))))
                     return ReferenceKind.ExternalResource;
                 if (relationships.Any(relationship => _skipRelationships.Any(type => string.Equals(relationship, type, StringComparison.OrdinalIgnoreCase))))
