@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using WebsiteRipper.Extensions;
 using WebsiteRipper.Parsers.Html;
 using WebsiteRipper.Tests.Fixtures;
 using Xunit;
@@ -73,9 +74,6 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData(null, null)]
         [InlineData(null, "<node attribute=value>Text</node>")]
         [InlineData("<link rel=dns-prefetch href=value>Text</link>", null)]
-        // Not yet supported
-        [InlineData(null, "<applet codebase=value>Text</applet>")]
-        [InlineData(null, "<object codebase=value>Text</object>")]
         public void Rip_BasicHtmlWithNoReferences_ReturnsSingleResource(string headNodes, string bodyNodes)
         {
             var html = GetHtml(headNodes: headNodes, bodyNodes: bodyNodes);
@@ -199,7 +197,7 @@ namespace WebsiteRipper.Tests.Parsers
     <body background={6}>
         Body<br>
         A: <a href={7}>Text</a><br>
-        Applet: <applet archive=""{8},{9}"" code={10} codebase=value>Text</applet><br>
+        Applet: <applet archive=""{8},{9}"" code={10}>Text</applet><br>
         Area: <map><area href={11}>Text</area></map><br>
         Audio: <audio src={12}>Text</audio><br>
         Node: <node attribute=value>Text</node>
@@ -209,7 +207,7 @@ namespace WebsiteRipper.Tests.Parsers
         Img: <img longdesc={18} src={19}>Text</img><br>
         Input: <input src={20}>Text</input><br>
         MenuItem: <menu><menuitem icon={21}>Text</menuitem></menu><br>
-        Object: <object archive=""{22} {23}"" classid={24} codebase=value data={25}>Text</object><br>
+        Object: <object archive=""{22} {23}"" classid={24} data={25}>Text</object><br>
         Script: <script src={26}>Text</script><br>
         Source: <audio><source src={27} srcset=""{28},{29}"">Text</source></audio><br>
         Track: <video><track src={30}>Text</track></video><br>
@@ -259,9 +257,8 @@ namespace WebsiteRipper.Tests.Parsers
 
         [Theory]
         [InlineData("", "", "", "", "<a href={0}>Text</a>")]
-        //[InlineData("", "", "", "", "<applet archive={0}>Text</applet>")]
+        [InlineData("", "", "", "", "<applet archive={0}>Text</applet>")]
         [InlineData("", "", "", "", "<applet code={0}>Text</applet>")]
-        //[InlineData("", "", "", "", "<applet codebase={0}>Text</applet>")]
         [InlineData("", "", "", "", "<area href={0}>Text</area>")]
         [InlineData("", "", "", "", "<audio src={0}>Text</audio>")]
         [InlineData("", "", "", " background={0}", "")]
@@ -279,13 +276,12 @@ namespace WebsiteRipper.Tests.Parsers
         [InlineData("", "", "<link rel=prefetch href={0}>Text</link>", "", "")]
         [InlineData("", "", "<link rel=stylesheet href={0}>Text</link>", "", "")]
         [InlineData("", "", "", "", "<menuitem icon={0}>Text</menuitem>")]
-        //[InlineData("", "", "", "", "<object archive={0}>Text</object>")]
+        [InlineData("", "", "", "", "<object archive={0}>Text</object>")]
         [InlineData("", "", "", "", "<object classid={0}>Text</object>")]
-        //[InlineData("", "", "", "", "<object codebase={0}>Text</object>")]
         [InlineData("", "", "", "", "<object data={0}>Text</object>")]
         [InlineData("", "", "", "", "<script src={0}>Text</script>")]
         [InlineData("", "", "", "", "<source src={0}>Text</source>")]
-        //[InlineData("", "", "", "", "<source srcset={0}>Text</source>")]
+        [InlineData("", "", "", "", "<source srcset={0}>Text</source>")]
         [InlineData("", "", "", "", "<track src={0}>Text</track>")]
         [InlineData("", "", "", "", "<video poster={0}>Text</video>")]
         [InlineData("", "", "", "", "<video src={0}>Text</video>")]
@@ -318,9 +314,11 @@ namespace WebsiteRipper.Tests.Parsers
             string bodyAttributesFormat, string bodyNodesFormat)
         {
             const string subUriString = "uri";
+            const string baseUriStringWithoutScheme = "baseUri";
             var html = GetHtml(
                 htmlAttributes: string.Format(htmlAttributesFormat, subUriString),
                 headAttributes: string.Format(headAttributesFormat, subUriString),
+                baseNodes: GetBaseNode(baseUriStringWithoutScheme),
                 headNodes: string.Format(headNodesFormat, subUriString),
                 bodyAttributes: string.Format(bodyAttributesFormat, subUriString),
                 bodyNodes: string.Format(bodyNodesFormat, subUriString));
@@ -328,6 +326,51 @@ namespace WebsiteRipper.Tests.Parsers
             {
                 var expected = WebTest.GetExpectedResources(webTest, subUriString);
                 var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUriString));
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Theory]
+        [InlineData("", "", "", "", "<applet archive={0} codebase={1}>Text</applet>")]
+        [InlineData("", "", "", "", "<applet code={0} codebase={1}>Text</applet>")]
+        [InlineData("", "", "", "", "<object archive={0} codebase={1}>Text</object>")]
+        [InlineData("", "", "", "", "<object classid={0} codebase={1}>Text</object>")]
+        [InlineData("", "", "", "", "<object codebase={1} data={0}>Text</object>")]
+        public void Rip_BasicHtmlWithSpecificBaseUri_ReturnsRebasedResources(string htmlAttributesFormat,
+            string headAttributesFormat, string headNodesFormat,
+            string bodyAttributesFormat, string bodyNodesFormat)
+        {
+            const string subUriString = "uri";
+            const string specificBaseUriStringWithoutScheme = "specificBaseUri";
+            var specificBaseUri = WebTest.GetUri(specificBaseUriStringWithoutScheme);
+            var html = GetHtml(
+                htmlAttributes: string.Format(htmlAttributesFormat, subUriString, specificBaseUri),
+                headAttributes: string.Format(headAttributesFormat, subUriString, specificBaseUri),
+                baseNodes: GetBaseNode("baseUri"),
+                headNodes: string.Format(headNodesFormat, subUriString, specificBaseUri),
+                bodyAttributes: string.Format(bodyAttributesFormat, subUriString, specificBaseUri),
+                bodyNodes: string.Format(bodyNodesFormat, subUriString, specificBaseUri));
+            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            {
+                var subUri = new Uri(specificBaseUri, subUriString);
+                var expected = WebTest.GetExpectedResources(webTest, subUri);
+                var actual = WebTest.GetActualResources(webTest, new WebTestInfo(webTest, subUri));
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        [Fact]
+        public void Rip_BasicHtmlWithMultipleReferencesSpecificBaseUri_ReturnsExpectedRebasedResources()
+        {
+            var subUriStrings = new[] { "uri1", "uri2", "uri3" };
+            const string specificBaseUriStringWithoutScheme = "specificBaseUri";
+            var specificBaseUri = WebTest.GetUri(specificBaseUriStringWithoutScheme);
+            var html = GetHtml(bodyNodes: string.Format("<object archive={1} classid={2} codebase={0} data={3}>Text</object>", subUriStrings.Cast<object>().Prepend(specificBaseUri).ToArray()));
+            using (var webTest = new WebTestInfo(HtmlParser.MimeType, html))
+            {
+                var subUris = subUriStrings.Select(subUriString => new Uri(specificBaseUri, subUriString)).ToArray();
+                var expected = WebTest.GetExpectedResources(webTest, subUris);
+                var actual = WebTest.GetActualResources(webTest, subUris.Select(subUri => new WebTestInfo(webTest, subUri)).ToArray());
                 Assert.Equal(expected, actual);
             }
         }

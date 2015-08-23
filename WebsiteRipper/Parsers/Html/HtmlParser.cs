@@ -31,8 +31,24 @@ namespace WebsiteRipper.Parsers.Html
                 .SelectMany(node => HtmlReference.Create(this, node));
         }
 
+        readonly HashSet<HtmlAttribute> _attributes = new HashSet<HtmlAttribute>();
+
+        internal void Remove(HtmlAttribute attribute)
+        {
+            lock (_attributes)
+            {
+                if (_attributes.Contains(attribute)) return;
+                AnyChange = true;
+                _attributes.Add(attribute);
+            }
+        }
+
         protected override void Save(string path)
         {
+            lock (_attributes)
+            {
+                foreach (var attribute in _attributes) attribute.Remove();
+            }
             _document.Save(path);
         }
 

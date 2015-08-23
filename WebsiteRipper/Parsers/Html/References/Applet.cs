@@ -6,8 +6,6 @@ namespace WebsiteRipper.Parsers.Html.References
 {
     [ReferenceAttribute("archive", ParserType = typeof(ArchiveParser))]
     [ReferenceAttribute("code")]
-    // TODO Optional base uri for applet
-    //[ReferenceAttribute("codeBase")]
     public sealed class Applet : HtmlReference
     {
         sealed class ArchiveParser : ReferenceValueParser
@@ -19,6 +17,10 @@ namespace WebsiteRipper.Parsers.Html.References
             }
         }
 
-        public Applet(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Applet(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
+            : base(referenceArgs)
+        {
+            SetBaseUri(referenceArgs, "codeBase");
+        }
     }
 }

@@ -15,6 +15,7 @@ namespace WebsiteRipper.Parsers.Html
         }
 
         readonly HtmlParser _htmlParser;
+        Uri _baseUri = null;
 
         protected HtmlReference(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
             : base(referenceArgs)
@@ -22,8 +23,17 @@ namespace WebsiteRipper.Parsers.Html
             _htmlParser = referenceArgs.Parser as HtmlParser;
         }
 
+        protected void SetBaseUri(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs, string attributeName)
+        {
+            var baseUriAttribute = referenceArgs.Element.Attributes[attributeName];
+            if (baseUriAttribute == null) return;
+            if (!Uri.TryCreate(baseUriAttribute.Value, UriKind.Absolute, out _baseUri)) _baseUri = null;
+            if (_htmlParser != null) _htmlParser.Remove(baseUriAttribute);
+        }
+
         protected override Uri GetBaseUri(Resource resource)
         {
+            if (_baseUri != null) return _baseUri;
             return _htmlParser == null || _htmlParser.BaseUri == null ? resource.OriginalUri : _htmlParser.BaseUri;
         }
 

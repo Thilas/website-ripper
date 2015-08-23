@@ -6,8 +6,6 @@ namespace WebsiteRipper.Parsers.Html.References
 {
     [ReferenceAttribute("archive", ParserType = typeof(ArchiveParser))]
     [ReferenceAttribute("classId")]
-    // TODO Base uri for archive, classId & data
-    //[ReferenceAttribute("codeBase")]
     [ReferenceAttribute("data")]
     public sealed class Object : HtmlReference
     {
@@ -20,6 +18,10 @@ namespace WebsiteRipper.Parsers.Html.References
             }
         }
 
-        public Object(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs) : base(referenceArgs) { }
+        public Object(ReferenceArgs<HtmlNode, HtmlAttribute> referenceArgs)
+            : base(referenceArgs)
+        {
+            SetBaseUri(referenceArgs, "codeBase");
+        }
     }
 }
