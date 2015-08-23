@@ -59,6 +59,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandLine\CreateNewVerb.cs" />
+    <Compile Include="CommandLine\CreateVerb.cs" />
+    <Compile Include="CommandLine\TruncateVerb.cs" />
+    <Compile Include="CommandLine\UpdateOrCreateVerb.cs" />
+    <Compile Include="CommandLine\UpdateVerb.cs" />
     <Compile Include="CommandLine\Verb.cs" />
     <Compile Include="CommandLine\ProgressConsole.cs" />
     <Compile Include="CommandLine\RipVerb.cs" />

@@ -14,7 +14,6 @@ namespace WebsiteRipper.CommandLine
         ArgumentsError = -2
     }
 
-    // TODO Add usage examples for each verb
     abstract class Verb
     {
         static readonly Lazy<IEnumerable<Type>> _verbsLazy = new Lazy<IEnumerable<Type>>(() =>
@@ -43,8 +42,18 @@ namespace WebsiteRipper.CommandLine
             return (int)exitCode;
         }
 
-        [Option('u', "user-agent", HelpText = "Downloader user agent")]
-        public string UserAgent { set { HttpDownloader.UserAgent = value; } }
+        string _userAgent = null;
+
+        [Option('u', "user-agent", MetaValue = "<value>", HelpText = "Downloader user agent.")]
+        public string UserAgent
+        {
+            get { return _userAgent; }
+            set
+            {
+                _userAgent = value;
+                HttpDownloader.UserAgent = value;
+            }
+        }
 
         ExitCode TryProcess()
         {

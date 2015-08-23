@@ -138,9 +138,10 @@ namespace WebsiteRipper
                 {
                     switch (ripMode)
                     {
-                        case RipMode.Create:
-                            throw new IOException("Root path already exists.");
                         case RipMode.CreateNew:
+                            if (directory.EnumerateFileSystemInfos().Any()) throw new IOException("Root path already exists.");
+                            break;
+                        case RipMode.Create:
                         case RipMode.Truncate:
                             directory.Clear();
                             break;
@@ -152,7 +153,7 @@ namespace WebsiteRipper
                     {
                         case RipMode.Update:
                         case RipMode.Truncate:
-                            throw new DirectoryNotFoundException("Root path does not exists.");
+                            throw new DirectoryNotFoundException("Root path does not exist.");
                     }
                     directory.Create();
                 }

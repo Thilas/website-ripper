@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using CommandLine;
+using CommandLine.Text;
 
 namespace WebsiteRipper.CommandLine
 {
-    [Verb("rip", HelpText = "Rip a website from a base uri")]
-    sealed class RipVerb : Verb
+    abstract class RipVerb : Verb
     {
-        [Value(0, MetaName = "Uri", Required = true, HelpText = "Base uri of the website to rip")]
+        protected abstract RipMode RipMode { get; }
+
+        [Value(0, MetaName = "<uri>", Required = true, HelpText = "Base uri of the website to rip.")]
         public string Uri { get; set; }
 
-        [Option('o', "output", Default = ".", HelpText = "Output location")]
+        [Option('o', "output", MetaValue = "<path>", Default = ".", HelpText = "Output location.")]
         public string Output { get; set; }
 
-        [Option('l', "langs", Separator = ',', HelpText = "Languages")]
+        [Option('l', "langs", MetaValue = "<codes>", Separator = ',', HelpText = "List of comma-separated languages.")]
         public IEnumerable<string> Langs { get; set; }
 
         IEnumerable<CultureInfo> Languages
@@ -35,24 +37,18 @@ namespace WebsiteRipper.CommandLine
             }
         }
 
-        [Option(Default = false, HelpText = "Update existing resource(s)")]
-        public bool Update { get; set; }
-
-        // TODO Add verbs for each RipMode
-        RipMode RipMode { get { return Update ? RipMode.UpdateOrCreate : RipMode.CreateNew; } }
-
         const int TimeoutMultiplier = 1000;
 
-        [Option('t', "timeout", Default = DefaultExtensions.Timeout / TimeoutMultiplier, HelpText = "Time-out value in seconds for each download")]
+        [Option('t', "timeout", MetaValue = "<seconds>", Default = DefaultExtensions.Timeout / TimeoutMultiplier, HelpText = "Time-out value in seconds for each resources.")]
         public int Timeout { get; set; }
 
-        [Option('b', "is-base", Default = false, HelpText = "Download resources below base uri only")]
+        [Option('b', "is-base", Default = false, HelpText = "Download resources below base uri only.")]
         public bool IsBase { get; set; }
 
-        [Option('d', "max-depth", Default = 0, HelpText = "Max download depth")]
+        [Option('d', "max-depth", MetaValue = "<value>", Default = 0, HelpText = "Max download depth for resources.")]
         public int MaxDepth { get; set; }
 
-        [Option('i', "include", HelpText = "Download resources matching this regex pattern")]
+        [Option('i', "include", MetaValue = "<pattern>", HelpText = "Download resources matching this regex pattern.")]
         public string Include { get; set; }
 
         ProgressConsole _progressConsole;
@@ -85,6 +81,28 @@ namespace WebsiteRipper.CommandLine
         void ripper_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
             _progressConsole.WriteProgress(string.Format("- {0}", e.Uri), e.ProgressPercentage);
+        }
+
+        [Usage]
+        public static IEnumerable<Example> Examples
+        {
+            get
+            {
+                var unParserSettings = new UnParserSettings() { PreferShortName = true, GroupSwitches = true };
+                yield return new Example("Rip a website", unParserSettings, new CreateVerb()
+                {
+                    Uri = "http://my.website.com",
+                    Output = @"C:\Path\Website",
+                    Timeout = 30,
+                    MaxDepth = 1
+                });
+                yield return new Example("Update a ripped website", unParserSettings, new UpdateVerb()
+                {
+                    Uri = "http://my.website.com",
+                    Langs = new[] { "en-US", "en" },
+                    Include = @"^http://my\.website\.com/files/"
+                });
+            }
         }
     }
 }

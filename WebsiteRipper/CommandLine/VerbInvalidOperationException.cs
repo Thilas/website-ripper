@@ -6,8 +6,8 @@ namespace WebsiteRipper.CommandLine
     {
         public int ExitCode { get; private set; }
 
-        internal VerbInvalidOperationException(int exitCode, Exception innerException)
-            : base(null, innerException)
+        internal VerbInvalidOperationException(string message, int exitCode, Exception innerException = null)
+            : base(message, innerException)
         {
             if (exitCode <= 0) throw new ArgumentOutOfRangeException("exitCode");
             ExitCode = exitCode;

@@ -1,4 +1,4 @@
-# Last modified: 2015-08-04T18:24:57.0000000Z
+# Last modified: 2015-08-21T23:42:05.0000000Z
 #
 # MIME type (lowercased)			Extensions
 # ============================================	==========
@@ -195,6 +195,7 @@ application/pgp-signature			asc sig
 # application/pidf+xml
 application/pidf-diff+xml			xml
 application/pkcs10				p10
+application/pkcs12				p12 pfx
 # application/pkcs7-mime
 # application/pkcs7-signature
 application/pkcs8				p8
@@ -815,6 +816,7 @@ application/vnd.oma.dd2+xml			xml dd2
 # application/vnd.omads-file+xml
 # application/vnd.omads-folder+xml
 # application/vnd.omaloc-supl-init
+application/vnd.openblox.game+xml		obgx
 application/vnd.openeye.oeb			oeb
 application/vnd.openxmlformats-officedocument.custom-properties+xml	xml
 application/vnd.openxmlformats-officedocument.customxmlproperties+xml	xml
